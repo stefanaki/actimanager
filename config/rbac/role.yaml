@@ -1,0 +1,32 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: manager-role
+rules:
+- apiGroups:
+  - cslab.ece.ntua.gr
+  resources:
+  - nodecputopologies
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - cslab.ece.ntua.gr
+  resources:
+  - nodecputopologies/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - cslab.ece.ntua.gr
+  resources:
+  - nodecputopologies/status
+  verbs:
+  - get
+  - patch
+  - update
