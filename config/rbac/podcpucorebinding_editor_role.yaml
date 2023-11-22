@@ -1,0 +1,31 @@
+# permissions for end users to edit podcpucorebindings.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: clusterrole
+    app.kubernetes.io/instance: podcpucorebinding-editor-role
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/created-by: actimanager
+    app.kubernetes.io/part-of: actimanager
+    app.kubernetes.io/managed-by: kustomize
+  name: podcpucorebinding-editor-role
+rules:
+- apiGroups:
+  - cslab.ece.ntua.gr
+  resources:
+  - podcpucorebindings
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - cslab.ece.ntua.gr
+  resources:
+  - podcpucorebindings/status
+  verbs:
+  - get
