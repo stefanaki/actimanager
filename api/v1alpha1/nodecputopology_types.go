@@ -6,20 +6,26 @@ import (
 
 // NodeCpuTopologySpec defines the desired state of NodeCpuTopology
 type NodeCpuTopologySpec struct {
-	NodeName string      `json:"nodeName"`
+	NodeName string `json:"nodeName"`
+
+	//+kubebuilder:validation:Optional
 	Topology CpuTopology `json:"topology"`
 }
 
 // NodeCpuTopologyStatus defines the observed state of NodeCpuTopology
 type NodeCpuTopologyStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	//+kubebuilder:validation:Enum=Init;Pending;Completed;Failed
+	//+kubebuilder:default=Init
+	InitJobStatus string `json:"initJobStatus"`
+	InitJobName   string `json:"initJobName"`
 }
 
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
 // +kubebuilder:resource:scope=Cluster
 
+// +kubebuilder:printcolumn:name="Node",type=string,JSONPath=`.spec.nodeName`
+// +kubebuilder:printcolumn:name="Status",type=string,JSONPath=`.status.initJobStatus`
 // NodeCpuTopology is the Schema for the nodecputopologies API
 type NodeCpuTopology struct {
 	metav1.TypeMeta   `json:",inline"`

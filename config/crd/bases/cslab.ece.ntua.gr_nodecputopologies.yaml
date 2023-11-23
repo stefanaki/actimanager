@@ -14,7 +14,14 @@ spec:
     singular: nodecputopology
   scope: Cluster
   versions:
-  - name: v1alpha1
+  - additionalPrinterColumns:
+    - jsonPath: .spec.nodeName
+      name: Node
+      type: string
+    - jsonPath: .status.initJobStatus
+      name: Status
+      type: string
+    name: v1alpha1
     schema:
       openAPIV3Schema:
         description: NodeCpuTopology is the Schema for the nodecputopologies API
@@ -82,10 +89,23 @@ spec:
                 type: object
             required:
             - nodeName
-            - topology
             type: object
           status:
             description: NodeCpuTopologyStatus defines the observed state of NodeCpuTopology
+            properties:
+              initJobName:
+                type: string
+              initJobStatus:
+                default: Init
+                enum:
+                - Init
+                - Pending
+                - Completed
+                - Failed
+                type: string
+            required:
+            - initJobName
+            - initJobStatus
             type: object
         type: object
     served: true

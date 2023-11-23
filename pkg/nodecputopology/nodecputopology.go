@@ -1,25 +1,22 @@
 package nodecputopology
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
 )
 
-// RetrieveNodeCpuTopology uses `lscpu` internally to populate a
+var NodeCpuTopologyParseError = errors.New("Could not parse node's CPU topology")
+
+// ParseNodeCpuTopology uses the output of `lscpu` command to populate a
 // `NodeCpuTopology` object of the CPU topology of the Kubernetes node
-func RetrieveNodeCpuTopology(topology *NodeCpuTopology) error {
+func ParseNodeCpuTopology(topology *NodeCpuTopology, lscpuOutput string) error {
 	if topology.NumaNodes == nil {
 		topology.NumaNodes = make(map[int]*NumaNode)
 	}
 
-	out, err := lscpu("-p=node,socket,core")
-	if err != nil {
-		fmt.Printf("Could not get NUMA nodes: %v\n", err.Error())
-		return NodeCpuTopologyParseError
-	}
-
-	for _, lsLine := range strings.Split(strings.TrimSuffix(out, "\n"), "\n") {
+	for _, lsLine := range strings.Split(strings.TrimSuffix(lscpuOutput, "\n"), "\n") {
 		if strings.HasPrefix(lsLine, "#") {
 			continue
 		}
@@ -68,4 +65,18 @@ func RetrieveNodeCpuTopology(topology *NodeCpuTopology) error {
 	}
 
 	return nil
+}
+
+func PrintTopology(topology *NodeCpuTopology) {
+	fmt.Println("NodeCpuTopology:")
+	for nodeID, numaNode := range topology.NumaNodes {
+		fmt.Printf("\tNumaNode ID: %d\n", nodeID)
+		for socketID, socket := range numaNode.Sockets {
+			fmt.Printf("\t\tSocket ID: %d\n", socketID)
+			for coreID, core := range socket.Cores {
+				fmt.Printf("\t\t\tCore ID: %d\n", coreID)
+				fmt.Printf("\t\t\t\tThreads: %d\n", core.Threads)
+			}
+		}
+	}
 }
