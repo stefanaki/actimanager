@@ -7,7 +7,34 @@ metadata:
     app.kubernetes.io/part-of: actimanager
     app.kubernetes.io/managed-by: kustomize
     app.kubernetes.io/created-by: actimanager
-  name: nodecputopology-m02
+  name: node-1-cputopology
 spec:
-  nodeName: minikube-m02
+  nodeName: node-1
+  topology:
+---
+apiVersion: cslab.ece.ntua.gr/v1alpha1
+kind: NodeCpuTopology
+metadata:
+  labels:
+    app.kubernetes.io/name: nodecputopology
+    app.kubernetes.io/instance: nodecputopology-sample
+    app.kubernetes.io/part-of: actimanager
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: actimanager
+  name: node-2-cputopology
+spec:
+  nodeName: node-2
+---
+apiVersion: cslab.ece.ntua.gr/v1alpha1
+kind: NodeCpuTopology
+metadata:
+  labels:
+    app.kubernetes.io/name: nodecputopology
+    app.kubernetes.io/instance: nodecputopology-sample
+    app.kubernetes.io/part-of: actimanager
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: actimanager
+  name: node-3-cputopology
+spec:
+  nodeName: node-3
   topology:

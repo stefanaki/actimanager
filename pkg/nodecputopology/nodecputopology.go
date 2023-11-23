@@ -12,8 +12,8 @@ var NodeCpuTopologyParseError = errors.New("could not parse node's CPU topology"
 // ParseNodeCpuTopology uses the output of `lscpu` command to populate a
 // `NodeCpuTopology` object of the CPU topology of the Kubernetes node
 func ParseNodeCpuTopology(topology *NodeCpuTopology, lscpuOutput string) error {
-	if topology.NumaNodes == nil {
-		topology.NumaNodes = make(map[int]*NumaNode)
+	if topology.Sockets == nil {
+		topology.Sockets = make(map[int]*Socket)
 	}
 
 	for _, lsLine := range strings.Split(strings.TrimSuffix(lscpuOutput, "\n"), "\n") {
@@ -23,19 +23,19 @@ func ParseNodeCpuTopology(topology *NodeCpuTopology, lscpuOutput string) error {
 
 		values := strings.Split(lsLine, ",")
 		if len(values) != 4 {
-			fmt.Printf("Invalid format for node,socket,core line: %s\n", lsLine)
+			fmt.Printf("Invalid format for socket,node,core,cpu: %s\n", lsLine)
 			return NodeCpuTopologyParseError
 		}
 
-		nodeId, err := strconv.Atoi(values[0])
-		if err != nil {
-			fmt.Printf("Could not parse node ID: %v\n", err.Error())
-			return NodeCpuTopologyParseError
-		}
-
-		socketId, err := strconv.Atoi(values[1])
+		socketId, err := strconv.Atoi(values[0])
 		if err != nil {
 			fmt.Printf("Could not parse socket ID: %v\n", err.Error())
+			return NodeCpuTopologyParseError
+		}
+
+		nodeId, err := strconv.Atoi(values[1])
+		if err != nil {
+			fmt.Printf("Could not parse node ID: %v\n", err.Error())
 			return NodeCpuTopologyParseError
 		}
 
@@ -51,28 +51,28 @@ func ParseNodeCpuTopology(topology *NodeCpuTopology, lscpuOutput string) error {
 			return NodeCpuTopologyParseError
 		}
 
-		existingNumaNode, exists := topology.NumaNodes[nodeId]
+		existingSocket, exists := topology.Sockets[socketId]
 		if !exists {
-			existingNumaNode = &NumaNode{Id: nodeId, Sockets: make(map[int]*Socket)}
-			topology.NumaNodes[nodeId] = existingNumaNode
+			existingSocket = &Socket{SocketId: socketId, NumaNodes: make(map[int]*NumaNode)}
+			topology.Sockets[socketId] = existingSocket
 		}
 
-		existingSocket, exists := topology.NumaNodes[nodeId].Sockets[socketId]
+		existingNumaNode, exists := topology.Sockets[socketId].NumaNodes[nodeId]
 		if !exists {
-			existingSocket = &Socket{Id: socketId, Cores: make(map[int]*Core)}
-			topology.NumaNodes[nodeId].Sockets[socketId] = existingSocket
+			existingNumaNode = &NumaNode{NumaNodeId: nodeId, Cores: make(map[int]*Core)}
+			topology.Sockets[socketId].NumaNodes[nodeId] = existingNumaNode
 		}
 
-		existingCore, exists := topology.NumaNodes[nodeId].Sockets[socketId].Cores[coreId]
+		existingCore, exists := topology.Sockets[socketId].NumaNodes[nodeId].Cores[coreId]
 		if !exists {
-			existingCore = &Core{Id: coreId, Cpus: make(map[int]*Cpu)}
-			topology.NumaNodes[nodeId].Sockets[socketId].Cores[coreId] = existingCore
+			existingCore = &Core{CoreId: coreId, Cpus: make(map[int]*Cpu)}
+			topology.Sockets[socketId].NumaNodes[nodeId].Cores[coreId] = existingCore
 		}
 
-		existingCpu, exists := topology.NumaNodes[nodeId].Sockets[socketId].Cores[coreId].Cpus[cpuId]
+		existingCpu, exists := topology.Sockets[socketId].NumaNodes[nodeId].Cores[coreId].Cpus[cpuId]
 		if !exists {
-			existingCpu = &Cpu{Id: cpuId}
-			topology.NumaNodes[nodeId].Sockets[socketId].Cores[coreId].Cpus[cpuId] = existingCpu
+			existingCpu = &Cpu{CpuId: cpuId}
+			topology.Sockets[socketId].NumaNodes[nodeId].Cores[coreId].Cpus[cpuId] = existingCpu
 		}
 	}
 
@@ -81,14 +81,14 @@ func ParseNodeCpuTopology(topology *NodeCpuTopology, lscpuOutput string) error {
 
 func PrintTopology(topology *NodeCpuTopology) {
 	fmt.Println("NodeCpuTopology:")
-	for nodeID, numaNode := range topology.NumaNodes {
-		fmt.Printf("\tNumaNode ID: %d\n", nodeID)
-		for socketID, socket := range numaNode.Sockets {
-			fmt.Printf("\t\tSocket ID: %d\n", socketID)
-			for coreID, core := range socket.Cores {
-				fmt.Printf("\t\t\tCore ID: %d\n", coreID)
-				for cpu := range core.Cpus {
-					fmt.Printf("\t\t\t\tCPU: %d", cpu)
+	for _, socket := range topology.Sockets {
+		fmt.Printf("\tSocket ID: %d\n", socket.SocketId)
+		for _, numaNode := range socket.NumaNodes {
+			fmt.Printf("\t\tNumaNode ID: %d\n", numaNode.NumaNodeId)
+			for _, core := range numaNode.Cores {
+				fmt.Printf("\t\t\tCore ID: %d\n", core.CoreId)
+				for _, cpu := range core.Cpus {
+					fmt.Printf("\t\t\t\tCPU: %d\n", cpu.CpuId)
 				}
 			}
 		}

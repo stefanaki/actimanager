@@ -2,28 +2,28 @@ package nodecputopology
 
 // Cpu is a logical CPU core of the parent core
 type Cpu struct {
-	Id int `json:"id"`
+	CpuId int `json:"cpuId"`
 }
 
-// Core is a physical CPU core of the parent socket
+// Core is a physical CPU core of the parent NUMA node
 type Core struct {
-	Id   int          `json:"id"`
-	Cpus map[int]*Cpu `json:"cpus"`
+	CoreId int          `json:"coreId"`
+	Cpus   map[int]*Cpu `json:"cpus"`
 }
 
-// Socket is a CPU socket of the parent NUMA node
-type Socket struct {
-	Id    int           `json:"id"`
-	Cores map[int]*Core `json:"cores"`
-}
-
-// NumaNode is a NUMA node of the Kubernetes node
+// NumaNode is a NUMA node of the parent socket
 type NumaNode struct {
-	Id      int             `json:"id"`
-	Sockets map[int]*Socket `json:"sockets"`
+	NumaNodeId int           `json:"numaNodeId"`
+	Cores      map[int]*Core `json:"cores"`
+}
+
+// Socket is a CPU socket of the Kubernetes node
+type Socket struct {
+	SocketId  int               `json:"socketId"`
+	NumaNodes map[int]*NumaNode `json:"numaNodes"`
 }
 
 // NodeCpuTopology represents the hierarchical topology of the CPU of a Kubernetes node
 type NodeCpuTopology struct {
-	NumaNodes map[int]*NumaNode `json:"numaNodes"`
+	Sockets map[int]*Socket `json:"sockets"`
 }

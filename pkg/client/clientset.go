@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 )
 
-func GetClientSet() (*kubernetes.Clientset, error) {
+func NewClientset() (*kubernetes.Clientset, error) {
 	home := homedir.HomeDir()
 	var kubeconfig = filepath.Join(home, ".kube", "config")
 
