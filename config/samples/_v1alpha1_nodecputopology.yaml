@@ -7,7 +7,35 @@ metadata:
     app.kubernetes.io/part-of: actimanager
     app.kubernetes.io/managed-by: kustomize
     app.kubernetes.io/created-by: actimanager
+  name: nodecputopology
+spec:
+  nodeName: minikube
+  topology:
+---
+apiVersion: cslab.ece.ntua.gr/v1alpha1
+kind: NodeCpuTopology
+metadata:
+  labels:
+    app.kubernetes.io/name: nodecputopology
+    app.kubernetes.io/instance: nodecputopology-sample
+    app.kubernetes.io/part-of: actimanager
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: actimanager
   name: nodecputopology-m02
 spec:
   nodeName: minikube-m02
+  topology:
+---
+apiVersion: cslab.ece.ntua.gr/v1alpha1
+kind: NodeCpuTopology
+metadata:
+  labels:
+    app.kubernetes.io/name: nodecputopology
+    app.kubernetes.io/instance: nodecputopology-sample
+    app.kubernetes.io/part-of: actimanager
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: actimanager
+  name: nodecputopology-aaa
+spec:
+  nodeName: dumb!
   topology:

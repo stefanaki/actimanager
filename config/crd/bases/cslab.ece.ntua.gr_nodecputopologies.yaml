@@ -19,7 +19,7 @@ spec:
       name: Node
       type: string
     - jsonPath: .status.initJobStatus
-      name: Status
+      name: Job Status
       type: string
     name: v1alpha1
     schema:
@@ -47,54 +47,53 @@ spec:
                 description: CpuTopology represents the hierarchical topology of the
                   CPU of a Kubernetes node
                 properties:
-                  numaNodes:
+                  sockets:
                     items:
-                      description: NumaNode is a NUMA node of the Kubernetes node
+                      description: Socket is a CPU socket of the Kubernetes node
                       properties:
-                        id:
-                          type: integer
-                        sockets:
+                        numaNodes:
                           items:
-                            description: Socket is a CPU socket of the parent NUMA
-                              node
+                            description: NumaNode is a NUMA node of the parent socket
                             properties:
                               cores:
                                 items:
                                   description: Core is a physical CPU core of the
-                                    parent socket
+                                    parent NUMA node
                                   properties:
+                                    coreId:
+                                      type: integer
                                     cpus:
                                       items:
                                         description: Cpu is a logical CPU core of
                                           the parent core
                                         properties:
-                                          id:
+                                          cpuId:
                                             type: integer
                                         required:
-                                        - id
+                                        - cpuId
                                         type: object
                                       type: array
-                                    id:
-                                      type: integer
                                   required:
+                                  - coreId
                                   - cpus
-                                  - id
                                   type: object
                                 type: array
-                              id:
+                              numaNodeId:
                                 type: integer
                             required:
                             - cores
-                            - id
+                            - numaNodeId
                             type: object
                           type: array
+                        socketId:
+                          type: integer
                       required:
-                      - id
-                      - sockets
+                      - numaNodes
+                      - socketId
                       type: object
                     type: array
                 required:
-                - numaNodes
+                - sockets
                 type: object
             required:
             - nodeName

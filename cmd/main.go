@@ -20,6 +20,7 @@ import (
 	"cslab.ece.ntua.gr/actimanager/internal/controller/nodecputopology"
 	"cslab.ece.ntua.gr/actimanager/internal/controller/podcpucorebinding"
 	"flag"
+	batchv1 "k8s.io/api/batch/v1"
 	"os"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
@@ -45,8 +46,9 @@ var (
 
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
-
+	utilruntime.Must(batchv1.AddToScheme(scheme))
 	utilruntime.Must(cslabecentuagrv1alpha1.AddToScheme(scheme))
+
 	//+kubebuilder:scaffold:scheme
 }
 

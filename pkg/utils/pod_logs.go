@@ -9,7 +9,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 )
 
-func GetPodLogs(pod corev1.Pod, ctx context.Context) (string, error) {
+func GetPodLogs(pod corev1.Pod, ctx *context.Context) (string, error) {
 	clientset, err := client.GetClientSet()
 
 	if err != nil {
@@ -20,7 +20,7 @@ func GetPodLogs(pod corev1.Pod, ctx context.Context) (string, error) {
 	podLogOpts := corev1.PodLogOptions{}
 
 	req := clientset.CoreV1().Pods(pod.Namespace).GetLogs(pod.Name, &podLogOpts)
-	podLogs, err := req.Stream(ctx)
+	podLogs, err := req.Stream(*ctx)
 
 	if err != nil {
 		errors.Errorf("error getting log stream: %v", err)

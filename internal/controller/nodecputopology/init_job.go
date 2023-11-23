@@ -15,7 +15,7 @@ func LscpuJobTemplate(node string) (string, *batchv1.Job) {
 	job := &batchv1.Job{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      jobName,
-			Namespace: "default",
+			Namespace: "actimanager-system",
 		},
 		Spec: batchv1.JobSpec{
 			Template: corev1.PodTemplateSpec{
@@ -28,7 +28,7 @@ func LscpuJobTemplate(node string) (string, *batchv1.Job) {
 							Command: []string{
 								"lscpu",
 							},
-							Args: []string{"-p=node,socket,core,cpu"},
+							Args: []string{"-p=socket,node,core,cpu"},
 						},
 					},
 					RestartPolicy: corev1.RestartPolicyNever,

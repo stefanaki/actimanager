@@ -8,31 +8,34 @@ import (
 func convertToV1Alpha1(internalTopology *nodecputopology.NodeCpuTopology) v1alpha1.CpuTopology {
 	var topology v1alpha1.CpuTopology
 
-	for _, numaNode := range internalTopology.NumaNodes {
-		n := v1alpha1.NumaNode{
-			Id:      numaNode.Id,
-			Sockets: make([]v1alpha1.Socket, 0),
+	for _, socket := range internalTopology.Sockets {
+		s := v1alpha1.Socket{
+			SocketId:  socket.SocketId,
+			NumaNodes: make([]v1alpha1.NumaNode, 0),
 		}
-		for _, socket := range numaNode.Sockets {
-			s := v1alpha1.Socket{
-				Id:    socket.Id,
-				Cores: make([]v1alpha1.Core, 0),
+
+		for _, numaNode := range socket.NumaNodes {
+			n := v1alpha1.NumaNode{
+				NumaNodeId: numaNode.NumaNodeId,
+				Cores:      make([]v1alpha1.Core, 0),
 			}
-			for _, core := range socket.Cores {
+
+			for _, core := range numaNode.Cores {
 				c := v1alpha1.Core{
-					Id:   core.Id,
-					Cpus: make([]v1alpha1.Cpu, 0),
+					CoreId: core.CoreId,
+					Cpus:   make([]v1alpha1.Cpu, 0),
 				}
+
 				for _, cpu := range core.Cpus {
-					t := v1alpha1.Cpu{Id: cpu.Id}
-					c.Cpus = append(c.Cpus, t)
+					c.Cpus = append(c.Cpus, v1alpha1.Cpu{CpuId: cpu.CpuId})
 				}
-				s.Cores = append(s.Cores, c)
+				n.Cores = append(n.Cores, c)
 			}
-			n.Sockets = append(n.Sockets, s)
+			s.NumaNodes = append(s.NumaNodes, n)
 		}
-		topology.NumaNodes = append(topology.NumaNodes, n)
+		topology.Sockets = append(topology.Sockets, s)
 	}
+
 	return topology
 }
 
