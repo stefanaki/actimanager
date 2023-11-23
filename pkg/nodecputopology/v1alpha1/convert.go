@@ -21,7 +21,11 @@ func convertToV1Alpha1(internalTopology *nodecputopology.NodeCpuTopology) v1alph
 			for _, core := range socket.Cores {
 				c := v1alpha1.Core{
 					Id:      core.Id,
-					Threads: core.Threads,
+					Threads: make([]v1alpha1.Thread, 0),
+				}
+				for _, thread := range core.Threads {
+					t := v1alpha1.Thread{Id: thread.Id}
+					c.Threads = append(c.Threads, t)
 				}
 				s.Cores = append(s.Cores, c)
 			}
@@ -35,5 +39,6 @@ func convertToV1Alpha1(internalTopology *nodecputopology.NodeCpuTopology) v1alph
 func NodeCpuTopologyV1Alpha1(lscpuOutput string) (v1alpha1.CpuTopology, error) {
 	topology := &nodecputopology.NodeCpuTopology{}
 	err := nodecputopology.ParseNodeCpuTopology(topology, lscpuOutput)
+	nodecputopology.PrintTopology(topology)
 	return convertToV1Alpha1(topology), err
 }

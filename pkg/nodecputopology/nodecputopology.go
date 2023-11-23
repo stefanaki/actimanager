@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-var NodeCpuTopologyParseError = errors.New("Could not parse node's CPU topology")
+var NodeCpuTopologyParseError = errors.New("could not parse node's CPU topology")
 
 // ParseNodeCpuTopology uses the output of `lscpu` command to populate a
 // `NodeCpuTopology` object of the CPU topology of the Kubernetes node
@@ -22,7 +22,7 @@ func ParseNodeCpuTopology(topology *NodeCpuTopology, lscpuOutput string) error {
 		}
 
 		values := strings.Split(lsLine, ",")
-		if len(values) != 3 {
+		if len(values) != 4 {
 			fmt.Printf("Invalid format for node,socket,core line: %s\n", lsLine)
 			return NodeCpuTopologyParseError
 		}
@@ -45,6 +45,12 @@ func ParseNodeCpuTopology(topology *NodeCpuTopology, lscpuOutput string) error {
 			return NodeCpuTopologyParseError
 		}
 
+		threadId, err := strconv.Atoi(values[3])
+		if err != nil {
+			fmt.Printf("Could not parse thread ID: %v\n", err.Error())
+			return NodeCpuTopologyParseError
+		}
+
 		existingNumaNode, exists := topology.NumaNodes[nodeId]
 		if !exists {
 			existingNumaNode = &NumaNode{Id: nodeId, Sockets: make(map[int]*Socket)}
@@ -59,8 +65,14 @@ func ParseNodeCpuTopology(topology *NodeCpuTopology, lscpuOutput string) error {
 
 		existingCore, exists := topology.NumaNodes[nodeId].Sockets[socketId].Cores[coreId]
 		if !exists {
-			existingCore = &Core{Id: coreId, Threads: 1} // threads per core not implemented yet
+			existingCore = &Core{Id: coreId, Threads: make(map[int]*Thread)} // threads per core not implemented yet
 			topology.NumaNodes[nodeId].Sockets[socketId].Cores[coreId] = existingCore
+		}
+
+		existingThread, exists := topology.NumaNodes[nodeId].Sockets[socketId].Cores[coreId].Threads[threadId]
+		if !exists {
+			existingThread = &Thread{Id: threadId}
+			topology.NumaNodes[nodeId].Sockets[socketId].Cores[coreId].Threads[threadId] = existingThread
 		}
 	}
 
@@ -75,7 +87,9 @@ func PrintTopology(topology *NodeCpuTopology) {
 			fmt.Printf("\t\tSocket ID: %d\n", socketID)
 			for coreID, core := range socket.Cores {
 				fmt.Printf("\t\t\tCore ID: %d\n", coreID)
-				fmt.Printf("\t\t\t\tThreads: %d\n", core.Threads)
+				for thread := range core.Threads {
+					fmt.Printf("\t\t\t\tThread: %d\n", thread)
+				}
 			}
 		}
 	}

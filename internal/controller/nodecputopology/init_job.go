@@ -28,7 +28,7 @@ func LscpuJobTemplate(node string) (string, *batchv1.Job) {
 							Command: []string{
 								"lscpu",
 							},
-							Args: []string{"-p=node,socket,core"},
+							Args: []string{"-p=node,socket,core,cpu"},
 						},
 					},
 					RestartPolicy: corev1.RestartPolicyNever,

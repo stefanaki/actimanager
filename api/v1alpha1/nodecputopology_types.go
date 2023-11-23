@@ -63,8 +63,13 @@ type Socket struct {
 
 // Core is a physical CPU core of the parent socket
 type Core struct {
-	Id      int `json:"id"`
-	Threads int `json:"threads"`
+	Id      int      `json:"id"`
+	Threads []Thread `json:"threads"`
+}
+
+// Thread is a logical CPU core of the parent core
+type Thread struct {
+	Id int `json:"id"`
 }
 
 func init() {

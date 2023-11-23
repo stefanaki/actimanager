@@ -7,8 +7,8 @@ type Thread struct {
 
 // Core is a physical CPU core of the parent socket
 type Core struct {
-	Id      int `json:"id"`
-	Threads int `json:"threads"`
+	Id      int             `json:"id"`
+	Threads map[int]*Thread `json:"threads"`
 }
 
 // Socket is a CPU socket of the parent NUMA node
