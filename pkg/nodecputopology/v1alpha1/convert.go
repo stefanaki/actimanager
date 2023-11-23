@@ -20,12 +20,12 @@ func convertToV1Alpha1(internalTopology *nodecputopology.NodeCpuTopology) v1alph
 			}
 			for _, core := range socket.Cores {
 				c := v1alpha1.Core{
-					Id:      core.Id,
-					Threads: make([]v1alpha1.Thread, 0),
+					Id:   core.Id,
+					Cpus: make([]v1alpha1.Cpu, 0),
 				}
-				for _, thread := range core.Threads {
-					t := v1alpha1.Thread{Id: thread.Id}
-					c.Threads = append(c.Threads, t)
+				for _, cpu := range core.Cpus {
+					t := v1alpha1.Cpu{Id: cpu.Id}
+					c.Cpus = append(c.Cpus, t)
 				}
 				s.Cores = append(s.Cores, c)
 			}

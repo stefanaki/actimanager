@@ -63,12 +63,10 @@ spec:
                                   description: Core is a physical CPU core of the
                                     parent socket
                                   properties:
-                                    id:
-                                      type: integer
-                                    threads:
+                                    cpus:
                                       items:
-                                        description: Thread is a logical CPU core
-                                          of the parent core
+                                        description: Cpu is a logical CPU core of
+                                          the parent core
                                         properties:
                                           id:
                                             type: integer
@@ -76,9 +74,11 @@ spec:
                                         - id
                                         type: object
                                       type: array
+                                    id:
+                                      type: integer
                                   required:
+                                  - cpus
                                   - id
-                                  - threads
                                   type: object
                                 type: array
                               id:

@@ -1,14 +1,14 @@
 package nodecputopology
 
-// Thread is a logical CPU core of the parent core
-type Thread struct {
+// Cpu is a logical CPU core of the parent core
+type Cpu struct {
 	Id int `json:"id"`
 }
 
 // Core is a physical CPU core of the parent socket
 type Core struct {
-	Id      int             `json:"id"`
-	Threads map[int]*Thread `json:"threads"`
+	Id   int          `json:"id"`
+	Cpus map[int]*Cpu `json:"cpus"`
 }
 
 // Socket is a CPU socket of the parent NUMA node

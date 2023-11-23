@@ -45,9 +45,9 @@ func ParseNodeCpuTopology(topology *NodeCpuTopology, lscpuOutput string) error {
 			return NodeCpuTopologyParseError
 		}
 
-		threadId, err := strconv.Atoi(values[3])
+		cpuId, err := strconv.Atoi(values[3])
 		if err != nil {
-			fmt.Printf("Could not parse thread ID: %v\n", err.Error())
+			fmt.Printf("Could not parse cpu ID: %v\n", err.Error())
 			return NodeCpuTopologyParseError
 		}
 
@@ -65,14 +65,14 @@ func ParseNodeCpuTopology(topology *NodeCpuTopology, lscpuOutput string) error {
 
 		existingCore, exists := topology.NumaNodes[nodeId].Sockets[socketId].Cores[coreId]
 		if !exists {
-			existingCore = &Core{Id: coreId, Threads: make(map[int]*Thread)} // threads per core not implemented yet
+			existingCore = &Core{Id: coreId, Cpus: make(map[int]*Cpu)}
 			topology.NumaNodes[nodeId].Sockets[socketId].Cores[coreId] = existingCore
 		}
 
-		existingThread, exists := topology.NumaNodes[nodeId].Sockets[socketId].Cores[coreId].Threads[threadId]
+		existingCpu, exists := topology.NumaNodes[nodeId].Sockets[socketId].Cores[coreId].Cpus[cpuId]
 		if !exists {
-			existingThread = &Thread{Id: threadId}
-			topology.NumaNodes[nodeId].Sockets[socketId].Cores[coreId].Threads[threadId] = existingThread
+			existingCpu = &Cpu{Id: cpuId}
+			topology.NumaNodes[nodeId].Sockets[socketId].Cores[coreId].Cpus[cpuId] = existingCpu
 		}
 	}
 
@@ -87,8 +87,8 @@ func PrintTopology(topology *NodeCpuTopology) {
 			fmt.Printf("\t\tSocket ID: %d\n", socketID)
 			for coreID, core := range socket.Cores {
 				fmt.Printf("\t\t\tCore ID: %d\n", coreID)
-				for thread := range core.Threads {
-					fmt.Printf("\t\t\t\tThread: %d\n", thread)
+				for cpu := range core.Cpus {
+					fmt.Printf("\t\t\t\tCPU: %d", cpu)
 				}
 			}
 		}
