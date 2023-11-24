@@ -4,55 +4,54 @@ kind: ClusterRole
 metadata:
   name: manager-role
 rules:
-- apiGroups:
-  - cslab.ece.ntua.gr
-  resources:
-  - nodecputopologies
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - cslab.ece.ntua.gr
-  resources:
-  - nodecputopologies/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - cslab.ece.ntua.gr
-  resources:
-  - nodecputopologies/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - cslab.ece.ntua.gr
-  resources:
-  - podcpucorebindings
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - cslab.ece.ntua.gr
-  resources:
-  - podcpucorebindings/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - cslab.ece.ntua.gr
-  resources:
-  - podcpucorebindings/status
-  verbs:
-  - get
-  - patch
-  - update
+  - apiGroups:
+      - cslab.ece.ntua.gr
+    resources:
+      - nodecputopologies
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - cslab.ece.ntua.gr
+    resources:
+      - nodecputopologies/finalizers
+    verbs:
+      - update
+  - apiGroups:
+      - cslab.ece.ntua.gr
+    resources:
+      - nodecputopologies/status
+    verbs:
+      - get
+      - patch
+      - update
+  - apiGroups:
+      - ""
+    resources:
+      - pods
+      - pods/log
+      - nodes
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - batch
+    resources:
+      - jobs
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - delete

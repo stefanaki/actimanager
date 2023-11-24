@@ -15,10 +15,14 @@ type NodeCpuTopologySpec struct {
 // NodeCpuTopologyStatus defines the observed state of NodeCpuTopology
 type NodeCpuTopologyStatus struct {
 	//+kubebuilder:validation:Required
-	//+kubebuilder:validation:Enum=Init;Pending;Completed;Failed
-	//+kubebuilder:default=Init
 	InitJobStatus string `json:"initJobStatus"`
 	InitJobName   string `json:"initJobName"`
+
+	//+kubebuilder:validation:Required
+	Status string `json:"status"`
+
+	//+kubebuilder:validation:Required
+	LastNodeName string `json:"lastNodeName"`
 }
 
 // +kubebuilder:object:root=true
@@ -26,6 +30,7 @@ type NodeCpuTopologyStatus struct {
 // +kubebuilder:resource:scope=Cluster
 
 // +kubebuilder:printcolumn:name="Node",type=string,JSONPath=`.spec.nodeName`
+// +kubebuilder:printcolumn:name="Status",type=string,JSONPath=`.status.status`
 // +kubebuilder:printcolumn:name="Job Status",type=string,JSONPath=`.status.initJobStatus`
 // NodeCpuTopology is the Schema for the nodecputopologies API
 type NodeCpuTopology struct {

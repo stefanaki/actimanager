@@ -3,30 +3,15 @@ package nodecputopology
 import (
 	"context"
 	cslabecentuagrv1alpha1 "cslab.ece.ntua.gr/actimanager/api/v1alpha1"
-	nodecputopologyv1alpha1 "cslab.ece.ntua.gr/actimanager/pkg/nodecputopology/v1alpha1"
-	"cslab.ece.ntua.gr/actimanager/pkg/utils"
-	"github.com/go-logr/logr"
+	"fmt"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/log"
-	"sigs.k8s.io/controller-runtime/pkg/predicate"
-	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
-
-var eventFilters = builder.WithPredicates(predicate.Funcs{GenericFunc: func(e event.GenericEvent) bool {
-	switch object := e.Object.(type) {
-	case *cslabecentuagrv1alpha1.NodeCpuTopology:
-		return object.Status.InitJobStatus != "Failed"
-	default:
-		return false
-	}
-}})
 
 // NodeCpuTopologyReconciler reconciles a NodeCpuTopology object
 type NodeCpuTopologyReconciler struct {
@@ -34,146 +19,139 @@ type NodeCpuTopologyReconciler struct {
 	Scheme *runtime.Scheme
 }
 
-//+kubebuilder:rbac:groups=cslab.ece.ntua.gr,resources=nodecputopologies,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=cslab.ece.ntua.gr,resources=nodecputopologies/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=cslab.ece.ntua.gr,resources=nodecputopologies/finalizers,verbs=update
-
+// +kubebuilder:rbac:groups=cslab.ece.ntua.gr,resources=nodecputopologies,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=cslab.ece.ntua.gr,resources=nodecputopologies/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=cslab.ece.ntua.gr,resources=nodecputopologies/finalizers,verbs=update
+// +kubebuilder:rbac:groups=core,resources=pods,verbs=get;list;watch
+// +kubebuilder:rbac:groups=core,resources=nodes,verbs=get;list;watch
 func (r *NodeCpuTopologyReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	logger := log.FromContext(ctx).WithName("nct-controller")
 
+	// Get NodeCpuTopology CR
 	topology := &cslabecentuagrv1alpha1.NodeCpuTopology{}
 
+	// Handle delete
 	err := r.Get(ctx, req.NamespacedName, topology)
 	if errors.IsNotFound(err) {
-		logger.Info("Could not find NodeCpuTopology")
+		logger.Info("Deleted NodeCpuTopology")
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
-
 	if err != nil {
-		return reconcile.Result{}, err
+		return ctrl.Result{}, err
 	}
 
-	if topology.Status.InitJobStatus == "Completed" {
+	// Initialize CR
+	if topology.Spec.NodeName != topology.Status.LastNodeName {
+		topology.Status.Status = "NeedsSync"
+		topology.Status.LastNodeName = topology.Spec.NodeName
+		topology.Status.InitJobStatus = "None"
+		if err := r.Status().Update(ctx, topology); err != nil {
+			return ctrl.Result{}, fmt.Errorf("error updating resource: %v", err)
+		}
 		return ctrl.Result{}, nil
 	}
 
-	_, err = r.getNodeByTopologyNodeName(topology, &ctx)
+	// Validate CR
+	if topology.Status.Status == "NodeNotFound" ||
+		topology.Status.Status == "Fresh" {
+		return ctrl.Result{}, nil
+	}
 
-	if err != nil {
-		logger.Info("Node with specified nodeName not found: " + topology.Spec.NodeName)
-		topology.Status.InitJobStatus = "Failed"
+	// Check if specified NodeName is a valid name of a node
+	if _, err := r.getNodeByTopologyNodeName(topology, ctx); err != nil {
+		logger.Info("Node with specified name not found: " + topology.Spec.NodeName)
+		topology.Status.Status = "NodeNotFound"
+		topology.Status.InitJobStatus = "None"
 
 		if err := r.Status().Update(ctx, topology); err != nil {
-			logger.Error(err, "could not update status")
-			return ctrl.Result{Requeue: true}, err
+			return ctrl.Result{}, fmt.Errorf("could not update status: %v", err)
 		}
 
 		return ctrl.Result{}, nil
 	}
 
-	if topology.Status.InitJobStatus == "" {
-		logger.Info("Dispatch init job for new NodeCpuBinding")
+	// Handle reconcilation
+	switch topology.Status.Status {
+	case "NeedsSync":
+		// If Status is empty or NeedsSync, initiate job
+		switch topology.Status.InitJobStatus {
+		case "None":
+			logger.Info("Dispatch init job for NodeCpuBinding")
 
-		err := r.createInitJob(topology, &ctx, &logger)
+			jobName, err := r.createInitJob(topology, ctx, &logger)
 
-		if err != nil {
-			return ctrl.Result{Requeue: true}, err
-		}
+			topology.Status.InitJobStatus = "Pending"
+			topology.Status.InitJobName = jobName
 
-		return ctrl.Result{Requeue: true}, nil
-	} else if topology.Status.InitJobStatus == "Pending" {
-		job := &batchv1.Job{}
-
-		err := r.Get(ctx, client.ObjectKey{Name: topology.Status.InitJobName, Namespace: "actimanager-system"}, job)
-
-		if err != nil {
-			return ctrl.Result{Requeue: true}, err
-		}
-
-		if job.Status.Succeeded > 0 {
-			err := r.parseCompletedPod(topology, &ctx, &logger)
+			if err = r.Status().Update(ctx, topology); err != nil {
+				return ctrl.Result{}, fmt.Errorf("error updating resource: %v", err)
+			}
 
 			if err != nil {
-				logger.Error(err, "Get cpu topology")
-				return ctrl.Result{Requeue: true}, nil
+				return ctrl.Result{}, err
 			}
+
+			return ctrl.Result{}, nil
+		case "Pending":
+			// While InitJobStatus is Pending, requeue the CR until the pod completes
+			isCompleted, err := r.isJobCompleted(topology, ctx)
+			if err != nil {
+				return ctrl.Result{}, err
+			}
+
+			if isCompleted {
+				cpuTopology, err := r.parseCompletedPod(topology, ctx, &logger)
+
+				if err != nil {
+					return ctrl.Result{}, fmt.Errorf("error getting cpu topology: %v", err)
+				}
+
+				topology.Spec.Topology = cpuTopology
+				if err := r.Update(ctx, topology); err != nil {
+					return ctrl.Result{Requeue: true}, fmt.Errorf("error updating NodeCpuTopology spec: %v", err)
+				}
+
+				topology.Status.Status = "Fresh"
+				topology.Status.InitJobStatus = "Completed"
+				if err = r.Status().Update(ctx, topology); err != nil {
+					return ctrl.Result{}, fmt.Errorf("error updating NodeCpuTopology status: %v", err)
+				}
+
+				logger.Info("NodeCpuTopology for node " + topology.Spec.NodeName + " initialized successfully")
+
+				return ctrl.Result{}, nil
+			}
+
+			return ctrl.Result{Requeue: true}, nil
+		default:
+			return ctrl.Result{}, nil
 		}
-
-		return ctrl.Result{Requeue: true}, nil
+	default:
+		return ctrl.Result{}, nil
 	}
-
-	return ctrl.Result{}, nil
 }
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *NodeCpuTopologyReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&cslabecentuagrv1alpha1.NodeCpuTopology{}, eventFilters).
+		For(&cslabecentuagrv1alpha1.NodeCpuTopology{}).
 		Complete(r)
 }
 
+// getNodeByTopologyNodeName return the node with name specified in the NodeName field of the spec
 func (r *NodeCpuTopologyReconciler) getNodeByTopologyNodeName(
 	topology *cslabecentuagrv1alpha1.NodeCpuTopology,
-	ctx *context.Context) (*corev1.Node, error) {
+	ctx context.Context) (*corev1.Node, error) {
+
 	nodeName := topology.Spec.NodeName
 	targetNode := &corev1.Node{}
-
-	err := r.Get(*ctx, client.ObjectKey{Name: nodeName}, targetNode)
-
+	err := r.Get(ctx, client.ObjectKey{Name: nodeName}, targetNode)
 	return targetNode, err
 }
 
-func (r *NodeCpuTopologyReconciler) createInitJob(topology *cslabecentuagrv1alpha1.NodeCpuTopology, ctx *context.Context, logger *logr.Logger) error {
-	jobName, job := LscpuJobTemplate(topology.Spec.NodeName)
-
-	err := r.Client.Create(*ctx, job)
-	if err != nil {
-		logger.Error(err, "Could not dispatch lscpu job")
-		return err
-	}
-
-	topology.Status.InitJobStatus = "Pending"
-	topology.Status.InitJobName = jobName
-	err = r.Status().Update(*ctx, topology)
-	if err != nil {
-		logger.Info("Error updating resource:" + err.Error())
-		return err
-	}
-
-	return nil
-}
-
-func (r *NodeCpuTopologyReconciler) parseCompletedPod(topology *cslabecentuagrv1alpha1.NodeCpuTopology, ctx *context.Context, logger *logr.Logger) error {
-	topology.Status.InitJobStatus = "Completed"
-
-	if err := r.Status().Update(*ctx, topology); err != nil {
-		logger.Error(err, "Error updating topology status to Completed", err.Error())
-		return err
-	}
-
-	podList := &corev1.PodList{}
-
-	if err := r.List(*ctx, podList, client.MatchingLabels{"job-name": topology.Status.InitJobName}); err != nil {
-		logger.Error(err, "Error getting retrieving job", err.Error())
-		return err
-	}
-
-	if len(podList.Items) > 0 {
-		podLogs, _ := utils.GetPodLogs(podList.Items[0], ctx)
-
-		cpuTopology, err := nodecputopologyv1alpha1.NodeCpuTopologyV1Alpha1(podLogs)
-
-		if err != nil {
-			logger.Error(err, "Error parsing cpu topology")
-			return err
-		}
-
-		topology.Spec.Topology = cpuTopology
-		if err = r.Update(*ctx, topology); err != nil {
-			logger.Error(err, "Error updating NodeCpuTopology")
-			return err
-		}
-	}
-
-	return nil
+// isJobCompleted checks if job with name InitJobName has been completed
+func (r *NodeCpuTopologyReconciler) isJobCompleted(topology *cslabecentuagrv1alpha1.NodeCpuTopology, ctx context.Context) (bool, error) {
+	job := &batchv1.Job{}
+	err := r.Get(ctx, client.ObjectKey{Name: topology.Status.InitJobName, Namespace: "actimanager-system"}, job)
+	return job.Status.Succeeded > 0, err
 }

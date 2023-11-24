@@ -5,10 +5,10 @@ import (
 	"cslab.ece.ntua.gr/actimanager/pkg/nodecputopology"
 )
 
-func convertToV1Alpha1(internalTopology *nodecputopology.NodeCpuTopology) v1alpha1.CpuTopology {
+func convertToV1Alpha1(t *nodecputopology.NodeCpuTopology) v1alpha1.CpuTopology {
 	var topology v1alpha1.CpuTopology
 
-	for _, socket := range internalTopology.Sockets {
+	for _, socket := range t.Sockets {
 		s := v1alpha1.Socket{
 			SocketId:  socket.SocketId,
 			NumaNodes: make([]v1alpha1.NumaNode, 0),
@@ -42,6 +42,5 @@ func convertToV1Alpha1(internalTopology *nodecputopology.NodeCpuTopology) v1alph
 func NodeCpuTopologyV1Alpha1(lscpuOutput string) (v1alpha1.CpuTopology, error) {
 	topology := &nodecputopology.NodeCpuTopology{}
 	err := nodecputopology.ParseNodeCpuTopology(topology, lscpuOutput)
-	nodecputopology.PrintTopology(topology)
 	return convertToV1Alpha1(topology), err
 }

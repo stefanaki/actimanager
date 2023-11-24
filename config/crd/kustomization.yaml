@@ -3,7 +3,6 @@
 # It should be run by config/default
 resources:
 - bases/cslab.ece.ntua.gr_nodecputopologies.yaml
-- bases/cslab.ece.ntua.gr_podcpucorebindings.yaml
 #+kubebuilder:scaffold:crdkustomizeresource
 
 patches:

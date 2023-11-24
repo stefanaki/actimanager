@@ -18,7 +18,6 @@ package main
 
 import (
 	"cslab.ece.ntua.gr/actimanager/internal/controller/nodecputopology"
-	"cslab.ece.ntua.gr/actimanager/internal/controller/podcpucorebinding"
 	"flag"
 	batchv1 "k8s.io/api/batch/v1"
 	"os"
@@ -97,13 +96,6 @@ func main() {
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "NodeCpuTopology")
-		os.Exit(1)
-	}
-	if err = (&podcpucorebinding.PodCpuCoreBindingReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
-	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "PodCpuCoreBinding")
 		os.Exit(1)
 	}
 	//+kubebuilder:scaffold:builder
