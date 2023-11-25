@@ -11,6 +11,8 @@ spec:
     kind: NodeCpuTopology
     listKind: NodeCpuTopologyList
     plural: nodecputopologies
+    shortNames:
+    - nct
     singular: nodecputopology
   scope: Cluster
   versions:
@@ -50,53 +52,61 @@ spec:
                 description: CpuTopology represents the hierarchical topology of the
                   CPU of a Kubernetes node
                 properties:
+                  numaNodes:
+                    items:
+                      description: NumaNode is a NUMA node of the Kubernetes node
+                      properties:
+                        cpus:
+                          items:
+                            description: Cpu is a logical CPU core of the parent core
+                            properties:
+                              cpuId:
+                                type: integer
+                            required:
+                            - cpuId
+                            type: object
+                          type: array
+                        numaNodeId:
+                          type: integer
+                      required:
+                      - cpus
+                      - numaNodeId
+                      type: object
+                    type: array
                   sockets:
                     items:
                       description: Socket is a CPU socket of the Kubernetes node
                       properties:
-                        numaNodes:
+                        cores:
                           items:
-                            description: NumaNode is a NUMA node of the parent socket
+                            description: Core is a physical CPU core of the parent
+                              socket
                             properties:
-                              cores:
+                              coreId:
+                                type: integer
+                              cpus:
                                 items:
-                                  description: Core is a physical CPU core of the
-                                    parent NUMA node
+                                  description: Cpu is a logical CPU core of the parent
+                                    core
                                   properties:
-                                    coreId:
+                                    cpuId:
                                       type: integer
-                                    cpus:
-                                      items:
-                                        description: Cpu is a logical CPU core of
-                                          the parent core
-                                        properties:
-                                          cpuId:
-                                            type: integer
-                                        required:
-                                        - cpuId
-                                        type: object
-                                      type: array
                                   required:
-                                  - coreId
-                                  - cpus
+                                  - cpuId
                                   type: object
                                 type: array
-                              numaNodeId:
-                                type: integer
                             required:
-                            - cores
-                            - numaNodeId
+                            - coreId
+                            - cpus
                             type: object
                           type: array
                         socketId:
                           type: integer
                       required:
-                      - numaNodes
+                      - cores
                       - socketId
                       type: object
                     type: array
-                required:
-                - sockets
                 type: object
             required:
             - nodeName

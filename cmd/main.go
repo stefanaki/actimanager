@@ -21,6 +21,7 @@ import (
 	"flag"
 	batchv1 "k8s.io/api/batch/v1"
 	"os"
+	"sigs.k8s.io/controller-runtime/pkg/manager"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
@@ -91,14 +92,21 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err = (&nodecputopology.NodeCpuTopologyReconciler{
+	topologyReconciler := &nodecputopology.NodeCpuTopologyReconciler{
 		Client: mgr.GetClient(),
 		Scheme: mgr.GetScheme(),
-	}).SetupWithManager(mgr); err != nil {
+	}
+
+	if err = topologyReconciler.SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "NodeCpuTopology")
 		os.Exit(1)
 	}
 	//+kubebuilder:scaffold:builder
+
+	if err := mgr.Add(manager.RunnableFunc(topologyReconciler.CreateInitialNodeCpuTopologies)); err != nil {
+		setupLog.Error(err, "unable to add runnable function", "controller", "NodeCpuTopology")
+		os.Exit(1)
+	}
 
 	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {
 		setupLog.Error(err, "unable to set up health check")
@@ -114,4 +122,5 @@ func main() {
 		setupLog.Error(err, "problem running manager")
 		os.Exit(1)
 	}
+
 }
