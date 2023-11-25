@@ -5,6 +5,7 @@ import (
 	cslabecentuagrv1alpha1 "cslab.ece.ntua.gr/actimanager/api/v1alpha1"
 	nodecputopologyv1alpha1 "cslab.ece.ntua.gr/actimanager/pkg/nodecputopology/v1alpha1"
 	"cslab.ece.ntua.gr/actimanager/pkg/utils"
+	"fmt"
 	"github.com/go-logr/logr"
 	"github.com/google/uuid"
 	batchv1 "k8s.io/api/batch/v1"
@@ -15,7 +16,7 @@ import (
 )
 
 func (r *NodeCpuTopologyReconciler) createInitJob(topology *cslabecentuagrv1alpha1.NodeCpuTopology, ctx context.Context, logger *logr.Logger) (string, error) {
-	jobName, job := LscpuJobTemplate(topology.Spec.NodeName)
+	jobName, job := lscpuJob(topology.Spec.NodeName)
 
 	err := r.Client.Create(ctx, job)
 	if err != nil {
@@ -50,7 +51,32 @@ func (r *NodeCpuTopologyReconciler) parseCompletedPod(topology *cslabecentuagrv1
 	return cpuTopology, nil
 }
 
-func LscpuJobTemplate(node string) (string, *batchv1.Job) {
+// isJobCompleted checks if job with name InitJobName has been completed
+func (r *NodeCpuTopologyReconciler) isJobCompleted(topology *cslabecentuagrv1alpha1.NodeCpuTopology, ctx context.Context) (bool, error) {
+	job := &batchv1.Job{}
+	err := r.Get(ctx, client.ObjectKey{Name: topology.Status.InitJobName, Namespace: "actimanager-system"}, job)
+	return job.Status.Succeeded > 0, err
+}
+
+// deleteJob deletes the job that was created by the reconciler
+func (r *NodeCpuTopologyReconciler) deleteJob(ctx context.Context, jobName string) error {
+	job := &batchv1.Job{}
+	deletePropagationBackground := metav1.DeletePropagationBackground
+
+	if err := r.Get(ctx, client.ObjectKey{Name: jobName, Namespace: "actimanager-system"}, job); err != nil {
+		return fmt.Errorf("could not retrieve job: %v", err.Error())
+	}
+
+	if err := r.Client.Delete(ctx, job, &client.DeleteOptions{PropagationPolicy: &deletePropagationBackground}); err != nil {
+
+		return fmt.Errorf("could not delete job: %v", err.Error())
+	}
+
+	return nil
+}
+
+// lscpuJob generates a Kubernetes Job for running the 'lscpu' command on a specific node
+func lscpuJob(node string) (string, *batchv1.Job) {
 	jobName := "lscpu-job-" + node + strings.Split(uuid.New().String(), "-")[0]
 
 	job := &batchv1.Job{
