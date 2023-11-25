@@ -90,10 +90,6 @@ func (r *NodeCpuTopologyReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 				return ctrl.Result{}, fmt.Errorf("error updating resource: %v", err)
 			}
 
-			if err != nil {
-				return ctrl.Result{}, err
-			}
-
 			return ctrl.Result{}, nil
 		case "Pending":
 			// While InitJobStatus is Pending, requeue the CR until the pod completes

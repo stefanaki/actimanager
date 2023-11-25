@@ -27,7 +27,7 @@ type NodeCpuTopologyStatus struct {
 
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
-// +kubebuilder:resource:scope=Cluster
+// +kubebuilder:resource:scope=Cluster,shortName=nct
 
 // +kubebuilder:printcolumn:name="Node",type=string,JSONPath=`.spec.nodeName`
 // +kubebuilder:printcolumn:name="Status",type=string,JSONPath=`.status.status`
@@ -52,22 +52,25 @@ type NodeCpuTopologyList struct {
 
 // CpuTopology represents the hierarchical topology of the CPU of a Kubernetes node
 type CpuTopology struct {
+	//+kubebuilder:validation:Optional
 	Sockets []Socket `json:"sockets"`
+	//+kubebuilder:validation:Optional
+	NumaNodes []NumaNode `json:"numaNodes"`
 }
 
 // Socket is a CPU socket of the Kubernetes node
 type Socket struct {
-	SocketId  int        `json:"socketId"`
-	NumaNodes []NumaNode `json:"numaNodes"`
+	SocketId int    `json:"socketId"`
+	Cores    []Core `json:"cores"`
 }
 
-// NumaNode is a NUMA node of the parent socket
+// NumaNode is a NUMA node of the Kubernetes node
 type NumaNode struct {
-	NumaNodeId int    `json:"numaNodeId"`
-	Cores      []Core `json:"cores"`
+	NumaNodeId int   `json:"numaNodeId"`
+	Cpus       []Cpu `json:"cpus"`
 }
 
-// Core is a physical CPU core of the parent NUMA node
+// Core is a physical CPU core of the parent socket
 type Core struct {
 	CoreId int   `json:"coreId"`
 	Cpus   []Cpu `json:"cpus"`

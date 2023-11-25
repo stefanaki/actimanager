@@ -10,30 +10,32 @@ func convertToV1Alpha1(t *nodecputopology.NodeCpuTopology) v1alpha1.CpuTopology 
 
 	for _, socket := range t.Sockets {
 		s := v1alpha1.Socket{
-			SocketId:  socket.SocketId,
-			NumaNodes: make([]v1alpha1.NumaNode, 0),
+			SocketId: socket.SocketId,
+			Cores:    make([]v1alpha1.Core, 0),
 		}
 
-		for _, numaNode := range socket.NumaNodes {
-			n := v1alpha1.NumaNode{
-				NumaNodeId: numaNode.NumaNodeId,
-				Cores:      make([]v1alpha1.Core, 0),
+		for _, core := range socket.Cores {
+			c := v1alpha1.Core{
+				CoreId: core.CoreId,
+				Cpus:   make([]v1alpha1.Cpu, 0),
 			}
 
-			for _, core := range numaNode.Cores {
-				c := v1alpha1.Core{
-					CoreId: core.CoreId,
-					Cpus:   make([]v1alpha1.Cpu, 0),
-				}
-
-				for _, cpu := range core.Cpus {
-					c.Cpus = append(c.Cpus, v1alpha1.Cpu{CpuId: cpu.CpuId})
-				}
-				n.Cores = append(n.Cores, c)
+			for _, cpu := range core.Cpus {
+				c.Cpus = append(c.Cpus, v1alpha1.Cpu{CpuId: cpu.CpuId})
 			}
-			s.NumaNodes = append(s.NumaNodes, n)
+
+			s.Cores = append(s.Cores, c)
 		}
 		topology.Sockets = append(topology.Sockets, s)
+	}
+
+	for _, numa := range t.NumaNodes {
+		n := v1alpha1.NumaNode{NumaNodeId: numa.NumaNodeId, Cpus: make([]v1alpha1.Cpu, 0)}
+		for _, cpu := range numa.Cpus {
+			n.Cpus = append(n.Cpus, v1alpha1.Cpu{CpuId: cpu.CpuId})
+		}
+
+		topology.NumaNodes = append(topology.NumaNodes, n)
 	}
 
 	return topology
