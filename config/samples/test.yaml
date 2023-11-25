@@ -1,0 +1,14 @@
+apiVersion: cslab.ece.ntua.gr/v1alpha1
+kind: NodeCpuTopology
+metadata:
+  labels:
+    app.kubernetes.io/name: nodecputopology
+    app.kubernetes.io/instance: nodecputopology-sample
+    app.kubernetes.io/part-of: actimanager
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: actimanager
+  name: minikube-cputopology
+spec:
+  nodeName: minikube
+  topology:
+

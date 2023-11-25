@@ -4,54 +4,63 @@ kind: ClusterRole
 metadata:
   name: manager-role
 rules:
-  - apiGroups:
-      - cslab.ece.ntua.gr
-    resources:
-      - nodecputopologies
-    verbs:
-      - create
-      - delete
-      - get
-      - list
-      - patch
-      - update
-      - watch
-  - apiGroups:
-      - cslab.ece.ntua.gr
-    resources:
-      - nodecputopologies/finalizers
-    verbs:
-      - update
-  - apiGroups:
-      - cslab.ece.ntua.gr
-    resources:
-      - nodecputopologies/status
-    verbs:
-      - get
-      - patch
-      - update
-  - apiGroups:
-      - ""
-    resources:
-      - pods
-      - pods/log
-      - nodes
-    verbs:
-      - create
-      - delete
-      - get
-      - list
-      - patch
-      - update
-      - watch
-  - apiGroups:
-      - batch
-    resources:
-      - jobs
-    verbs:
-      - get
-      - list
-      - watch
-      - create
-      - update
-      - delete
+- apiGroups:
+  - batch
+  resources:
+  - jobs
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - nodes
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - pods/logs
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - cslab.ece.ntua.gr
+  resources:
+  - nodecputopologies
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - cslab.ece.ntua.gr
+  resources:
+  - nodecputopologies/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - cslab.ece.ntua.gr
+  resources:
+  - nodecputopologies/status
+  verbs:
+  - get
+  - patch
+  - update
