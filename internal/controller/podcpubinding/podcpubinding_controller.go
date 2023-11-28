@@ -2,10 +2,12 @@ package podcpubinding
 
 import (
 	"context"
+	nodecputopologyv1alpha1 "cslab.ece.ntua.gr/actimanager/internal/pkg/nodecputopology/v1alpha1"
 	"fmt"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
-
 	"k8s.io/apimachinery/pkg/runtime"
+	"reflect"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
@@ -45,20 +47,99 @@ func (r *PodCpuBindingReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		return ctrl.Result{}, fmt.Errorf("error reconciling PodCpuBinding: %v", err.Error())
 	}
 
-	// Initialize CR
+	// Reinitialize CR on update
+	if !reflect.DeepEqual(cpuBinding.Spec, cpuBinding.Status.LastSpec) {
+		cpuBinding.Status.Status = "Pending"
+		cpuBinding.Status.LastSpec = cpuBinding.Spec
+		if err := r.Status().Update(ctx, cpuBinding); err != nil {
+			return ctrl.Result{}, fmt.Errorf("error updating status: %v", err.Error())
+		}
+
+		return ctrl.Result{}, nil
+	}
+
+	if cpuBinding.Status.Status == "InvalidCpuSet" ||
+		cpuBinding.Status.Status == "PodNotFound" ||
+		cpuBinding.Status.Status == "NodeCpuTopologyNotFound" {
+		return ctrl.Result{}, nil
+	}
 
 	// Validate CR
+	pod := &corev1.Pod{}
+	err = r.Get(ctx, client.ObjectKey{Name: cpuBinding.Spec.PodName, Namespace: cpuBinding.ObjectMeta.Namespace}, pod)
+
+	if errors.IsNotFound(err) {
+		cpuBinding.Status.Status = "PodNotFound"
+		if err := r.Status().Update(ctx, cpuBinding); err != nil {
+			return ctrl.Result{}, fmt.Errorf("error updating cpu binding status: %v", err.Error())
+		}
+
+		return ctrl.Result{}, nil
+	}
+
+	if err != nil {
+		return ctrl.Result{}, fmt.Errorf("error getting pod: %v", err.Error())
+	}
+
+	topologies := &cslabecentuagrv1alpha1.NodeCpuTopologyList{}
+	err = r.List(ctx,
+		topologies,
+		client.MatchingFields{"spec.nodeName": pod.Spec.NodeName})
+
+	if errors.IsNotFound(err) {
+		cpuBinding.Status.Status = "NodeCpuTopologyNotFound"
+		if err := r.Status().Update(ctx, cpuBinding); err != nil {
+			return ctrl.Result{}, fmt.Errorf("error updating cpu binding status: %v", err.Error())
+		}
+	}
+
+	if err != nil {
+		return ctrl.Result{}, fmt.Errorf("error listing CPU topologies: %v", err.Error())
+	}
+
+	targetTopology := topologies.Items[0]
+
+	// Check if specified cpuset is available in the node topology
+	if !nodecputopologyv1alpha1.IsCpuSetInTopology(&targetTopology.Spec.Topology, cpuBinding.Spec.CpuSet) {
+		cpuBinding.Status.Status = "InvalidCpuSet"
+
+		if err := r.Status().Update(ctx, cpuBinding); err != nil {
+			return ctrl.Result{}, fmt.Errorf("error updating cpu binding status: %v", err.Error())
+		}
+
+		return ctrl.Result{}, nil
+	}
+
+	// Check if all containers are ready
+	for _, containerStatus := range pod.Status.ContainerStatuses {
+		if !containerStatus.Ready {
+			return ctrl.Result{Requeue: true}, nil
+		}
+	}
 
 	// Handle reconcilation
 
 	// TODO Notify node agent for binding creation
 	// wait for response and update CR status
 
+	cpuBinding.Status.LastSpec = cpuBinding.Spec
+	cpuBinding.Status.Status = "Applied"
+	if err := r.Status().Update(ctx, cpuBinding); err != nil {
+		return ctrl.Result{}, fmt.Errorf("error updating status: %v", err.Error())
+	}
+
 	return ctrl.Result{}, nil
 }
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *PodCpuBindingReconciler) SetupWithManager(mgr ctrl.Manager) error {
+	if err := mgr.GetFieldIndexer().IndexField(context.Background(), &cslabecentuagrv1alpha1.NodeCpuTopology{}, "spec.nodeName", func(rawObj client.Object) []string {
+		topology := rawObj.(*cslabecentuagrv1alpha1.NodeCpuTopology)
+		return []string{topology.Spec.NodeName}
+	}); err != nil {
+		return err
+	}
+
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&cslabecentuagrv1alpha1.PodCpuBinding{}).
 		Complete(r)

@@ -98,36 +98,37 @@ func (r *NodeCpuTopologyReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 				return ctrl.Result{}, err
 			}
 
-			if isCompleted {
-				cpuTopology, err := r.parseCompletedPod(topology, ctx, &logger)
-
-				if err != nil {
-					return ctrl.Result{}, fmt.Errorf("error getting cpu topology: %v", err)
-				}
-
-				topology.Spec.Topology = cpuTopology
-				if err := r.Update(ctx, topology); err != nil {
-					return ctrl.Result{Requeue: true}, fmt.Errorf("error updating NodeCpuTopology spec: %v", err)
-				}
-
-				topology.Status.Status = "Fresh"
-				topology.Status.InitJobStatus = "Completed"
-				if err = r.Status().Update(ctx, topology); err != nil {
-					return ctrl.Result{}, fmt.Errorf("error updating NodeCpuTopology status: %v", err)
-				}
-
-				logger.Info("NodeCpuTopology for node " + topology.Spec.NodeName + " initialized successfully")
-
-				if err := r.deleteJob(ctx, topology.Status.InitJobName); err != nil {
-					return ctrl.Result{}, fmt.Errorf("error updating NodeCpuTopology status: %v", err)
-				} else {
-					logger.Info("Job " + topology.Status.InitJobName + " deleted successfully")
-				}
-
-				return ctrl.Result{}, nil
+			if !isCompleted {
+				return ctrl.Result{Requeue: true}, nil
 			}
 
-			return ctrl.Result{Requeue: true}, nil
+			cpuTopology, err := r.parseCompletedPod(topology, ctx, &logger)
+
+			if err != nil {
+				return ctrl.Result{}, fmt.Errorf("error getting cpu topology: %v", err)
+			}
+
+			topology.Spec.Topology = cpuTopology
+			if err := r.Update(ctx, topology); err != nil {
+				return ctrl.Result{Requeue: true}, fmt.Errorf("error updating NodeCpuTopology spec: %v", err)
+			}
+
+			topology.Status.Status = "Fresh"
+			topology.Status.InitJobStatus = "Completed"
+			if err = r.Status().Update(ctx, topology); err != nil {
+				return ctrl.Result{}, fmt.Errorf("error updating NodeCpuTopology status: %v", err)
+			}
+
+			logger.Info("NodeCpuTopology for node " + topology.Spec.NodeName + " initialized successfully")
+
+			if err := r.deleteJob(ctx, topology.Status.InitJobName); err != nil {
+				return ctrl.Result{}, fmt.Errorf("error updating NodeCpuTopology status: %v", err)
+			} else {
+				logger.Info("Job " + topology.Status.InitJobName + " deleted successfully")
+			}
+
+			return ctrl.Result{}, nil
+
 		default:
 			return ctrl.Result{}, nil
 		}

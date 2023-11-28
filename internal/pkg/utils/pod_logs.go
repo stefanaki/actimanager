@@ -3,17 +3,17 @@ package utils
 import (
 	"bytes"
 	"context"
-	"cslab.ece.ntua.gr/actimanager/pkg/client"
-	"github.com/pkg/errors"
+	"cslab.ece.ntua.gr/actimanager/internal/pkg/client"
 	"io"
 	corev1 "k8s.io/api/core/v1"
+	"log"
 )
 
 func GetPodLogs(pod corev1.Pod, ctx context.Context) (string, error) {
-	clientset, err := client.NewClientset()
+	clientset, err := client.New()
 
 	if err != nil {
-		errors.Errorf("error getting clientset: %v", err)
+		log.Printf("error getting clientset: %v", err.Error())
 		return "", err
 	}
 
@@ -23,7 +23,7 @@ func GetPodLogs(pod corev1.Pod, ctx context.Context) (string, error) {
 	podLogs, err := req.Stream(ctx)
 
 	if err != nil {
-		errors.Errorf("error getting log stream: %v", err)
+		log.Printf("error getting log stream: %v", err.Error())
 		return "", err
 	}
 
@@ -33,7 +33,7 @@ func GetPodLogs(pod corev1.Pod, ctx context.Context) (string, error) {
 	_, err = io.Copy(buf, podLogs)
 
 	if err != nil {
-		errors.Errorf("error copying logs to buffer: %v", err)
+		log.Printf("error copying logs to buffer: %v", err)
 		return "", err
 	}
 

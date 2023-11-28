@@ -1,12 +1,12 @@
 package main
 
 func main() {
-	daemonMode := false
+	daemonMode := true
 
 	switch {
 	case daemonMode:
 		runDaemon()
 	default:
-		runControllers()
+		runController()
 	}
 }

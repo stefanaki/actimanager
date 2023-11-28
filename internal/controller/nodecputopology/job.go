@@ -3,8 +3,8 @@ package nodecputopology
 import (
 	"context"
 	cslabecentuagrv1alpha1 "cslab.ece.ntua.gr/actimanager/api/v1alpha1"
-	nodecputopologyv1alpha1 "cslab.ece.ntua.gr/actimanager/pkg/nodecputopology/v1alpha1"
-	"cslab.ece.ntua.gr/actimanager/pkg/utils"
+	nodecputopologyv1alpha1 "cslab.ece.ntua.gr/actimanager/internal/pkg/nodecputopology/v1alpha1"
+	"cslab.ece.ntua.gr/actimanager/internal/pkg/utils"
 	"fmt"
 	"github.com/go-logr/logr"
 	"github.com/google/uuid"
@@ -68,7 +68,6 @@ func (r *NodeCpuTopologyReconciler) deleteJob(ctx context.Context, jobName strin
 	}
 
 	if err := r.Client.Delete(ctx, job, &client.DeleteOptions{PropagationPolicy: &deletePropagationBackground}); err != nil {
-
 		return fmt.Errorf("could not delete job: %v", err.Error())
 	}
 
