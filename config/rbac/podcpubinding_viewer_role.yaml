@@ -1,0 +1,27 @@
+# permissions for end users to view podcpubindings.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: clusterrole
+    app.kubernetes.io/instance: podcpubinding-viewer-role
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/created-by: actimanager
+    app.kubernetes.io/part-of: actimanager
+    app.kubernetes.io/managed-by: kustomize
+  name: podcpubinding-viewer-role
+rules:
+- apiGroups:
+  - cslab.ece.ntua.gr
+  resources:
+  - podcpubindings
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - cslab.ece.ntua.gr
+  resources:
+  - podcpubindings/status
+  verbs:
+  - get

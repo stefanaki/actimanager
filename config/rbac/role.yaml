@@ -64,3 +64,29 @@ rules:
   - get
   - patch
   - update
+- apiGroups:
+  - cslab.ece.ntua.gr
+  resources:
+  - podcpubindings
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - cslab.ece.ntua.gr
+  resources:
+  - podcpubindings/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - cslab.ece.ntua.gr
+  resources:
+  - podcpubindings/status
+  verbs:
+  - get
+  - patch
+  - update

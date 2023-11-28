@@ -21,7 +21,7 @@ resources:
     namespaced: true
   controller: true
   domain: cslab.ece.ntua.gr
-  kind: PodCpuCoreBinding
+  kind: PodCpuBinding
   path: cslab.ece.ntua.gr/actimanager/api/v1alpha1
   version: v1alpha1
 version: "3"
