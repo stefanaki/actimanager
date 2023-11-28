@@ -7,6 +7,11 @@ metadata:
     app.kubernetes.io/part-of: actimanager
     app.kubernetes.io/managed-by: kustomize
     app.kubernetes.io/created-by: actimanager
-  name: podcpubinding-sample
+  name: kd
+  namespace: kubernetes-dashboard
 spec:
-  # TODO(user): Add fields here
+  exclusivenessLevel: Cpu
+  podName: kubernetes-dashboard-5c5cfc8747-zmxb2
+  cpuSet:
+  - cpuId: 12
+  - cpuId: 13

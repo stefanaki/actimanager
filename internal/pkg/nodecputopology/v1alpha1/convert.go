@@ -2,10 +2,10 @@ package v1alpha1
 
 import (
 	"cslab.ece.ntua.gr/actimanager/api/v1alpha1"
-	"cslab.ece.ntua.gr/actimanager/pkg/nodecputopology"
+	nodecputopology2 "cslab.ece.ntua.gr/actimanager/internal/pkg/nodecputopology"
 )
 
-func convertToV1Alpha1(t *nodecputopology.NodeCpuTopology) v1alpha1.CpuTopology {
+func convertToV1Alpha1(t *nodecputopology2.NodeCpuTopology) v1alpha1.CpuTopology {
 	var topology v1alpha1.CpuTopology
 
 	for _, socket := range t.Sockets {
@@ -42,7 +42,7 @@ func convertToV1Alpha1(t *nodecputopology.NodeCpuTopology) v1alpha1.CpuTopology 
 }
 
 func NodeCpuTopologyV1Alpha1(lscpuOutput string) (v1alpha1.CpuTopology, error) {
-	topology := &nodecputopology.NodeCpuTopology{}
-	err := nodecputopology.ParseNodeCpuTopology(topology, lscpuOutput)
+	topology := &nodecputopology2.NodeCpuTopology{}
+	err := nodecputopology2.ParseNodeCpuTopology(topology, lscpuOutput)
 	return convertToV1Alpha1(topology), err
 }
