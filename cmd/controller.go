@@ -17,6 +17,7 @@ limitations under the License.
 package main
 
 import (
+	"cslab.ece.ntua.gr/actimanager/internal/controller/podcpubinding"
 	"flag"
 	"os"
 
@@ -38,7 +39,6 @@ import (
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 
 	cslabecentuagrv1alpha1 "cslab.ece.ntua.gr/actimanager/api/v1alpha1"
-	"cslab.ece.ntua.gr/actimanager/internal/controller"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -104,7 +104,7 @@ func runControllers() {
 		setupLog.Error(err, "unable to create controller", "controller", "NodeCpuTopology")
 		os.Exit(1)
 	}
-	if err = (&controller.PodCpuBindingReconciler{
+	if err = (&podcpubinding.PodCpuBindingReconciler{
 		Client: mgr.GetClient(),
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
