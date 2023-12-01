@@ -4,6 +4,7 @@ import (
 	"context"
 	cslabecentuagrv1alpha1 "cslab.ece.ntua.gr/actimanager/api/v1alpha1"
 	"fmt"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -61,7 +62,7 @@ func (r *NodeCpuTopologyReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 	}
 
 	// Check if specified NodeName is a valid name of a node
-	if _, err := r.getNodeByTopologyNodeName(topology, ctx); err != nil {
+	if err := r.Get(ctx, client.ObjectKey{Name: topology.Spec.NodeName}, &corev1.Node{}); err != nil {
 		logger.Info("Node with specified name not found: " + topology.Spec.NodeName)
 		topology.Status.Status = "NodeNotFound"
 		topology.Status.InitJobStatus = "None"

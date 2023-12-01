@@ -16,7 +16,7 @@ import (
 )
 
 func (r *NodeCpuTopologyReconciler) createInitJob(topology *cslabecentuagrv1alpha1.NodeCpuTopology, ctx context.Context, logger *logr.Logger) (string, error) {
-	jobName, job := lscpuJob(topology.Spec.NodeName)
+	job := lscpuJob(topology.Spec.NodeName)
 
 	err := r.Client.Create(ctx, job)
 	if err != nil {
@@ -24,7 +24,7 @@ func (r *NodeCpuTopologyReconciler) createInitJob(topology *cslabecentuagrv1alph
 		return "", err
 	}
 
-	return jobName, nil
+	return job.ObjectMeta.Name, nil
 }
 
 func (r *NodeCpuTopologyReconciler) parseCompletedPod(topology *cslabecentuagrv1alpha1.NodeCpuTopology, ctx context.Context, logger *logr.Logger) (cslabecentuagrv1alpha1.CpuTopology, error) {
@@ -33,7 +33,7 @@ func (r *NodeCpuTopologyReconciler) parseCompletedPod(topology *cslabecentuagrv1
 	var err error
 
 	if err := r.List(ctx, podList, client.MatchingLabels{"job-name": topology.Status.InitJobName}); err != nil {
-		logger.Error(err, "Error getting retrieving job", err.Error())
+		logger.Error(err, "Error getting retrieving job")
 		return cpuTopology, err
 	}
 
@@ -75,7 +75,7 @@ func (r *NodeCpuTopologyReconciler) deleteJob(ctx context.Context, jobName strin
 }
 
 // lscpuJob generates a Kubernetes Job for running the 'lscpu' command on a specific node
-func lscpuJob(node string) (string, *batchv1.Job) {
+func lscpuJob(node string) *batchv1.Job {
 	jobName := "lscpu-job-" + node + strings.Split(uuid.New().String(), "-")[0]
 
 	job := &batchv1.Job{
@@ -103,5 +103,5 @@ func lscpuJob(node string) (string, *batchv1.Job) {
 		},
 	}
 
-	return jobName, job
+	return job
 }

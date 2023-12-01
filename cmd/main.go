@@ -5,8 +5,8 @@ func main() {
 
 	switch {
 	case daemonMode:
-		runDaemon()
+		RunDaemon()
 	default:
-		runController()
+		RunController()
 	}
 }

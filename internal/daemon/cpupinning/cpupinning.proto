@@ -1,0 +1,65 @@
+syntax = "proto3";
+
+option go_package = "/cpupinning";
+
+message CpuSet {
+  repeated int32 cpu = 1;
+}
+
+message ResourceInfo{
+  int32 requestedCpus = 1;
+  int32 limitCpus = 2;
+  bytes requestedMemory = 3;
+  bytes limitMemory = 4;
+}
+
+message Container {
+  string id = 1;
+  string name = 2;
+  ResourceInfo resources = 3;
+}
+
+message Pod {
+  string id = 1;
+  string name = 2;
+  string namespace = 3;
+  repeated Container containers = 5;
+}
+
+message ApplyPinningRequest {
+  Pod pod = 1;
+  CpuSet cpuSet = 2;
+}
+
+message RemovePinningRequest {
+  Pod pod = 1;
+}
+
+message UpdatePinningRequest {
+  Pod pod = 1;
+  CpuSet cpuSet = 2;
+}
+
+enum ResponseStatus {
+  SUCCESSFUL = 0;
+  ERROR = 1;
+}
+
+enum ErrorType {
+  UNKNOWN = 0;
+  INVALID_ARGUMENT = 1;
+  PERMISSION_DENIED = 2;
+  INTERNAL_ERROR = 3;
+}
+
+message Response {
+  ResponseStatus status = 1;
+  optional string message = 2;
+  optional ErrorType errorType = 3;
+}
+
+service CpuPinning {
+  rpc ApplyPinning(ApplyPinningRequest) returns (Response);
+  rpc RemovePinning(RemovePinningRequest) returns (Response);
+  rpc UpdatePinning(UpdatePinningRequest) returns (Response);
+}
