@@ -177,3 +177,10 @@ $(CONTROLLER_GEN): $(LOCALBIN)
 envtest: $(ENVTEST) ## Download envtest-setup locally if necessary.
 $(ENVTEST): $(LOCALBIN)
 	test -s $(LOCALBIN)/setup-envtest || GOBIN=$(LOCALBIN) go install sigs.k8s.io/controller-runtime/tools/setup-envtest@latest
+
+.PHONY: cpupinning-codegen
+proto:
+	protoc \
+	internal/daemon/cpupinning/cpupinning.proto \
+	--go_out=paths=source_relative:. \
+	--go-grpc_out=paths=source_relative:.
