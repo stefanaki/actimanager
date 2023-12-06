@@ -23,8 +23,8 @@ const (
 	DriverCgroupfs
 )
 
-// MyContainer Represents a container in the Daemon.
-type MyContainer struct {
+// ContainerInfo Represents a container in the Daemon.
+type ContainerInfo struct {
 	CID  string
 	PID  string
 	Name string
@@ -94,7 +94,7 @@ func NewCpuPinningController(containerRuntime ContainerRuntime,
 }
 
 // SliceName returns path to container cgroup leaf slice in cgroupfs.
-func SliceName(c MyContainer, r ContainerRuntime, d CGroupDriver) string {
+func SliceName(c ContainerInfo, r ContainerRuntime, d CGroupDriver) string {
 	if r == Kind {
 		return sliceNameKind(c)
 	}
@@ -104,7 +104,7 @@ func SliceName(c MyContainer, r ContainerRuntime, d CGroupDriver) string {
 	return sliceNameDockerContainerdWithCgroupfs(c, r)
 }
 
-func sliceNameKind(c MyContainer) string {
+func sliceNameKind(c ContainerInfo) string {
 	podType := [3]string{"", "besteffort/", "burstable/"}
 	return fmt.Sprintf(
 		"kubelet/kubepods/%spod%s/%s",
@@ -114,7 +114,7 @@ func sliceNameKind(c MyContainer) string {
 	)
 }
 
-func sliceNameDockerContainerdWithSystemd(c MyContainer, r ContainerRuntime) string {
+func sliceNameDockerContainerdWithSystemd(c ContainerInfo, r ContainerRuntime) string {
 	sliceType := [3]string{"", "kubepods-besteffort.slice/", "kubepods-burstable.slice/"}
 	podType := [3]string{"", "-besteffort", "-burstable"}
 	runtimeTypePrefix := [2]string{"docker", "cri-containerd"}
@@ -129,7 +129,7 @@ func sliceNameDockerContainerdWithSystemd(c MyContainer, r ContainerRuntime) str
 	)
 }
 
-func sliceNameDockerContainerdWithCgroupfs(c MyContainer, r ContainerRuntime) string {
+func sliceNameDockerContainerdWithCgroupfs(c ContainerInfo, r ContainerRuntime) string {
 	sliceType := [3]string{"", "besteffort/", "burstable/"}
 	runtimeURLPrefix := [2]string{"docker://", "containerd://"}
 	return fmt.Sprintf(
@@ -141,7 +141,7 @@ func sliceNameDockerContainerdWithCgroupfs(c MyContainer, r ContainerRuntime) st
 }
 
 // UpdateCPUSet updates the cpu set of a given child process.
-func (c CpuPinningController) UpdateCPUSet(pPath string, container MyContainer, cSet string, memSet string) error {
+func (c CpuPinningController) UpdateCPUSet(pPath string, container ContainerInfo, cSet string, memSet string) error {
 	runtimeURLPrefix := [2]string{"docker://", "containerd://"}
 	if c.containerRuntime == Kind || c.containerRuntime != Kind &&
 		strings.Contains(container.CID, runtimeURLPrefix[c.containerRuntime]) {
@@ -183,12 +183,10 @@ func (c CpuPinningController) updateCgroupsV2(pPath, slice, cSet, memSet string)
 	return err
 }
 
-func (c CpuPinningController) Apply(container *MyContainer, cSet string) error {
+func (c CpuPinningController) Apply(container *ContainerInfo, cSet string) error {
 	return c.UpdateCPUSet(c.cgroupPath, *container, cSet, ResourceNotSet)
 }
 
-func (c CpuPinningController) Remove(container *MyContainer) error {
-	return c.UpdateCPUSet(c.cgroupPath, *container, "", ResourceNotSet)
+func (c CpuPinningController) Remove(container *ContainerInfo) error {
+	return c.UpdateCPUSet(c.cgroupPath, *container, ResourceNotSet, ResourceNotSet)
 }
-
-func (c CpuPinningController) Update() {}

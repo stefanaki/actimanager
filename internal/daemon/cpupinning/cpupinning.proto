@@ -61,5 +61,4 @@ message Response {
 service CpuPinning {
   rpc ApplyPinning(ApplyPinningRequest) returns (Response);
   rpc RemovePinning(RemovePinningRequest) returns (Response);
-  rpc UpdatePinning(UpdatePinningRequest) returns (Response);
 }

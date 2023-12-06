@@ -3,7 +3,6 @@ package cpupinning
 import (
 	"context"
 	"fmt"
-	"log"
 	"strconv"
 	"strings"
 )
@@ -14,6 +13,7 @@ type Server struct {
 	UnimplementedCpuPinningServer
 }
 
+// convertCpuSetToString maps a CpuSet to a concatenated string.
 func convertCpuSetToString(cpuSet *CpuSet) string {
 	var cpuList []string
 
@@ -35,7 +35,7 @@ func (s Server) ApplyPinning(ctx context.Context, request *ApplyPinningRequest) 
 	cpuSet := convertCpuSetToString(request.GetCpuSet())
 
 	for _, container := range request.GetPod().GetContainers() {
-		c := MyContainer{
+		c := ContainerInfo{
 			CID:  container.Id,
 			PID:  pod.Id,
 			Name: container.Name,
@@ -60,7 +60,7 @@ func (s Server) RemovePinning(ctx context.Context, request *RemovePinningRequest
 	pod := request.GetPod()
 
 	for _, container := range request.GetPod().GetContainers() {
-		c := MyContainer{
+		c := ContainerInfo{
 			CID:  container.Id,
 			PID:  pod.Id,
 			Name: container.Name,
@@ -78,11 +78,4 @@ func (s Server) RemovePinning(ctx context.Context, request *RemovePinningRequest
 	return &Response{
 		Status: ResponseStatus_SUCCESSFUL,
 	}, nil
-}
-
-// UpdatePinning updates the CPU pinning configuration.
-func (s Server) UpdatePinning(ctx context.Context, request *UpdatePinningRequest) (*Response, error) {
-	log.Println("updating...")
-	s.Controller.Update()
-	return &Response{}, nil
 }

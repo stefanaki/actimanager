@@ -1,7 +1,0 @@
-apiVersion: cslab.ece.ntua.gr/v1alpha1
-kind: NodeCpuTopology
-metadata:
-  name: minikube-cputopology
-spec:
-  nodeName: minikube
-
