@@ -1,0 +1,72 @@
+kind: DaemonSet
+apiVersion: apps/v1
+metadata:
+  name: daemon
+  namespace: system
+spec:
+  selector:
+    matchLabels:
+      app: actimanager-daemon
+  template:
+    metadata:
+      name: actimanager-daemon
+      labels:
+        app: actimanager-daemon
+    spec:
+      containers:
+        - name: actimanager-daemon
+          image: stefanaki/cgroup_test:dev5
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8089
+          securityContext:
+            privileged: true
+            seccompProfile:
+              type: RuntimeDefault
+            capabilities:
+              drop:
+                - all
+          args: ["-cpath", "/cgroup", "-runtime", "docker", "--node-name=$(NODE_NAME)"]
+#         args: ["-cpath", "/cgroup", "-runtime", "containerd", "--node-name=$(NODE_NAME)"]
+          env:
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+          volumeMounts:
+            - name: host
+              mountPath: /cgroup
+          resources:
+            limits:
+              cpu: "4"
+              memory: "512M"
+            requests:
+              cpu: "2"
+              memory: "64M"
+          readinessProbe:
+            grpc:
+              port: 8089
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            grpc:
+              port: 8089
+            initialDelaySeconds: 15
+            periodSeconds: 20
+      volumes:
+        - name: host
+          hostPath:
+            path: /sys/fs/cgroup
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: daemon
+  namespace: system
+spec:
+  clusterIP: None
+  selector:
+    app: actimanager-daemon
+  ports:
+    - protocol: TCP
+      port: 8089

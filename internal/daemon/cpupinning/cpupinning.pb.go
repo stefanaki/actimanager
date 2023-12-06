@@ -273,7 +273,7 @@ func (x *Container) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use MyContainer.ProtoReflect.Descriptor instead.
+// Deprecated: Use ContainerInfo.ProtoReflect.Descriptor instead.
 func (*Container) Descriptor() ([]byte, []int) {
 	return file_internal_daemon_cpupinning_cpupinning_proto_rawDescGZIP(), []int{2}
 }
@@ -686,7 +686,7 @@ var file_internal_daemon_cpupinning_cpupinning_proto_goTypes = []interface{}{
 	(ErrorType)(0),               // 1: ErrorType
 	(*CpuSet)(nil),               // 2: CpuSet
 	(*ResourceInfo)(nil),         // 3: ResourceInfo
-	(*Container)(nil),            // 4: MyContainer
+	(*Container)(nil),            // 4: ContainerInfo
 	(*Pod)(nil),                  // 5: Pod
 	(*ApplyPinningRequest)(nil),  // 6: ApplyPinningRequest
 	(*RemovePinningRequest)(nil), // 7: RemovePinningRequest
@@ -694,8 +694,8 @@ var file_internal_daemon_cpupinning_cpupinning_proto_goTypes = []interface{}{
 	(*Response)(nil),             // 9: Response
 }
 var file_internal_daemon_cpupinning_cpupinning_proto_depIdxs = []int32{
-	3,  // 0: MyContainer.resources:type_name -> ResourceInfo
-	4,  // 1: Pod.containers:type_name -> MyContainer
+	3,  // 0: ContainerInfo.resources:type_name -> ResourceInfo
+	4,  // 1: Pod.containers:type_name -> ContainerInfo
 	5,  // 2: ApplyPinningRequest.pod:type_name -> Pod
 	2,  // 3: ApplyPinningRequest.cpuSet:type_name -> CpuSet
 	5,  // 4: RemovePinningRequest.pod:type_name -> Pod

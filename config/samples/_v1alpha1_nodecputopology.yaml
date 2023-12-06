@@ -10,7 +10,6 @@ metadata:
   name: node-1-cputopology
 spec:
   nodeName: node-1
-  topology:
 ---
 apiVersion: cslab.ece.ntua.gr/v1alpha1
 kind: NodeCpuTopology
@@ -37,4 +36,10 @@ metadata:
   name: node-3-cputopology
 spec:
   nodeName: node-3
-  topology:
+---
+apiVersion: cslab.ece.ntua.gr/v1alpha1
+kind: NodeCpuTopology
+metadata:
+  name: minikube-cputopology
+spec:
+  nodeName: minikube
