@@ -12,7 +12,7 @@ import (
 	"net"
 )
 
-func RunDaemon() {
+func main() {
 	var cgroupPath, cgroupDriver, nodeName, runtime string
 	var logger = createLogger()
 
@@ -26,7 +26,7 @@ func RunDaemon() {
 	flag.StringVar(
 		&runtime,
 		"runtime",
-		"containerd",
+		"docker",
 		"ContainerInfo Runtime (Default: containerd, Possible values: containerd, docker, kind)",
 	)
 	flag.StringVar(&cgroupPath, "cpath", "/sys/fs/cgroup/", "Specify Path to cgroupds")
@@ -51,7 +51,7 @@ func RunDaemon() {
 		klog.Fatalf("cannot create cpu pinnning controller: %v", err.Error())
 	}
 
-	cpuPinningServer := &cpupinning.Server{Controller: cpuPinningController}
+	cpuPinningServer := cpupinning.NewCpuPinningServer(cpuPinningController)
 	healthServer := health.NewServer()
 
 	srv := grpc.NewServer()

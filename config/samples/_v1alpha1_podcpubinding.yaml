@@ -7,11 +7,12 @@ metadata:
     app.kubernetes.io/part-of: actimanager
     app.kubernetes.io/managed-by: kustomize
     app.kubernetes.io/created-by: actimanager
-  name: kd
-  namespace: kubernetes-dashboard
+  name: bind
+  namespace: benchmarks
 spec:
   exclusivenessLevel: Cpu
-  podName: kubernetes-dashboard-5c5cfc8747-zmxb2
+  podName: run-parsec-blackscholes-gcc-4-native-cljhc
   cpuSet:
   - cpuId: 12
   - cpuId: 13
+

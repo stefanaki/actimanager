@@ -4,6 +4,15 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+const (
+	StatusNeedsSync    string = "NeedsSync"
+	StatusNodeNotFound string = "NodeNotFound"
+	StatusFresh        string = "Fresh"
+	StatusJobNone      string = "None"
+	StatusJobPending   string = "Pending"
+	StatusJobCompleted string = "Completed"
+)
+
 // NodeCpuTopologySpec defines the desired state of NodeCpuTopology
 type NodeCpuTopologySpec struct {
 	NodeName string `json:"nodeName"`
