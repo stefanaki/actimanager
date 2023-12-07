@@ -47,6 +47,8 @@ spec:
             description: PodCpuBindingSpec defines the CPU set on which a pod is bound,
               as well as the level of exclusiveness of the resources it needs
             properties:
+              apply:
+                type: boolean
               cpuSet:
                 items:
                   description: Cpu is a logical CPU core of the parent core
@@ -80,6 +82,8 @@ spec:
                   is bound, as well as the level of exclusiveness of the resources
                   it needs
                 properties:
+                  apply:
+                    type: boolean
                   cpuSet:
                     items:
                       description: Cpu is a logical CPU core of the parent core
@@ -112,6 +116,7 @@ spec:
                 - PodNotFound
                 - InvalidCpuSet
                 - Collision
+                - Failed
                 type: string
             required:
             - lastSpec

@@ -2,7 +2,7 @@ package nodecputopology
 
 import (
 	"context"
-	cslabecentuagrv1alpha1 "cslab.ece.ntua.gr/actimanager/api/v1alpha1"
+	"cslab.ece.ntua.gr/actimanager/api/v1alpha1"
 	"fmt"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -32,7 +32,7 @@ func (r *NodeCpuTopologyReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 	logger := log.FromContext(ctx).WithName("nct-controller")
 
 	// Get NodeCpuTopology CR
-	topology := &cslabecentuagrv1alpha1.NodeCpuTopology{}
+	topology := &v1alpha1.NodeCpuTopology{}
 
 	// Handle delete
 	err := r.Get(ctx, req.NamespacedName, topology)
@@ -46,9 +46,9 @@ func (r *NodeCpuTopologyReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 
 	// Initialize CR
 	if topology.Spec.NodeName != topology.Status.LastNodeName {
-		topology.Status.Status = "NeedsSync"
+		topology.Status.Status = v1alpha1.StatusNeedsSync
 		topology.Status.LastNodeName = topology.Spec.NodeName
-		topology.Status.InitJobStatus = "None"
+		topology.Status.InitJobStatus = v1alpha1.StatusJobNone
 		if err := r.Status().Update(ctx, topology); err != nil {
 			return ctrl.Result{}, fmt.Errorf("error updating resource: %v", err)
 		}
@@ -56,16 +56,16 @@ func (r *NodeCpuTopologyReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 	}
 
 	// Validate CR
-	if topology.Status.Status == "NodeNotFound" ||
-		topology.Status.Status == "Fresh" {
+	if topology.Status.Status == v1alpha1.StatusNodeNotFound ||
+		topology.Status.Status == v1alpha1.StatusFresh {
 		return ctrl.Result{}, nil
 	}
 
 	// Check if specified NodeName is a valid name of a node
 	if err := r.Get(ctx, client.ObjectKey{Name: topology.Spec.NodeName}, &corev1.Node{}); err != nil {
 		logger.Info("Node with specified name not found: " + topology.Spec.NodeName)
-		topology.Status.Status = "NodeNotFound"
-		topology.Status.InitJobStatus = "None"
+		topology.Status.Status = v1alpha1.StatusNodeNotFound
+		topology.Status.InitJobStatus = v1alpha1.StatusJobNone
 
 		if err := r.Status().Update(ctx, topology); err != nil {
 			return ctrl.Result{}, fmt.Errorf("could not update status: %v", err)
@@ -76,15 +76,15 @@ func (r *NodeCpuTopologyReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 
 	// Handle reconcilation
 	switch topology.Status.Status {
-	case "NeedsSync":
+	case v1alpha1.StatusNeedsSync:
 		// If Status is empty or NeedsSync, initiate job
 		switch topology.Status.InitJobStatus {
-		case "None":
+		case v1alpha1.StatusJobNone:
 			logger.Info("Dispatch init job for NodeCpuBinding")
 
 			jobName, err := r.createInitJob(topology, ctx, &logger)
 
-			topology.Status.InitJobStatus = "Pending"
+			topology.Status.InitJobStatus = v1alpha1.StatusJobPending
 			topology.Status.InitJobName = jobName
 
 			if err = r.Status().Update(ctx, topology); err != nil {
@@ -92,7 +92,7 @@ func (r *NodeCpuTopologyReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 			}
 
 			return ctrl.Result{}, nil
-		case "Pending":
+		case v1alpha1.StatusJobPending:
 			// While InitJobStatus is Pending, requeue the CR until the pod completes
 			isCompleted, err := r.isJobCompleted(topology, ctx)
 			if err != nil {
@@ -114,8 +114,8 @@ func (r *NodeCpuTopologyReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 				return ctrl.Result{Requeue: true}, fmt.Errorf("error updating NodeCpuTopology spec: %v", err)
 			}
 
-			topology.Status.Status = "Fresh"
-			topology.Status.InitJobStatus = "Completed"
+			topology.Status.Status = v1alpha1.StatusFresh
+			topology.Status.InitJobStatus = v1alpha1.StatusJobCompleted
 			if err = r.Status().Update(ctx, topology); err != nil {
 				return ctrl.Result{}, fmt.Errorf("error updating NodeCpuTopology status: %v", err)
 			}
@@ -141,6 +141,6 @@ func (r *NodeCpuTopologyReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 // SetupWithManager sets up the controller with the Manager.
 func (r *NodeCpuTopologyReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&cslabecentuagrv1alpha1.NodeCpuTopology{}).
+		For(&v1alpha1.NodeCpuTopology{}).
 		Complete(r)
 }

@@ -13,6 +13,8 @@ spec:
       labels:
         app: actimanager-daemon
     spec:
+      serviceAccountName: default
+      hostNetwork: true
       containers:
         - name: actimanager-daemon
           image: stefanaki/cgroup_test:dev5
@@ -57,16 +59,3 @@ spec:
         - name: host
           hostPath:
             path: /sys/fs/cgroup
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: daemon
-  namespace: system
-spec:
-  clusterIP: None
-  selector:
-    app: actimanager-daemon
-  ports:
-    - protocol: TCP
-      port: 8089

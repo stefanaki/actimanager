@@ -1,6 +1,6 @@
 
 # Image URL to use all building/pushing image targets
-IMG ?= cgroup_test:dev
+IMG ?= actimanager:dev
 # ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
 ENVTEST_K8S_VERSION = 1.28.0
 
@@ -23,7 +23,7 @@ SHELL = /usr/bin/env bash -o pipefail
 .SHELLFLAGS = -ec
 
 .PHONY: all
-all: build
+all: build-controller build-daemon
 
 ##@ General
 
@@ -83,12 +83,23 @@ lint-fix: golangci-lint ## Run golangci-lint linter and perform fixes
 ##@ Build
 
 .PHONY: build
-build: manifests generate fmt vet ## Build manager binary.
-	go build -o bin/manager cmd/main.go cmd/controller.go cmd/daemon.go
+build: build-daemon build-controller ## Build all applications.
 
-.PHONY: run
-run: manifests generate fmt vet ## Run a controller from your host.
-	go run cmd/main.go cmd/controller.go cmd/daemon.go --runtime=docker
+.PHONY: build-controller
+build-controller: manifests generate fmt vet ## Build manager binary.
+	go build -o bin/manager cmd/controller/main.go
+
+.PHONY: build-daemon
+build-daemon: manifests generate fmt vet ## Build manager binary.
+	go build -o bin/daemon cmd/daemon/main.go
+
+.PHONY: run-controller
+run-manager: manifests generate fmt vet ## Run the manager from your host.
+	go run cmd/controller/main.go
+
+.PHONY: run-daemon
+run-daemon: manifests generate fmt vet ## Run the daemon from your host.
+	go run cmd/daemon/main.go
 
 # If you wish to build the manager image targeting other platforms you can use the --platform flag.
 # (i.e. docker build --platform linux/arm64). However, you must enable docker buildKit for it.

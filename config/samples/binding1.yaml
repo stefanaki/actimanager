@@ -1,0 +1,14 @@
+apiVersion: cslab.ece.ntua.gr/v1alpha1
+kind: PodCpuBinding
+metadata:
+  name: binding-1
+  namespace: benchmarks
+spec:
+  exclusivenessLevel: Cpu
+  podName: run-parsec-blackscholes-gcc-4-native-cljhc
+  cpuSet:
+  - cpuId: 4
+  - cpuId: 5
+  - cpuId: 6
+  - cpuId: 7
+

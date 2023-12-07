@@ -4,6 +4,16 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+const (
+	StatusBindingPending       string = "Pending"
+	StatusInvalidCpuSet        string = "InvalidCpuSet"
+	StatusPodNotFound          string = "PodNotFound"
+	StatusNodeTopologyNotFound string = "NodeTopologyNotFound"
+	StatusApplied              string = "Applied"
+	StatusFailed               string = "Failed"
+	StatusDeleted              string = "Deleted"
+)
+
 // PodCpuBindingSpec defines the CPU set on which a pod is bound,
 // as well as the level of exclusiveness of the resources it needs
 type PodCpuBindingSpec struct {
@@ -13,6 +23,8 @@ type PodCpuBindingSpec struct {
 	// +kubebuilder:validation:Required
 	CpuSet []Cpu `json:"cpuSet"`
 
+	Apply *bool `json:"apply,omitempty"`
+
 	// +kubebuilder:validation:Enum=None;Cpu;Core;Socket;Numa
 	// +kubebuilder:default:Cpu
 	ExclusivenessLevel string `json:"exclusivenessLevel"`
@@ -20,7 +32,7 @@ type PodCpuBindingSpec struct {
 
 // PodCpuBindingStatus defines the observed state of PodCpuBinding
 type PodCpuBindingStatus struct {
-	// +kubebuilder:validation:Enum=Applied;Pending;PodNotFound;InvalidCpuSet;Collision
+	// +kubebuilder:validation:Enum=Applied;Pending;PodNotFound;InvalidCpuSet;Collision;Failed
 	Status   string            `json:"status"`
 	LastSpec PodCpuBindingSpec `json:"lastSpec"`
 }
@@ -31,6 +43,7 @@ type PodCpuBindingStatus struct {
 // +kubebuilder:printcolumn:name="Pod Name",type=string,JSONPath=`.spec.podName`
 // +kubebuilder:printcolumn:name="Exclusiveness Level",type=string,JSONPath=`.spec.exclusivenessLevel`
 // +kubebuilder:printcolumn:name="Status",type=string,JSONPath=`.status.status`
+
 // PodCpuBinding is the Schema for the podcpubindings API
 type PodCpuBinding struct {
 	metav1.TypeMeta   `json:",inline"`
