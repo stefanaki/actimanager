@@ -3,6 +3,7 @@ package podcpubinding
 import (
 	"context"
 	"cslab.ece.ntua.gr/actimanager/api/v1alpha1"
+	nodecputopologyv1alpha1 "cslab.ece.ntua.gr/actimanager/internal/pkg/nodecputopology/v1alpha1"
 	"fmt"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -43,10 +44,32 @@ func (r *PodCpuBindingReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		return ctrl.Result{}, fmt.Errorf("error reconciling PodCpuBinding: %v", err.Error())
 	}
 
+	// Initialize CR
+	if needsUpdate(cpuBinding) {
+		cpuBinding.Status.Status = v1alpha1.StatusBindingPending
+		cpuBinding.Status.LastSpec = cpuBinding.Spec
+		if err := r.Status().Update(ctx, cpuBinding); err != nil {
+			return ctrl.Result{}, fmt.Errorf("error updating status: %v", err.Error())
+		}
+
+		return ctrl.Result{}, nil
+	}
+
 	// Validate CR
 	pod := &corev1.Pod{}
-	if err := r.validatePodCpuBinding(ctx, cpuBinding, pod); err != nil {
-		return ctrl.Result{}, err
+	err = r.Get(ctx, client.ObjectKey{Name: cpuBinding.Spec.PodName, Namespace: cpuBinding.ObjectMeta.Namespace}, pod)
+
+	if errors.IsNotFound(err) {
+		cpuBinding.Status.Status = v1alpha1.StatusPodNotFound
+		if err := r.Status().Update(ctx, cpuBinding); err != nil {
+			return ctrl.Result{}, fmt.Errorf("error updating cpu binding status: %v", err.Error())
+		}
+
+		return ctrl.Result{}, nil
+	}
+
+	if err != nil {
+		return ctrl.Result{}, fmt.Errorf("error getting pod: %v", err.Error())
 	}
 
 	// Check if all containers are ready
@@ -56,56 +79,68 @@ func (r *PodCpuBindingReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		}
 	}
 
-	// Delete CR if action-delete annotation is "true"
-	if needsDelete(cpuBinding) {
-		// Remove CPU pinning and delete CR
-		err := r.removeCpuPinning(ctx, pod, logger)
-		if err != nil {
-			return ctrl.Result{}, fmt.Errorf("error removing CPU pinning: %v", err.Error())
-		}
+	// Get NodeCpuTopology of node
+	topologies := &v1alpha1.NodeCpuTopologyList{}
+	err = r.List(ctx,
+		topologies,
+		client.MatchingFields{"spec.nodeName": pod.Spec.NodeName})
 
-		err = r.Delete(ctx, cpuBinding)
-
-		if err != nil {
-			return ctrl.Result{}, fmt.Errorf("error deleting PodCpuBinding: %v", err.Error())
+	if errors.IsNotFound(err) {
+		cpuBinding.Status.Status = v1alpha1.StatusNodeTopologyNotFound
+		if err := r.Status().Update(ctx, cpuBinding); err != nil {
+			return ctrl.Result{}, fmt.Errorf("error updating cpu binding status: %v", err.Error())
 		}
 	}
 
-	// Reinitialize CR on update
-	if needsUpdate(cpuBinding) {
-		cpuBinding.Status.Status = v1alpha1.StatusBindingPending
-		cpuBinding.Status.LastSpec = cpuBinding.Spec
+	if err != nil {
+		return ctrl.Result{}, fmt.Errorf("error listing CPU topologies: %v", err.Error())
+	}
+
+	targetTopology := topologies.Items[0]
+
+	// Check if specified cpuset is available in the node topology
+	if !nodecputopologyv1alpha1.IsCpuSetInTopology(&targetTopology.Spec.Topology, cpuBinding.Spec.CpuSet) {
+		cpuBinding.Status.Status = v1alpha1.StatusInvalidCpuSet
+
 		if err := r.Status().Update(ctx, cpuBinding); err != nil {
-			return ctrl.Result{}, fmt.Errorf("error updating status: %v", err.Error())
+			return ctrl.Result{}, fmt.Errorf("error updating cpu binding status: %v", err.Error())
 		}
 
-		cpuBinding.ObjectMeta.Annotations[v1alpha1.ActionUpdateAnnotationKey] = "false"
-		if err := r.Update(ctx, cpuBinding); err != nil {
-			return ctrl.Result{}, fmt.Errorf("error updating PodCpuTopology: %v", err.Error())
-		}
-
-		logger.Info("updated", "update?", cpuBinding.ObjectMeta.Annotations[v1alpha1.ActionUpdateAnnotationKey], "status?", cpuBinding.Status.Status)
 		return ctrl.Result{}, nil
 	}
 
 	// Handle reconcilation
-	if cpuBinding.Status.Status == v1alpha1.StatusApplied ||
-		cpuBinding.Status.Status == v1alpha1.StatusInvalidCpuSet ||
-		cpuBinding.Status.Status == v1alpha1.StatusPodNotFound ||
-		cpuBinding.Status.Status == v1alpha1.StatusNodeTopologyNotFound ||
-		cpuBinding.Status.Status == v1alpha1.StatusFailed {
+	switch cpuBinding.Status.Status {
+	case v1alpha1.StatusBindingPending:
+		// Apply CPU pinning
+		err = r.applyCpuPinning(ctx, cpuBinding.Spec.CpuSet, pod, logger)
+		if err != nil {
+			cpuBinding.Status.Status = v1alpha1.StatusFailed
+		}
+		cpuBinding.Status.Status = v1alpha1.StatusApplied
+
+		if err := r.Status().Update(ctx, cpuBinding); err != nil {
+			return ctrl.Result{}, fmt.Errorf("error updating status: %v", err.Error())
+		}
+
+	case v1alpha1.StatusApplied:
+		if needsDelete(cpuBinding) {
+			// Remove CPU pinning and delete CR
+			err := r.removeCpuPinning(ctx, pod, logger)
+			if err != nil {
+				return ctrl.Result{}, fmt.Errorf("error removing CPU pinning: %v", err.Error())
+			}
+
+			err = r.Delete(ctx, cpuBinding)
+
+			if err != nil {
+				return ctrl.Result{}, fmt.Errorf("error deleting PodCpuBinding: %v", err.Error())
+			}
+
+			return ctrl.Result{}, nil
+		}
+	default:
 		return ctrl.Result{}, nil
-	}
-
-	// Apply CPU pinning
-	err = r.applyCpuPinning(ctx, cpuBinding.Spec.CpuSet, pod, logger)
-	if err != nil {
-		cpuBinding.Status.Status = v1alpha1.StatusFailed
-	}
-	cpuBinding.Status.Status = v1alpha1.StatusApplied
-
-	if err := r.Status().Update(ctx, cpuBinding); err != nil {
-		return ctrl.Result{}, fmt.Errorf("error updating status: %v", err.Error())
 	}
 
 	return ctrl.Result{}, nil
