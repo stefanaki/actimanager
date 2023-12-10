@@ -1,14 +1,12 @@
 apiVersion: cslab.ece.ntua.gr/v1alpha1
 kind: PodCpuBinding
 metadata:
-  name: binding-1
-  namespace: benchmarks
+  name: dash-pin
+  namespace: kubernetes-dashboard
 spec:
   exclusivenessLevel: Cpu
-  podName: run-parsec-blackscholes-gcc-4-native-hxdxp
+  podName: kubernetes-dashboard-5c5cfc8747-zmxb2
   cpuSet:
   - cpuId: 4
   - cpuId: 5
-  - cpuId: 6
-  - cpuId: 7
 

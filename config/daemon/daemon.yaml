@@ -17,7 +17,7 @@ spec:
       hostNetwork: true
       containers:
         - name: actimanager-daemon
-          image: stefanaki/cgroup_test:dev5
+          image: stefanaki/actimanager:dev
           imagePullPolicy: Always
           ports:
             - containerPort: 8089

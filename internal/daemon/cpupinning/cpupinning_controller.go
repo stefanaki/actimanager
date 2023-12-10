@@ -8,6 +8,7 @@ import (
 	"github.com/opencontainers/runtime-spec/specs-go"
 	"os"
 	"path"
+	"path/filepath"
 	"strings"
 )
 
@@ -77,16 +78,38 @@ type CpuPinningController struct {
 	containerRuntime ContainerRuntime
 	cgroupDriver     CGroupDriver
 	cgroupPath       string
+	availableCpus    string
 	logger           logr.Logger
 }
 
 func NewCpuPinningController(containerRuntime ContainerRuntime,
 	cgroupDriver CGroupDriver, cgroupPath string,
 	logger logr.Logger) (*CpuPinningController, error) {
+
+	var (
+		cpuSetFilePath string
+		cpuSetFileName string
+	)
+
+	if cgroups.Mode() != cgroups.Unified {
+		cpuSetFilePath = cgroupPath + "/cpuset"
+		cpuSetFileName = "cpuset.cpus"
+	} else {
+		cpuSetFilePath = cgroupPath
+		cpuSetFileName = "cpuset.cpus.effective"
+	}
+
+	cpuSet, err := os.ReadFile(filepath.Join(cpuSetFilePath, cpuSetFileName))
+	if err != nil {
+		logger.Error(err, "could not get cpuset from file system")
+		os.Exit(1)
+	}
+
 	c := CpuPinningController{
 		containerRuntime: containerRuntime,
 		cgroupDriver:     cgroupDriver,
 		cgroupPath:       cgroupPath,
+		availableCpus:    strings.Trim(strings.Trim(string(cpuSet), " "), "\n"),
 		logger:           logger.WithName("cpu-pinning"),
 	}
 
@@ -188,5 +211,5 @@ func (c CpuPinningController) Apply(container *ContainerInfo, cSet string) error
 }
 
 func (c CpuPinningController) Remove(container *ContainerInfo) error {
-	return c.UpdateCPUSet(c.cgroupPath, *container, ResourceNotSet, ResourceNotSet)
+	return c.UpdateCPUSet(c.cgroupPath, *container, c.availableCpus, ResourceNotSet)
 }

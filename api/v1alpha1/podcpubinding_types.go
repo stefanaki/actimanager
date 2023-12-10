@@ -11,7 +11,11 @@ const (
 	StatusNodeTopologyNotFound string = "NodeTopologyNotFound"
 	StatusApplied              string = "Applied"
 	StatusFailed               string = "Failed"
-	StatusDeleted              string = "Deleted"
+)
+
+const (
+	ActionUpdateAnnotationKey string = "action-update"
+	ActionDeleteAnnotationKey string = "action-delete"
 )
 
 // PodCpuBindingSpec defines the CPU set on which a pod is bound,
@@ -22,8 +26,6 @@ type PodCpuBindingSpec struct {
 
 	// +kubebuilder:validation:Required
 	CpuSet []Cpu `json:"cpuSet"`
-
-	Apply *bool `json:"apply,omitempty"`
 
 	// +kubebuilder:validation:Enum=None;Cpu;Core;Socket;Numa
 	// +kubebuilder:default:Cpu
