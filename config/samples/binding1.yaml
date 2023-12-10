@@ -5,7 +5,7 @@ metadata:
   namespace: benchmarks
 spec:
   exclusivenessLevel: Cpu
-  podName: run-parsec-blackscholes-gcc-4-native-cljhc
+  podName: run-parsec-blackscholes-gcc-4-native-hxdxp
   cpuSet:
   - cpuId: 4
   - cpuId: 5
