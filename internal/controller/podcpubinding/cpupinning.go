@@ -9,6 +9,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -165,4 +166,15 @@ func (r *PodCpuBindingReconciler) getNode(ctx context.Context, nodeName string) 
 	}, node)
 
 	return node, err
+}
+
+func (r *PodCpuBindingReconciler) getPod(ctx context.Context, podNamespacedName types.NamespacedName) (*corev1.Pod, error) {
+	pod := &corev1.Pod{}
+
+	err := r.Get(ctx, client.ObjectKey{
+		Name:      podNamespacedName.Name,
+		Namespace: podNamespacedName.Namespace,
+	}, pod)
+
+	return pod, err
 }

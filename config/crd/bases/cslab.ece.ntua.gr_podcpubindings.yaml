@@ -105,6 +105,8 @@ spec:
                 - exclusivenessLevel
                 - podName
                 type: object
+              nodeName:
+                type: string
               status:
                 enum:
                 - Applied
@@ -113,9 +115,11 @@ spec:
                 - InvalidCpuSet
                 - Collision
                 - Failed
+                - CpuSetAllocationFailed
                 type: string
             required:
             - lastSpec
+            - nodeName
             - status
             type: object
         required:
