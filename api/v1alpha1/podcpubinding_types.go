@@ -5,12 +5,13 @@ import (
 )
 
 const (
-	StatusBindingPending       string = "Pending"
-	StatusInvalidCpuSet        string = "InvalidCpuSet"
-	StatusPodNotFound          string = "PodNotFound"
-	StatusNodeTopologyNotFound string = "NodeTopologyNotFound"
-	StatusApplied              string = "Applied"
-	StatusFailed               string = "Failed"
+	StatusBindingPending         string = "Pending"
+	StatusInvalidCpuSet          string = "InvalidCpuSet"
+	StatusPodNotFound            string = "PodNotFound"
+	StatusNodeTopologyNotFound   string = "NodeTopologyNotFound"
+	StatusApplied                string = "Applied"
+	StatusFailed                 string = "Failed"
+	StatusCpuSetAllocationFailed string = "CpuSetAllocationFailed"
 )
 
 const (
@@ -34,8 +35,9 @@ type PodCpuBindingSpec struct {
 
 // PodCpuBindingStatus defines the observed state of PodCpuBinding
 type PodCpuBindingStatus struct {
-	// +kubebuilder:validation:Enum=Applied;Pending;PodNotFound;InvalidCpuSet;Collision;Failed
+	// +kubebuilder:validation:Enum=Applied;Pending;PodNotFound;InvalidCpuSet;Collision;Failed;CpuSetAllocationFailed
 	Status   string            `json:"status"`
+	NodeName string            `json:"nodeName"`
 	LastSpec PodCpuBindingSpec `json:"lastSpec"`
 }
 

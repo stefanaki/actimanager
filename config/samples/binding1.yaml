@@ -4,11 +4,9 @@ metadata:
   name: binding-1
   namespace: benchmarks
 spec:
-  exclusivenessLevel: Cpu
-  podName: run-parsec-blackscholes-gcc-4-native-hxdxp
+  exclusivenessLevel: Core
+  podName: run-parsec-blackscholes-gcc-4-native-lh672
   cpuSet:
   - cpuId: 4
-  - cpuId: 5
-  - cpuId: 6
   - cpuId: 7
 

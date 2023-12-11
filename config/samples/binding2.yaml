@@ -8,5 +8,5 @@ spec:
   podName: kubernetes-dashboard-5c5cfc8747-zmxb2
   cpuSet:
   - cpuId: 4
-  - cpuId: 5
-
+  - cpuId: 7
+  - cpuId: 0
