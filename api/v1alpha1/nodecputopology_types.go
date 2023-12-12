@@ -13,6 +13,8 @@ const (
 	StatusJobCompleted string = "Completed"
 )
 
+const FinalizerNodeCpuTopology string = "cslab.ece.ntua.gr/node-cpu-topology-finalizer"
+
 // NodeCpuTopologySpec defines the desired state of NodeCpuTopology
 type NodeCpuTopologySpec struct {
 	NodeName string `json:"nodeName"`
