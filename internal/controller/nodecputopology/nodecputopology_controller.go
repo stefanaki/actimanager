@@ -40,9 +40,6 @@ func (r *NodeCpuTopologyReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 		logger.Info("Deleted NodeCpuTopology")
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
-	if err != nil {
-		return ctrl.Result{}, err
-	}
 
 	// Initialize CR
 	if topology.Spec.NodeName != topology.Status.LastNodeName {

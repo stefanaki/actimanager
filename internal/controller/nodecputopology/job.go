@@ -76,7 +76,7 @@ func (r *NodeCpuTopologyReconciler) deleteJob(ctx context.Context, jobName strin
 
 // lscpuJob generates a Kubernetes Job for running the 'lscpu' command on a specific node
 func lscpuJob(node string) *batchv1.Job {
-	jobName := "lscpu-job-" + node + strings.Split(uuid.New().String(), "-")[0]
+	jobName := "lscpu-job-" + node + "-" + strings.Split(uuid.New().String(), "-")[0]
 
 	job := &batchv1.Job{
 		ObjectMeta: metav1.ObjectMeta{
