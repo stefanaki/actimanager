@@ -5,19 +5,18 @@ import (
 	"cslab.ece.ntua.gr/actimanager/api/v1alpha1"
 	"cslab.ece.ntua.gr/actimanager/internal/daemon/cpupinning"
 	"fmt"
-	"github.com/go-logr/logr"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/types"
-	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
+// applyCpuPinning applies CPU pinning for a given pod on a specified node
 func (r *PodCpuBindingReconciler) applyCpuPinning(
 	ctx context.Context,
 	cpuSet []v1alpha1.Cpu,
-	pod *corev1.Pod,
-	logger logr.Logger) error {
+	pod *corev1.Pod) error {
+	logger := log.FromContext(ctx).WithName("apply-pinning")
 
 	nodeAddress, err := r.getNodeAddress(ctx, pod.Spec.NodeName)
 	if err != nil {
@@ -51,10 +50,11 @@ func (r *PodCpuBindingReconciler) applyCpuPinning(
 	return nil
 }
 
+// removeCpuPinning removes CPU pinning for a given pod on a specified node
 func (r *PodCpuBindingReconciler) removeCpuPinning(
 	ctx context.Context,
-	pod *corev1.Pod,
-	logger logr.Logger) error {
+	pod *corev1.Pod) error {
+	logger := log.FromContext(ctx).WithName("remove-pinning")
 
 	nodeAddress, err := r.getNodeAddress(ctx, pod.Spec.NodeName)
 	if err != nil {
@@ -80,27 +80,7 @@ func (r *PodCpuBindingReconciler) removeCpuPinning(
 	return nil
 }
 
-func (r *PodCpuBindingReconciler) getNodeAddress(ctx context.Context, nodeName string) (string, error) {
-	node, err := r.getNode(ctx, nodeName)
-	if err != nil {
-		return "", fmt.Errorf("failed to get node by name: %v", err.Error())
-	}
-
-	nodeAddress := ""
-	for _, address := range node.Status.Addresses {
-		if address.Type == corev1.NodeInternalIP {
-			nodeAddress = address.Address
-			break
-		}
-	}
-
-	if nodeAddress == "" {
-		return "", fmt.Errorf("failed to get IP address of node " + nodeName)
-	}
-
-	return nodeAddress, nil
-}
-
+// parsePodInfo extracts relevant information from a Pod to create a cpupinning.Pod object
 func parsePodInfo(pod *corev1.Pod) *cpupinning.Pod {
 	p := &cpupinning.Pod{
 		Id:         string(pod.ObjectMeta.UID),
@@ -123,6 +103,7 @@ func parsePodInfo(pod *corev1.Pod) *cpupinning.Pod {
 	return p
 }
 
+// parseContainerResources extracts resource information from a container
 func parseContainerResources(containerName string, pod *corev1.Pod) *cpupinning.ResourceInfo {
 	resources := &cpupinning.ResourceInfo{}
 
@@ -147,7 +128,7 @@ func parseContainerResources(containerName string, pod *corev1.Pod) *cpupinning.
 	return resources
 }
 
-// convertCpuListToInt32 maps a Cpu list to an int32 array.
+// convertCpuListToInt32 maps a Cpu list to an int32 array
 func convertCpuListToInt32(cpuSet []v1alpha1.Cpu) []int32 {
 	var cpuList []int32
 
@@ -156,25 +137,4 @@ func convertCpuListToInt32(cpuSet []v1alpha1.Cpu) []int32 {
 	}
 
 	return cpuList
-}
-
-func (r *PodCpuBindingReconciler) getNode(ctx context.Context, nodeName string) (*corev1.Node, error) {
-	node := &corev1.Node{}
-
-	err := r.Get(ctx, client.ObjectKey{
-		Name: nodeName,
-	}, node)
-
-	return node, err
-}
-
-func (r *PodCpuBindingReconciler) getPod(ctx context.Context, podNamespacedName types.NamespacedName) (*corev1.Pod, error) {
-	pod := &corev1.Pod{}
-
-	err := r.Get(ctx, client.ObjectKey{
-		Name:      podNamespacedName.Name,
-		Namespace: podNamespacedName.Namespace,
-	}, pod)
-
-	return pod, err
 }
