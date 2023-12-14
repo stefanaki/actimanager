@@ -101,6 +101,10 @@ run-manager: manifests generate fmt vet ## Run the manager from your host.
 run-daemon: manifests generate fmt vet ## Run the daemon from your host.
 	go run cmd/daemon/main.go
 
+.PHONY: run-scheduler
+run-scheduler: manifests generate fmt vet ## Run the daemon from your host.
+	go run cmd/scheduler/main.go --kubeconfig=/home/georgios/.kube/config --config=/home/georgios/source/actimanager/kube-scheduler-config.yaml
+
 # If you wish to build the manager image targeting other platforms you can use the --platform flag.
 # (i.e. docker build --platform linux/arm64). However, you must enable docker buildKit for it.
 # More info: https://docs.docker.com/develop/develop-images/build_enhancements/
