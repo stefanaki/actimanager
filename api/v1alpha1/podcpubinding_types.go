@@ -14,7 +14,7 @@ const (
 	StatusCpuSetAllocationFailed string = "CpuSetAllocationFailed"
 )
 
-const FinalizerPodCpuBinding string = "cslab.ece.ntua.gr/pod-cpu-binding-finalizer"
+var FinalizerPodCpuBinding string = GroupVersion.Group + "/pod-cpu-binding-finalizer"
 
 // PodCpuBindingSpec defines the CPU set on which a pod is bound,
 // as well as the level of exclusiveness of the resources it needs

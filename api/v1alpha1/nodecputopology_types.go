@@ -13,7 +13,7 @@ const (
 	StatusJobCompleted string = "Completed"
 )
 
-const FinalizerNodeCpuTopology string = "cslab.ece.ntua.gr/node-cpu-topology-finalizer"
+var FinalizerNodeCpuTopology string = GroupVersion.Group + "/node-cpu-topology-finalizer"
 
 // NodeCpuTopologySpec defines the desired state of NodeCpuTopology
 type NodeCpuTopologySpec struct {
