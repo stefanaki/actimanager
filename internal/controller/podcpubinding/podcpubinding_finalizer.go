@@ -20,7 +20,7 @@ func (r *PodCpuBindingReconciler) PodCpuBindingFinalizer(ctx context.Context, cp
 	}
 
 	// Remove CPU pinning and delete CR
-	err = r.removeCpuPinning(ctx, pod, logger)
+	err = r.removeCpuPinning(ctx, pod)
 	if err != nil {
 		logger.Info("error removing CPU pinning", "error", err.Error())
 	}

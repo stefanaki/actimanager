@@ -1,6 +1,8 @@
 package v1alpha1
 
-import cslabecentuagrv1alpha1 "cslab.ece.ntua.gr/actimanager/api/v1alpha1"
+import (
+	cslabecentuagrv1alpha1 "cslab.ece.ntua.gr/actimanager/api/v1alpha1"
+)
 
 func IsCpuSetInTopology(topology *cslabecentuagrv1alpha1.CpuTopology, cpuSet []cslabecentuagrv1alpha1.Cpu) bool {
 	remaining := len(cpuSet)
@@ -21,7 +23,7 @@ func IsCpuSetInTopology(topology *cslabecentuagrv1alpha1.CpuTopology, cpuSet []c
 	return remaining == 0
 }
 
-func GetCpuParents(topology *cslabecentuagrv1alpha1.NodeCpuTopology, cpuId int) (int, int, int, int) {
+func GetCpuParentInfo(topology *cslabecentuagrv1alpha1.NodeCpuTopology, cpuId int) (int, int, int, int) {
 	numaId := -1
 	for _, numa := range topology.Spec.Topology.NumaNodes {
 		for _, cpu := range numa.Cpus {
@@ -52,7 +54,7 @@ func GetAllCpusInCore(topology *cslabecentuagrv1alpha1.NodeCpuTopology, coreId i
 				for _, cpu := range core.Cpus {
 					cpus = append(cpus, cpu.CpuId)
 				}
-				break
+				return cpus
 			}
 		}
 	}
@@ -68,7 +70,7 @@ func GetAllCpusInSocket(topology *cslabecentuagrv1alpha1.NodeCpuTopology, socket
 					cpus = append(cpus, cpu.CpuId)
 				}
 			}
-			break
+			return cpus
 		}
 	}
 	return cpus
@@ -81,7 +83,8 @@ func GetAllCpusInNuma(topology *cslabecentuagrv1alpha1.NodeCpuTopology, numaId i
 			for _, cpu := range numaNode.Cpus {
 				cpus = append(cpus, cpu.CpuId)
 			}
-			break
+
+			return cpus
 		}
 	}
 	return cpus

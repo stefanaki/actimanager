@@ -11,6 +11,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
+// validatePodName checks if the specified pod exists in the namespace
 func (r *PodCpuBindingReconciler) validatePodName(ctx context.Context, cpuBinding *v1alpha1.PodCpuBinding, pod *corev1.Pod) (bool, string, error) {
 	err := r.Get(ctx, client.ObjectKey{Name: cpuBinding.Spec.PodName, Namespace: cpuBinding.ObjectMeta.Namespace}, pod)
 
@@ -25,6 +26,8 @@ func (r *PodCpuBindingReconciler) validatePodName(ctx context.Context, cpuBindin
 	return true, "", nil
 }
 
+// validateTopology checks if the node topology for the specified pod's
+// node is available and if the specified CPU set is valid
 func (r *PodCpuBindingReconciler) validateTopology(ctx context.Context, cpuBinding *v1alpha1.PodCpuBinding,
 	topology *v1alpha1.NodeCpuTopology, pod *corev1.Pod) (bool, string, error) {
 
@@ -52,9 +55,13 @@ func (r *PodCpuBindingReconciler) validateTopology(ctx context.Context, cpuBindi
 	return true, "", nil
 }
 
+// validateExclusivenessLevel checks if the specified CPU binding has
+// an exclusive CPU set based on the specified exclusiveness level
 func (r *PodCpuBindingReconciler) validateExclusivenessLevel(ctx context.Context,
 	cpuBinding *v1alpha1.PodCpuBinding, topology *v1alpha1.NodeCpuTopology,
-	namespacedName types.NamespacedName) (bool, string, error) {
+	namespacedName types.NamespacedName, nodeName string) (bool, string, error) {
+
+	// println("validating exclusiveness lvl of cpu binding", cpuBinding.Name)
 
 	unfeasibleCpus := make(map[int]struct{})
 	podCpuBindingList := &v1alpha1.PodCpuBindingList{}
@@ -66,60 +73,77 @@ func (r *PodCpuBindingReconciler) validateExclusivenessLevel(ctx context.Context
 	}
 
 	for _, pcb := range podCpuBindingList.Items {
-		if pcb.Status.NodeName != cpuBinding.Status.NodeName ||
+		// println("checking pcb " + pcb.Name)
+		if pcb.Status.NodeName != nodeName ||
 			(pcb.Namespace == namespacedName.Namespace && pcb.Name == namespacedName.Name) ||
 			pcb.Status.Status != v1alpha1.StatusApplied {
+			// println("this pcb should not be checked", pcb.Name)
 			continue
 		}
 
-		switch pcb.Spec.ExclusivenessLevel {
-		case "Cpu":
-			for _, cpu := range pcb.Spec.CpuSet {
-				unfeasibleCpus[cpu.CpuId] = struct{}{}
-			}
-		case "Core":
-			for _, cpu := range pcb.Spec.CpuSet {
-				_, coreId, _, _ := nctv1alpha1.GetCpuParents(topology, cpu.CpuId)
-				for _, c := range nctv1alpha1.GetAllCpusInCore(topology, coreId) {
-					unfeasibleCpus[c] = struct{}{}
-				}
-			}
-		case "Socket":
-			for _, cpu := range pcb.Spec.CpuSet {
-				_, _, socketId, _ := nctv1alpha1.GetCpuParents(topology, cpu.CpuId)
-
-				for _, c := range nctv1alpha1.GetAllCpusInSocket(topology, socketId) {
-					unfeasibleCpus[c] = struct{}{}
-				}
-			}
-		case "Numa":
-			for _, cpu := range pcb.Spec.CpuSet {
-				_, _, _, numaId := nctv1alpha1.GetCpuParents(topology, cpu.CpuId)
-
-				for _, c := range nctv1alpha1.GetAllCpusInNuma(topology, numaId) {
-					unfeasibleCpus[c] = struct{}{}
-				}
-			}
-		default:
-			// Exclusiveness Level: None
+		exclusiveCpus := getExclusiveCpusOfCpuBinding(&pcb, topology)
+		for c := range exclusiveCpus {
+			// println("found exclusive cpu for", pcb.Name, c)
+			unfeasibleCpus[c] = struct{}{}
 		}
 	}
 
-	println("UNFEASIBLE CPUS: ", namespacedName.Name, namespacedName.Namespace)
-	for c := range unfeasibleCpus {
-		fmt.Printf("%v,", c)
-	}
-
-	if hasUnfeasibleCpus(cpuBinding.Spec.CpuSet, unfeasibleCpus) {
+	if hasUnfeasibleCpus(cpuBinding, topology, unfeasibleCpus) {
+		// println("cant pin")
 		return false, v1alpha1.StatusCpuSetAllocationFailed, nil
+	} else {
+		// println("can pin")
 	}
 
 	return true, "", nil
 }
 
-func hasUnfeasibleCpus(cpuSet []v1alpha1.Cpu, unfeasibleCpus map[int]struct{}) bool {
-	for _, cpu := range cpuSet {
-		if _, exists := unfeasibleCpus[cpu.CpuId]; exists {
+// getExclusiveCpusOfCpuBinding returns the exclusive CPUs
+// for a given CPU binding based on its exclusiveness level
+func getExclusiveCpusOfCpuBinding(cpuBinding *v1alpha1.PodCpuBinding, topology *v1alpha1.NodeCpuTopology) map[int]struct{} {
+	exclusiveCpus := make(map[int]struct{})
+
+	// println("get exclusive cpus for pcb", cpuBinding.Name)
+
+	for _, cpu := range cpuBinding.Spec.CpuSet {
+		_, coreId, socketId, numaId := nctv1alpha1.GetCpuParentInfo(topology, cpu.CpuId)
+
+		switch cpuBinding.Spec.ExclusivenessLevel {
+		case "Cpu":
+			exclusiveCpus[cpu.CpuId] = struct{}{}
+		case "Core":
+			for _, c := range nctv1alpha1.GetAllCpusInCore(topology, coreId) {
+				exclusiveCpus[c] = struct{}{}
+			}
+		case "Socket":
+			for _, c := range nctv1alpha1.GetAllCpusInSocket(topology, socketId) {
+				exclusiveCpus[c] = struct{}{}
+			}
+		case "Numa":
+			// println("pod", cpuBinding.Name, "is numa")
+			for _, c := range nctv1alpha1.GetAllCpusInNuma(topology, numaId) {
+				exclusiveCpus[c] = struct{}{}
+			}
+		default:
+
+		}
+	}
+
+	// println("end exclusive cpus for pcb", cpuBinding.Name)
+	//for c := range exclusiveCpus {
+	//	log.Printf("%v", c)
+	//}
+	//log.Printf("\n")
+
+	return exclusiveCpus
+}
+
+// hasUnfeasibleCpus checks if there are unfeasible CPUs for a given CPU binding
+func hasUnfeasibleCpus(cpuBinding *v1alpha1.PodCpuBinding, topology *v1alpha1.NodeCpuTopology, unfeasibleCpus map[int]struct{}) bool {
+	exclusiveCpus := getExclusiveCpusOfCpuBinding(cpuBinding, topology)
+
+	for cpu := range exclusiveCpus {
+		if _, exists := unfeasibleCpus[cpu]; exists {
 			return true
 		}
 	}

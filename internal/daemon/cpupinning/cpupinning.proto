@@ -6,7 +6,7 @@ message CpuSet {
   repeated int32 cpu = 1;
 }
 
-message ResourceInfo{
+message ResourceInfo {
   int32 requestedCpus = 1;
   int32 limitCpus = 2;
   bytes requestedMemory = 3;
