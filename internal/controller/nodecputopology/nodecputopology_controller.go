@@ -42,7 +42,7 @@ func (r *NodeCpuTopologyReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 	}
 
 	// Initialize CR
-	if topology.Spec.NodeName != topology.Status.LastNodeName {
+	if needsReconciliation(topology) {
 		topology.Status.Status = v1alpha1.StatusNeedsSync
 		topology.Status.LastNodeName = topology.Spec.NodeName
 		topology.Status.InitJobStatus = v1alpha1.StatusJobNone
@@ -133,6 +133,10 @@ func (r *NodeCpuTopologyReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 	default:
 		return ctrl.Result{}, nil
 	}
+}
+
+func needsReconciliation(topology *v1alpha1.NodeCpuTopology) bool {
+	return topology.Spec.NodeName != topology.Status.LastNodeName
 }
 
 // SetupWithManager sets up the controller with the Manager.

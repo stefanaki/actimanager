@@ -83,15 +83,19 @@ lint-fix: golangci-lint ## Run golangci-lint linter and perform fixes
 ##@ Build
 
 .PHONY: build
-build: build-daemon build-controller ## Build all applications.
+build: build-daemon build-controller build-scheduler ## Build all applications.
 
 .PHONY: build-controller
 build-controller: manifests generate fmt vet ## Build manager binary.
 	go build -o bin/manager cmd/controller/main.go
 
 .PHONY: build-daemon
-build-daemon: manifests generate fmt vet ## Build manager binary.
+build-daemon: manifests generate fmt vet ## Build daemon binary.
 	go build -o bin/daemon cmd/daemon/main.go
+
+.PHONY: build-scheduler
+build-scheduler: manifests generate fmt vet ## Build scheduler binary.
+	go build -o bin/scheduler cmd/scheduler/main.go
 
 .PHONY: run-controller
 run-manager: manifests generate fmt vet ## Run the manager from your host.
@@ -102,8 +106,10 @@ run-daemon: manifests generate fmt vet ## Run the daemon from your host.
 	go run cmd/daemon/main.go
 
 .PHONY: run-scheduler
-run-scheduler: manifests generate fmt vet ## Run the daemon from your host.
-	go run cmd/scheduler/main.go --kubeconfig=/home/georgios/.kube/config --config=/home/georgios/source/actimanager/kube-scheduler-config.yaml
+run-scheduler: manifests generate fmt vet ## Run the scheduler from your host.
+	go run cmd/scheduler/main.go \
+		--kubeconfig=/home/georgios/.kube/config \
+        --config=/home/georgios/source/actimanager/kube-scheduler-config.yaml
 
 # If you wish to build the manager image targeting other platforms you can use the --platform flag.
 # (i.e. docker build --platform linux/arm64). However, you must enable docker buildKit for it.
