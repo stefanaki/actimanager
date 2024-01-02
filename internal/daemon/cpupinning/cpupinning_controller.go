@@ -12,7 +12,7 @@ import (
 	"strings"
 )
 
-// ResourceNotSet is used as default resource allocation in CgroupController.UpdateCPUSet invocations.
+// ResourceNotSet is used as default resource allocation in CgroupController.
 const ResourceNotSet = ""
 
 // CGroupDriver stores cgroup driver used by kubelet.
@@ -82,6 +82,7 @@ type CpuPinningController struct {
 	logger           logr.Logger
 }
 
+// NewCpuPinningController returns a reference to a new CpuPinningController instance
 func NewCpuPinningController(containerRuntime ContainerRuntime,
 	cgroupDriver CGroupDriver, cgroupPath string,
 	logger logr.Logger) (*CpuPinningController, error) {
@@ -206,10 +207,12 @@ func (c CpuPinningController) updateCgroupsV2(pPath, slice, cSet, memSet string)
 	return err
 }
 
+// Apply updates the CPU set of the container.
 func (c CpuPinningController) Apply(container *ContainerInfo, cSet string) error {
 	return c.UpdateCPUSet(c.cgroupPath, *container, cSet, ResourceNotSet)
 }
 
+// Remove updates the CPU set of the container to all the available CPUs.
 func (c CpuPinningController) Remove(container *ContainerInfo) error {
 	return c.UpdateCPUSet(c.cgroupPath, *container, c.availableCpus, ResourceNotSet)
 }

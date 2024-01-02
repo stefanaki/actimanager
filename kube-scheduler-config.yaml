@@ -8,5 +8,8 @@ profiles:
   - schedulerName: default-scheduler
     plugins:
       score:
+        disabled:
+          - name: ActiScheduler
+      filter:
         enabled:
-          - name: CpuAware
+          - name: ActiScheduler

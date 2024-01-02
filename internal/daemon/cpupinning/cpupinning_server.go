@@ -13,17 +13,6 @@ type Server struct {
 	UnimplementedCpuPinningServer
 }
 
-// convertCpuSetToString maps a CpuSet to a concatenated string.
-func convertCpuSetToString(cpuSet *CpuSet) string {
-	var cpuList []string
-
-	for _, cpu := range cpuSet.GetCpu() {
-		cpuList = append(cpuList, strconv.Itoa(int(cpu)))
-	}
-
-	return strings.Join(cpuList, ",")
-}
-
 // NewCpuPinningServer creates a new instance of the CPU pinning server.
 func NewCpuPinningServer(controller *CpuPinningController) *Server {
 	return &Server{Controller: controller}
@@ -31,10 +20,10 @@ func NewCpuPinningServer(controller *CpuPinningController) *Server {
 
 // ApplyPinning applies CPU pinning based on the provided request.
 func (s Server) ApplyPinning(ctx context.Context, request *ApplyPinningRequest) (*Response, error) {
-	pod := request.GetPod()
-	cpuSet := convertCpuSetToString(request.GetCpuSet())
+	pod := request.Pod
+	cpuSet := convertCpuSetToString(request.CpuSet)
 
-	for _, container := range request.GetPod().GetContainers() {
+	for _, container := range request.Pod.Containers {
 		c := ContainerInfo{
 			CID:  container.Id,
 			PID:  pod.Id,
@@ -57,9 +46,9 @@ func (s Server) ApplyPinning(ctx context.Context, request *ApplyPinningRequest) 
 
 // RemovePinning removes the CPU pinning configuration.
 func (s Server) RemovePinning(ctx context.Context, request *RemovePinningRequest) (*Response, error) {
-	pod := request.GetPod()
+	pod := request.Pod
 
-	for _, container := range request.GetPod().GetContainers() {
+	for _, container := range request.Pod.Containers {
 		c := ContainerInfo{
 			CID:  container.Id,
 			PID:  pod.Id,
@@ -78,4 +67,15 @@ func (s Server) RemovePinning(ctx context.Context, request *RemovePinningRequest
 	return &Response{
 		Status: ResponseStatus_SUCCESSFUL,
 	}, nil
+}
+
+// convertCpuSetToString maps a CpuSet to a concatenated string.
+func convertCpuSetToString(cpuSet *CpuSet) string {
+	var cpuList []string
+
+	for _, cpu := range cpuSet.Cpu {
+		cpuList = append(cpuList, strconv.Itoa(int(cpu)))
+	}
+
+	return strings.Join(cpuList, ",")
 }

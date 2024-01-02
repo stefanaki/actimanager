@@ -18,7 +18,7 @@ import (
 func (r *NodeCpuTopologyReconciler) createInitJob(topology *cslabecentuagrv1alpha1.NodeCpuTopology, ctx context.Context, logger *logr.Logger) (string, error) {
 	job := lscpuJob(topology.Spec.NodeName)
 
-	err := r.Client.Create(ctx, job)
+	err := r.Create(ctx, job)
 	if err != nil {
 		logger.Error(err, "Could not dispatch lscpu job")
 		return "", err

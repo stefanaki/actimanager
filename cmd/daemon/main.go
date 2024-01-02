@@ -29,7 +29,7 @@ func main() {
 		"docker",
 		"ContainerInfo Runtime (Default: containerd, Possible values: containerd, docker, kind)",
 	)
-	flag.StringVar(&cgroupPath, "cpath", "/sys/fs/cgroup/", "Specify Path to cgroupds")
+	flag.StringVar(&cgroupPath, "cpath", "/sys/fs/cgroup/", "Specify Path to cgroups")
 	flag.StringVar(&nodeName, "node-name", "", "Node name")
 	flag.StringVar(&cgroupDriver, "cgroup-driver", "systemd", "Set cgroup driver used by kubelet. Values: systemd, cgroupfs")
 
