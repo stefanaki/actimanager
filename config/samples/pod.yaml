@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: benchpod-1
+  namespace: benchmarks
+spec:
+  restartPolicy: Never
+  containers:
+  - name: benchmark
+    image: spirals/parsec-3.0
+    command:
+    - /bin/bash
+    - "-c"
+    - sleep 9999999999999999

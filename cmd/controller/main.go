@@ -17,6 +17,7 @@ limitations under the License.
 package main
 
 import (
+	"cslab.ece.ntua.gr/actimanager/internal/controller/pod"
 	"cslab.ece.ntua.gr/actimanager/internal/controller/podcpubinding"
 	"flag"
 	"os"
@@ -38,7 +39,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 
-	cslabecentuagrv1alpha1 "cslab.ece.ntua.gr/actimanager/api/v1alpha1"
+	apiv1alpha1 "cslab.ece.ntua.gr/actimanager/api/v1alpha1"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -50,7 +51,7 @@ var (
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 	utilruntime.Must(batchv1.AddToScheme(scheme))
-	utilruntime.Must(cslabecentuagrv1alpha1.AddToScheme(scheme))
+	utilruntime.Must(apiv1alpha1.AddToScheme(scheme))
 
 	//+kubebuilder:scaffold:scheme
 }
@@ -111,6 +112,14 @@ func main() {
 		setupLog.Error(err, "unable to create controller", "controller", "PodCpuBinding")
 		os.Exit(1)
 	}
+	if err = (&pod.PodReconciler{
+		Client: mgr.GetClient(),
+		Scheme: mgr.GetScheme(),
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "Pod")
+		os.Exit(1)
+	}
+
 	//+kubebuilder:scaffold:builder
 
 	if err := mgr.Add(manager.RunnableFunc(topologyReconciler.CreateInitialNodeCpuTopologies)); err != nil {
