@@ -2,7 +2,7 @@ package nodecputopology
 
 import (
 	"context"
-	cslabecentuagrv1alpha1 "cslab.ece.ntua.gr/actimanager/api/v1alpha1"
+	apiv1alpha1 "cslab.ece.ntua.gr/actimanager/api/v1alpha1"
 	"fmt"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -10,7 +10,7 @@ import (
 
 func (r *NodeCpuTopologyReconciler) CreateInitialNodeCpuTopologies(ctx context.Context) error {
 	nodes := &v1.NodeList{}
-	topologies := &cslabecentuagrv1alpha1.NodeCpuTopologyList{}
+	topologies := &apiv1alpha1.NodeCpuTopologyList{}
 
 	if err := r.List(ctx, nodes); err != nil {
 		return fmt.Errorf("error listing cluster nodes: %v", err.Error())
@@ -33,9 +33,9 @@ func (r *NodeCpuTopologyReconciler) CreateInitialNodeCpuTopologies(ctx context.C
 			continue
 		}
 
-		newTopology := &cslabecentuagrv1alpha1.NodeCpuTopology{
+		newTopology := &apiv1alpha1.NodeCpuTopology{
 			ObjectMeta: metav1.ObjectMeta{Name: n.Name + "-cputopology"},
-			Spec: cslabecentuagrv1alpha1.NodeCpuTopologySpec{
+			Spec: apiv1alpha1.NodeCpuTopologySpec{
 				NodeName: n.Name,
 			},
 		}

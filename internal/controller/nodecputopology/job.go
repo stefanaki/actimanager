@@ -2,8 +2,8 @@ package nodecputopology
 
 import (
 	"context"
-	cslabecentuagrv1alpha1 "cslab.ece.ntua.gr/actimanager/api/v1alpha1"
-	nodecputopologyv1alpha1 "cslab.ece.ntua.gr/actimanager/internal/pkg/nodecputopology/v1alpha1"
+	apiv1alpha1 "cslab.ece.ntua.gr/actimanager/api/v1alpha1"
+	nctv1alpha1 "cslab.ece.ntua.gr/actimanager/internal/pkg/nodecputopology/v1alpha1"
 	"cslab.ece.ntua.gr/actimanager/internal/pkg/utils"
 	"fmt"
 	"github.com/go-logr/logr"
@@ -15,7 +15,7 @@ import (
 	"strings"
 )
 
-func (r *NodeCpuTopologyReconciler) createInitJob(topology *cslabecentuagrv1alpha1.NodeCpuTopology, ctx context.Context, logger *logr.Logger) (string, error) {
+func (r *NodeCpuTopologyReconciler) createInitJob(topology *apiv1alpha1.NodeCpuTopology, ctx context.Context, logger *logr.Logger) (string, error) {
 	job := lscpuJob(topology.Spec.NodeName)
 
 	err := r.Create(ctx, job)
@@ -27,9 +27,9 @@ func (r *NodeCpuTopologyReconciler) createInitJob(topology *cslabecentuagrv1alph
 	return job.ObjectMeta.Name, nil
 }
 
-func (r *NodeCpuTopologyReconciler) parseCompletedPod(topology *cslabecentuagrv1alpha1.NodeCpuTopology, ctx context.Context, logger *logr.Logger) (cslabecentuagrv1alpha1.CpuTopology, error) {
+func (r *NodeCpuTopologyReconciler) parseCompletedPod(topology *apiv1alpha1.NodeCpuTopology, ctx context.Context, logger *logr.Logger) (apiv1alpha1.CpuTopology, error) {
 	podList := &corev1.PodList{}
-	cpuTopology := cslabecentuagrv1alpha1.CpuTopology{}
+	cpuTopology := apiv1alpha1.CpuTopology{}
 	var err error
 
 	if err := r.List(ctx, podList, client.MatchingLabels{"job-name": topology.Status.InitJobName}); err != nil {
@@ -40,7 +40,7 @@ func (r *NodeCpuTopologyReconciler) parseCompletedPod(topology *cslabecentuagrv1
 	if len(podList.Items) > 0 {
 		podLogs, _ := utils.GetPodLogs(podList.Items[0], ctx)
 
-		cpuTopology, err = nodecputopologyv1alpha1.NodeCpuTopologyV1Alpha1(podLogs)
+		cpuTopology, err = nctv1alpha1.NodeCpuTopologyV1Alpha1(podLogs)
 
 		if err != nil {
 			logger.Error(err, "Error parsing cpu topology")
@@ -52,7 +52,7 @@ func (r *NodeCpuTopologyReconciler) parseCompletedPod(topology *cslabecentuagrv1
 }
 
 // isJobCompleted checks if job with name InitJobName has been completed
-func (r *NodeCpuTopologyReconciler) isJobCompleted(topology *cslabecentuagrv1alpha1.NodeCpuTopology, ctx context.Context) (bool, error) {
+func (r *NodeCpuTopologyReconciler) isJobCompleted(topology *apiv1alpha1.NodeCpuTopology, ctx context.Context) (bool, error) {
 	job := &batchv1.Job{}
 	err := r.Get(ctx, client.ObjectKey{Name: topology.Status.InitJobName, Namespace: "actimanager-system"}, job)
 	return job.Status.Succeeded > 0, err

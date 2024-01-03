@@ -181,6 +181,11 @@ func (r *PodCpuBindingReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		return ctrl.Result{}, fmt.Errorf("error updating status: %v", err.Error())
 	}
 
+	controllerutil.AddFinalizer(pod, v1alpha1.FinalizerCpuBoundPod)
+	if err := r.Update(ctx, pod); err != nil {
+		return ctrl.Result{}, fmt.Errorf("failed to add finalizer to pod: %v", err.Error())
+	}
+
 	return ctrl.Result{}, nil
 }
 

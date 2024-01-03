@@ -1,10 +1,10 @@
 package v1alpha1
 
 import (
-	cslabecentuagrv1alpha1 "cslab.ece.ntua.gr/actimanager/api/v1alpha1"
+	apiv1alpha1 "cslab.ece.ntua.gr/actimanager/api/v1alpha1"
 )
 
-func IsCpuSetInTopology(topology *cslabecentuagrv1alpha1.CpuTopology, cpuSet []cslabecentuagrv1alpha1.Cpu) bool {
+func IsCpuSetInTopology(topology *apiv1alpha1.CpuTopology, cpuSet []apiv1alpha1.Cpu) bool {
 	remaining := len(cpuSet)
 
 	for _, socket := range topology.Sockets {
@@ -23,7 +23,7 @@ func IsCpuSetInTopology(topology *cslabecentuagrv1alpha1.CpuTopology, cpuSet []c
 	return remaining == 0
 }
 
-func GetCpuParentInfo(topology *cslabecentuagrv1alpha1.NodeCpuTopology, cpuId int) (int, int, int, int) {
+func GetCpuParentInfo(topology *apiv1alpha1.NodeCpuTopology, cpuId int) (int, int, int, int) {
 	numaId := -1
 	for _, numa := range topology.Spec.Topology.NumaNodes {
 		for _, cpu := range numa.Cpus {
@@ -46,7 +46,7 @@ func GetCpuParentInfo(topology *cslabecentuagrv1alpha1.NodeCpuTopology, cpuId in
 	return -1, -1, -1, -1
 }
 
-func GetAllCpusInCore(topology *cslabecentuagrv1alpha1.NodeCpuTopology, coreId int) []int {
+func GetAllCpusInCore(topology *apiv1alpha1.NodeCpuTopology, coreId int) []int {
 	var cpus []int
 	for _, socket := range topology.Spec.Topology.Sockets {
 		for _, core := range socket.Cores {
@@ -61,7 +61,7 @@ func GetAllCpusInCore(topology *cslabecentuagrv1alpha1.NodeCpuTopology, coreId i
 	return cpus
 }
 
-func GetAllCpusInSocket(topology *cslabecentuagrv1alpha1.NodeCpuTopology, socketId int) []int {
+func GetAllCpusInSocket(topology *apiv1alpha1.NodeCpuTopology, socketId int) []int {
 	var cpus []int
 	for _, socket := range topology.Spec.Topology.Sockets {
 		if socket.SocketId == socketId {
@@ -76,7 +76,7 @@ func GetAllCpusInSocket(topology *cslabecentuagrv1alpha1.NodeCpuTopology, socket
 	return cpus
 }
 
-func GetAllCpusInNuma(topology *cslabecentuagrv1alpha1.NodeCpuTopology, numaId int) []int {
+func GetAllCpusInNuma(topology *apiv1alpha1.NodeCpuTopology, numaId int) []int {
 	var cpus []int
 	for _, numaNode := range topology.Spec.Topology.NumaNodes {
 		if numaNode.NumaNodeId == numaId {

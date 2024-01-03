@@ -15,6 +15,7 @@ const (
 )
 
 var FinalizerPodCpuBinding string = GroupVersion.Group + "/pod-cpu-binding-finalizer"
+var FinalizerCpuBoundPod = GroupVersion.Group + "/cpu-bound-pod"
 
 // PodCpuBindingSpec defines the CPU set on which a pod is bound,
 // as well as the level of exclusiveness of the resources it needs

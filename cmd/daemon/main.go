@@ -32,7 +32,6 @@ func main() {
 	flag.StringVar(&cgroupPath, "cpath", "/sys/fs/cgroup/", "Specify Path to cgroups")
 	flag.StringVar(&nodeName, "node-name", "", "Node name")
 	flag.StringVar(&cgroupDriver, "cgroup-driver", "systemd", "Set cgroup driver used by kubelet. Values: systemd, cgroupfs")
-
 	flag.Parse()
 
 	logger.Info(
@@ -43,8 +42,8 @@ func main() {
 		"cgroupPath", cgroupPath,
 	)
 
-	cR := parseRuntime(runtime)
-	driver := parseCGroupDriver(cgroupDriver)
+	cR := cpupinning.ParseRuntime(runtime)
+	driver := cpupinning.ParseCGroupDriver(cgroupDriver)
 
 	cpuPinningController, err := cpupinning.NewCpuPinningController(cR, driver, cgroupPath, logger)
 	if err != nil {
@@ -53,7 +52,6 @@ func main() {
 
 	cpuPinningServer := cpupinning.NewCpuPinningServer(cpuPinningController)
 	healthServer := health.NewServer()
-
 	srv := grpc.NewServer()
 
 	cpupinning.RegisterCpuPinningServer(srv, cpuPinningServer)
@@ -68,29 +66,6 @@ func main() {
 	if err := srv.Serve(lis); err != nil {
 		klog.Fatalf("cannot serve: %v", err.Error())
 	}
-}
-
-func parseRuntime(runtime string) cpupinning.ContainerRuntime {
-	val, ok := map[string]cpupinning.ContainerRuntime{
-		"containerd": cpupinning.ContainerdRunc,
-		"kind":       cpupinning.Kind,
-		"docker":     cpupinning.Docker,
-	}[runtime]
-	if !ok {
-		klog.Fatalf("unknown runtime %s", runtime)
-	}
-	return val
-}
-
-func parseCGroupDriver(driver string) cpupinning.CGroupDriver {
-	val, ok := map[string]cpupinning.CGroupDriver{
-		"systemd":  cpupinning.DriverSystemd,
-		"cgroupfs": cpupinning.DriverCgroupfs,
-	}[driver]
-	if !ok {
-		klog.Fatalf("unknown cgroup driver %s", driver)
-	}
-	return val
 }
 
 func createLogger() logr.Logger {
