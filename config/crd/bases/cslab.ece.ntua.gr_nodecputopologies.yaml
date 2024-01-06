@@ -21,7 +21,7 @@ spec:
       name: Node
       type: string
     - jsonPath: .status.status
-      name: Status
+      name: ResourceStatus
       type: string
     - jsonPath: .status.initJobStatus
       name: Job Status
@@ -118,15 +118,12 @@ spec:
                 type: string
               initJobStatus:
                 type: string
-              lastNodeName:
-                type: string
-              status:
+              resourceStatus:
                 type: string
             required:
             - initJobName
             - initJobStatus
-            - lastNodeName
-            - status
+            - resourceStatus
             type: object
         type: object
     served: true

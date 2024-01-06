@@ -3,6 +3,7 @@ package actischeduler
 import (
 	"context"
 	"cslab.ece.ntua.gr/actimanager/api/v1alpha1"
+	"fmt"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
@@ -46,23 +47,46 @@ func New(ctx context.Context, obj runtime.Object, h framework.Handle) (framework
 }
 
 func (a *ActiScheduler) Filter(ctx context.Context, state *framework.CycleState, pod *corev1.Pod, nodeInfo *framework.NodeInfo) *framework.Status {
-	// node := nodeInfo.Node()
-	cpuTopologies := &v1alpha1.NodeCpuTopologyList{}
-	podCpuBindings := &v1alpha1.PodCpuBindingList{}
+	node := nodeInfo.Node()
+	topologies := &v1alpha1.NodeCpuTopologyList{}
+	bindings := &v1alpha1.PodCpuBindingList{}
 
-	err := a.List(ctx, cpuTopologies)
+	err := a.List(ctx, topologies)
 	if err != nil {
-		println("handle error later")
-		println(err.Error())
+		return framework.NewStatus(framework.Error, fmt.Sprintf("scheduling pod %s/%s: could not list CPU topologies while fitering node %s: %v", pod.Namespace, pod.Name, node.Name, err))
 	}
 
-	err = a.List(ctx, podCpuBindings)
+	err = a.List(ctx, bindings)
 	if err != nil {
-		println("handle error later")
-		println(err.Error())
+		return framework.NewStatus(framework.Error, fmt.Sprintf("scheduling pod %s/%s: could not list CPU bindings while fitering node %s: %v", pod.Namespace, pod.Name, node.Name, err))
 	}
 
-	return &framework.Status{}
+	var topology *v1alpha1.NodeCpuTopology = nil
+	for _, nct := range topologies.Items {
+		if nct.Spec.NodeName == node.Name {
+			topology = &nct
+			break
+		}
+	}
+
+	if topology == nil {
+		return framework.NewStatus(framework.Error, fmt.Sprintf("scheduling pod %s/%s: could not find CPU topology while fitering node %s: %v", pod.Namespace, pod.Name, node.Name, err))
+	}
+
+	fmt.Printf("scheduling pod %s/%s: found topology %s\n", pod.Namespace, pod.Name, topology.Name)
+
+	var nodeBindings = make([]*v1alpha1.PodCpuBinding, 0)
+	for _, pcb := range bindings.Items {
+		if pcb.Status.NodeName == node.Name {
+			nodeBindings = append(nodeBindings, &pcb)
+		}
+	}
+
+	for _, b := range nodeBindings {
+		fmt.Printf("found node binding: %s/%s/%s\n", b.Status.NodeName, b.Namespace, b.Name)
+	}
+
+	return framework.NewStatus(framework.Success)
 }
 
 func (a *ActiScheduler) Score(ctx context.Context, state *framework.CycleState, p *corev1.Pod, nodeName string) (int64, *framework.Status) {
