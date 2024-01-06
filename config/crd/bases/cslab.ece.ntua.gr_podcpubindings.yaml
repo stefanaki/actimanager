@@ -23,8 +23,8 @@ spec:
     - jsonPath: .spec.exclusivenessLevel
       name: Exclusiveness Level
       type: string
-    - jsonPath: .status.status
-      name: Status
+    - jsonPath: .status.resourceStatus
+      name: Resource Status
       type: string
     name: v1alpha1
     schema:
@@ -75,39 +75,9 @@ spec:
           status:
             description: PodCpuBindingStatus defines the observed state of PodCpuBinding
             properties:
-              lastSpec:
-                description: PodCpuBindingSpec defines the CPU set on which a pod
-                  is bound, as well as the level of exclusiveness of the resources
-                  it needs
-                properties:
-                  cpuSet:
-                    items:
-                      description: Cpu is a logical CPU core of the parent core
-                      properties:
-                        cpuId:
-                          type: integer
-                      required:
-                      - cpuId
-                      type: object
-                    type: array
-                  exclusivenessLevel:
-                    enum:
-                    - None
-                    - Cpu
-                    - Core
-                    - Socket
-                    - Numa
-                    type: string
-                  podName:
-                    type: string
-                required:
-                - cpuSet
-                - exclusivenessLevel
-                - podName
-                type: object
               nodeName:
                 type: string
-              status:
+              resourceStatus:
                 enum:
                 - Applied
                 - Pending
@@ -118,9 +88,8 @@ spec:
                 - CpuSetAllocationFailed
                 type: string
             required:
-            - lastSpec
             - nodeName
-            - status
+            - resourceStatus
             type: object
         required:
         - spec

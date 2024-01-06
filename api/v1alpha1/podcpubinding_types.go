@@ -34,9 +34,8 @@ type PodCpuBindingSpec struct {
 // PodCpuBindingStatus defines the observed state of PodCpuBinding
 type PodCpuBindingStatus struct {
 	// +kubebuilder:validation:Enum=Applied;Pending;PodNotFound;InvalidCpuSet;Collision;Failed;CpuSetAllocationFailed
-	Status   string            `json:"status"`
-	NodeName string            `json:"nodeName"`
-	LastSpec PodCpuBindingSpec `json:"lastSpec"`
+	ResourceStatus string `json:"resourceStatus"`
+	NodeName       string `json:"nodeName"`
 }
 
 // +kubebuilder:object:root=true
@@ -44,7 +43,7 @@ type PodCpuBindingStatus struct {
 // +kubebuilder:resource:shortName=pcb
 // +kubebuilder:printcolumn:name="Pod Name",type=string,JSONPath=`.spec.podName`
 // +kubebuilder:printcolumn:name="Exclusiveness Level",type=string,JSONPath=`.spec.exclusivenessLevel`
-// +kubebuilder:printcolumn:name="Status",type=string,JSONPath=`.status.status`
+// +kubebuilder:printcolumn:name="Resource Status",type=string,JSONPath=`.status.resourceStatus`
 
 // PodCpuBinding is the Schema for the podcpubindings API
 type PodCpuBinding struct {

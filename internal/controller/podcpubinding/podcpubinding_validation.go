@@ -76,7 +76,7 @@ func (r *PodCpuBindingReconciler) validateExclusivenessLevel(ctx context.Context
 		// println("checking pcb " + pcb.Name)
 		if pcb.Status.NodeName != nodeName ||
 			(pcb.Namespace == namespacedName.Namespace && pcb.Name == namespacedName.Name) ||
-			pcb.Status.Status != v1alpha1.StatusApplied {
+			pcb.Status.ResourceStatus != v1alpha1.StatusApplied {
 			// println("this pcb should not be checked", pcb.Name)
 			continue
 		}

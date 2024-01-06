@@ -30,10 +30,7 @@ type NodeCpuTopologyStatus struct {
 	InitJobName   string `json:"initJobName"`
 
 	//+kubebuilder:validation:Required
-	Status string `json:"status"`
-
-	//+kubebuilder:validation:Required
-	LastNodeName string `json:"lastNodeName"`
+	ResourceStatus string `json:"resourceStatus"`
 }
 
 // +kubebuilder:object:root=true
@@ -41,7 +38,7 @@ type NodeCpuTopologyStatus struct {
 // +kubebuilder:resource:scope=Cluster,shortName=nct
 
 // +kubebuilder:printcolumn:name="Node",type=string,JSONPath=`.spec.nodeName`
-// +kubebuilder:printcolumn:name="Status",type=string,JSONPath=`.status.status`
+// +kubebuilder:printcolumn:name="ResourceStatus",type=string,JSONPath=`.status.status`
 // +kubebuilder:printcolumn:name="Job Status",type=string,JSONPath=`.status.initJobStatus`
 // NodeCpuTopology is the Schema for the nodecputopologies API
 type NodeCpuTopology struct {
