@@ -8,7 +8,7 @@ import (
 	"google.golang.org/grpc/health"
 	healthv1 "google.golang.org/grpc/health/grpc_health_v1"
 	"k8s.io/klog/v2"
-	"k8s.io/klog/v2/klogr"
+	"k8s.io/klog/v2/textlogger"
 	"net"
 )
 
@@ -27,9 +27,9 @@ func main() {
 		&runtime,
 		"runtime",
 		"docker",
-		"ContainerInfo Runtime (Default: containerd, Possible values: containerd, docker, kind)",
+		"Container Runtime (Default: containerd, Possible values: containerd, docker, kind)",
 	)
-	flag.StringVar(&cgroupPath, "cpath", "/sys/fs/cgroup/", "Specify Path to cgroups")
+	flag.StringVar(&cgroupPath, "cpath", "/sys/fs/cgroup/", "Specify Path to cgroups1")
 	flag.StringVar(&nodeName, "node-name", "", "Node name")
 	flag.StringVar(&cgroupDriver, "cgroup-driver", "systemd", "Set cgroup driver used by kubelet. Values: systemd, cgroupfs")
 	flag.Parse()
@@ -43,7 +43,7 @@ func main() {
 	)
 
 	cR := cpupinning.ParseRuntime(runtime)
-	driver := cpupinning.ParseCGroupDriver(cgroupDriver)
+	driver := cpupinning.ParseCgroupsDriver(cgroupDriver)
 
 	cpuPinningController, err := cpupinning.NewCpuPinningController(cR, driver, cgroupPath, logger)
 	if err != nil {
@@ -70,7 +70,9 @@ func main() {
 
 func createLogger() logr.Logger {
 	flags := flag.NewFlagSet("klog", flag.ContinueOnError)
-	klog.InitFlags(flags)
-	_ = flags.Parse([]string{"-v", "3"})
-	return klogr.NewWithOptions(klogr.WithFormat(klogr.FormatKlog))
+
+	config := textlogger.NewConfig()
+	config.AddFlags(flags)
+
+	return textlogger.NewLogger(config)
 }

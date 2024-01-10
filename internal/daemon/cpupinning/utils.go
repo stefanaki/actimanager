@@ -1,6 +1,24 @@
 package cpupinning
 
-import "k8s.io/klog/v2"
+import (
+	cgroupsctrl "cslab.ece.ntua.gr/actimanager/internal/pkg/cgroups"
+	"k8s.io/klog/v2"
+	"strconv"
+	"strings"
+)
+
+// QoSFromLimit returns QoS class based on limits set on pod cpu.
+func QoSFromLimit[T int | int32 | int64](limitCpu, requestCpu T) QoS {
+	if limitCpu > 0 || requestCpu > 0 {
+		if limitCpu == requestCpu {
+			return Guaranteed
+		}
+		if requestCpu < limitCpu {
+			return Burstable
+		}
+	}
+	return BestEffort
+}
 
 func ParseRuntime(runtime string) ContainerRuntime {
 	val, ok := map[string]ContainerRuntime{
@@ -14,13 +32,24 @@ func ParseRuntime(runtime string) ContainerRuntime {
 	return val
 }
 
-func ParseCGroupDriver(driver string) CGroupDriver {
-	val, ok := map[string]CGroupDriver{
-		"systemd":  DriverSystemd,
-		"cgroupfs": DriverCgroupfs,
+func ParseCgroupsDriver(driver string) cgroupsctrl.CgroupsDriver {
+	val, ok := map[string]cgroupsctrl.CgroupsDriver{
+		"systemd":  cgroupsctrl.DriverSystemd,
+		"cgroupfs": cgroupsctrl.DriverCgroupfs,
 	}[driver]
 	if !ok {
-		klog.Fatalf("unknown cgroup driver %s", driver)
+		klog.Fatalf("unknown cgroups1 driver %s", driver)
 	}
 	return val
+}
+
+// convertCpuSetToString maps a CpuSet to a concatenated string.
+func convertCpuSetToString(cpuSet *CpuSet) string {
+	var cpuList []string
+
+	for _, cpu := range cpuSet.Cpu {
+		cpuList = append(cpuList, strconv.Itoa(int(cpu)))
+	}
+
+	return strings.Join(cpuList, ",")
 }

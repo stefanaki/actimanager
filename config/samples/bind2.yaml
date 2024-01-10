@@ -1,0 +1,11 @@
+apiVersion: cslab.ece.ntua.gr/v1alpha1
+kind: PodCpuBinding
+metadata:
+  name: benchpod-2-binding
+  namespace: benchmarks
+spec:
+  exclusivenessLevel: Cpu
+  podName: benchpod-2
+  cpuSet:
+  - cpuId: 2
+
