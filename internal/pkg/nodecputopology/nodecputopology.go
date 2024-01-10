@@ -9,8 +9,8 @@ import (
 
 var NodeCpuTopologyParseError = errors.New("could not parse node's CPU topology")
 
-// ParseNodeCpuTopology uses the output of `lscpu` command to populate a
-// `NodeCpuTopology` object of the CPU topology of the Kubernetes node
+// ParseNodeCpuTopology uses the output of `lscpu -p=socket,node,core,cpu` command
+// to populate a `NodeCpuTopology` object of the CPU topology of the Kubernetes node
 func ParseNodeCpuTopology(topology *NodeCpuTopology, lscpuOutput string) error {
 	if topology.Sockets == nil {
 		topology.Sockets = make(map[int]*Socket)
@@ -54,31 +54,31 @@ func ParseNodeCpuTopology(topology *NodeCpuTopology, lscpuOutput string) error {
 			return NodeCpuTopologyParseError
 		}
 
-		existingSocket, exists := topology.Sockets[socketId]
+		socket, exists := topology.Sockets[socketId]
 		if !exists {
-			existingSocket = &Socket{SocketId: socketId, Cores: make(map[int]*Core)}
-			topology.Sockets[socketId] = existingSocket
+			socket = &Socket{SocketId: socketId, Cores: make(map[int]*Core)}
+			topology.Sockets[socketId] = socket
 		}
 
-		existingNumaNode, exists := topology.NumaNodes[nodeId]
+		numaNode, exists := topology.NumaNodes[nodeId]
 		if !exists {
-			existingNumaNode = &NumaNode{NumaNodeId: nodeId, Cpus: make([]*Cpu, 0)}
-			topology.NumaNodes[nodeId] = existingNumaNode
+			numaNode = &NumaNode{NumaNodeId: nodeId, Cpus: make([]*Cpu, 0)}
+			topology.NumaNodes[nodeId] = numaNode
 		}
 
-		existingCore, exists := topology.Sockets[socketId].Cores[coreId]
+		core, exists := topology.Sockets[socketId].Cores[coreId]
 		if !exists {
-			existingCore = &Core{CoreId: coreId, Cpus: make(map[int]*Cpu)}
-			topology.Sockets[socketId].Cores[coreId] = existingCore
+			core = &Core{CoreId: coreId, Cpus: make(map[int]*Cpu)}
+			topology.Sockets[socketId].Cores[coreId] = core
 		}
 
-		existingCpu, exists := topology.Sockets[socketId].Cores[coreId].Cpus[cpuId]
+		cpu, exists := topology.Sockets[socketId].Cores[coreId].Cpus[cpuId]
 		if !exists {
-			existingCpu = &Cpu{CpuId: cpuId}
-			topology.Sockets[socketId].Cores[coreId].Cpus[cpuId] = existingCpu
+			cpu = &Cpu{CpuId: cpuId}
+			topology.Sockets[socketId].Cores[coreId].Cpus[cpuId] = cpu
 		}
 
-		topology.NumaNodes[nodeId].Cpus = append(topology.NumaNodes[nodeId].Cpus, existingCpu)
+		topology.NumaNodes[nodeId].Cpus = append(topology.NumaNodes[nodeId].Cpus, cpu)
 	}
 
 	return nil

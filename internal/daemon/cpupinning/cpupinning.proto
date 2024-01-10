@@ -9,8 +9,8 @@ message CpuSet {
 message ResourceInfo {
   int32 requestedCpus = 1;
   int32 limitCpus = 2;
-  bytes requestedMemory = 3;
-  bytes limitMemory = 4;
+  string requestedMemory = 3;
+  string limitMemory = 4;
 }
 
 message Container {

@@ -117,8 +117,8 @@ func parseContainerResources(containerName string, pod *corev1.Pod) *cpupinning.
 			resources = &cpupinning.ResourceInfo{
 				RequestedCpus:   int32(requestCpus.MilliValue()),
 				LimitCpus:       int32(limitCpus.MilliValue()),
-				RequestedMemory: []byte(requestMemory.String()),
-				LimitMemory:     []byte(limitMemory.String()),
+				RequestedMemory: requestMemory.String(),
+				LimitMemory:     limitMemory.String(),
 			}
 
 			return resources

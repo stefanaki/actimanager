@@ -3,8 +3,6 @@ package cpupinning
 import (
 	"context"
 	"fmt"
-	"strconv"
-	"strings"
 )
 
 // Server represents the CPU pinning server.
@@ -32,7 +30,7 @@ func (s Server) ApplyPinning(ctx context.Context, request *ApplyPinningRequest) 
 			Cpus: int(container.Resources.RequestedCpus),
 		}
 
-		if err := s.Controller.Apply(&c, cpuSet); err != nil {
+		if err := s.Controller.Apply(c, cpuSet); err != nil {
 			return &Response{
 				Status: ResponseStatus_ERROR,
 			}, fmt.Errorf("failed to apply CPU pinning: %v", err.Error())
@@ -57,7 +55,7 @@ func (s Server) RemovePinning(ctx context.Context, request *RemovePinningRequest
 			Cpus: int(container.Resources.RequestedCpus),
 		}
 
-		if err := s.Controller.Remove(&c); err != nil {
+		if err := s.Controller.Remove(c); err != nil {
 			return &Response{
 				Status: ResponseStatus_ERROR,
 			}, fmt.Errorf("failed to remove CPU pinning: %v", err.Error())
@@ -67,15 +65,4 @@ func (s Server) RemovePinning(ctx context.Context, request *RemovePinningRequest
 	return &Response{
 		Status: ResponseStatus_SUCCESSFUL,
 	}, nil
-}
-
-// convertCpuSetToString maps a CpuSet to a concatenated string.
-func convertCpuSetToString(cpuSet *CpuSet) string {
-	var cpuList []string
-
-	for _, cpu := range cpuSet.Cpu {
-		cpuList = append(cpuList, strconv.Itoa(int(cpu)))
-	}
-
-	return strings.Join(cpuList, ",")
 }

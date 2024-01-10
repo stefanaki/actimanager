@@ -1,90 +1,25 @@
 package cpupinning
 
 import (
+	cgroupsctrl "cslab.ece.ntua.gr/actimanager/internal/pkg/cgroups"
 	"fmt"
 	"github.com/containerd/cgroups"
-	cgroupsv2 "github.com/containerd/cgroups/v2"
 	"github.com/go-logr/logr"
-	"github.com/opencontainers/runtime-spec/specs-go"
 	"os"
-	"path"
 	"path/filepath"
 	"strings"
 )
 
-// ResourceNotSet is used as default resource allocation in CgroupController.
-const ResourceNotSet = ""
-
-// CGroupDriver stores cgroup driver used by kubelet.
-type CGroupDriver int
-
-// CGroup drivers as defined in kubelet.
-const (
-	DriverSystemd CGroupDriver = iota
-	DriverCgroupfs
-)
-
-// ContainerInfo Represents a container in the Daemon.
-type ContainerInfo struct {
-	CID  string
-	PID  string
-	Name string
-	Cpus int
-	QS   QoS
-}
-
-// QoS pod and containers quality of service type.
-type QoS int
-
-// QoS classes as defined in K8s.
-const (
-	Guaranteed QoS = iota
-	BestEffort
-	Burstable
-)
-
-// QoSFromLimit returns QoS class based on limits set on pod cpu.
-func QoSFromLimit[T int | int32 | int64](limitCpu, requestCpu T) QoS {
-	if limitCpu > 0 || requestCpu > 0 {
-		if limitCpu == requestCpu {
-			return Guaranteed
-		}
-		if requestCpu < limitCpu {
-			return Burstable
-		}
-	}
-	return BestEffort
-}
-
-// ContainerRuntime represents different CRI used by k8s.
-type ContainerRuntime int
-
-// Supported runtimes.
-const (
-	Docker ContainerRuntime = iota
-	ContainerdRunc
-	Kind
-)
-
-func (cr ContainerRuntime) String() string {
-	return []string{
-		"Docker",
-		"Containerd+Runc",
-		"Kind",
-	}[cr]
-}
-
 type CpuPinningController struct {
-	containerRuntime ContainerRuntime
-	cgroupDriver     CGroupDriver
-	cgroupPath       string
-	availableCpus    string
-	logger           logr.Logger
+	cgroupsController cgroupsctrl.CgroupsController
+	containerRuntime  ContainerRuntime
+	availableCpus     string
+	logger            logr.Logger
 }
 
 // NewCpuPinningController returns a reference to a new CpuPinningController instance
 func NewCpuPinningController(containerRuntime ContainerRuntime,
-	cgroupDriver CGroupDriver, cgroupPath string,
+	cgroupsDriver cgroupsctrl.CgroupsDriver, cgroupsPath string,
 	logger logr.Logger) (*CpuPinningController, error) {
 
 	var (
@@ -93,36 +28,39 @@ func NewCpuPinningController(containerRuntime ContainerRuntime,
 	)
 
 	if cgroups.Mode() != cgroups.Unified {
-		cpuSetFilePath = cgroupPath + "/cpuset"
+		cpuSetFilePath = cgroupsPath + "/cpuset"
 		cpuSetFileName = "cpuset.cpus"
 	} else {
-		cpuSetFilePath = cgroupPath
+		cpuSetFilePath = cgroupsPath
 		cpuSetFileName = "cpuset.cpus.effective"
 	}
 
 	cpuSet, err := os.ReadFile(filepath.Join(cpuSetFilePath, cpuSetFileName))
 	if err != nil {
-		logger.Error(err, "could not get cpuset from file system")
-		os.Exit(1)
+		return nil, fmt.Errorf("could not get cpuset from file system: %v", err)
+	}
+
+	cgroupsController, err := cgroupsctrl.NewCgroupsController(cgroupsDriver, cgroupsPath, logger)
+	if err != nil {
+		return nil, fmt.Errorf("could create cgroups controller: %v", err)
 	}
 
 	c := CpuPinningController{
-		containerRuntime: containerRuntime,
-		cgroupDriver:     cgroupDriver,
-		cgroupPath:       cgroupPath,
-		availableCpus:    strings.Trim(strings.Trim(string(cpuSet), " "), "\n"),
-		logger:           logger.WithName("cpu-pinning"),
+		containerRuntime:  containerRuntime,
+		cgroupsController: cgroupsController,
+		availableCpus:     strings.Trim(strings.Trim(string(cpuSet), " "), "\n"),
+		logger:            logger.WithName("cpu-pinning"),
 	}
 
 	return &c, nil
 }
 
 // SliceName returns path to container cgroup leaf slice in cgroupfs.
-func SliceName(c ContainerInfo, r ContainerRuntime, d CGroupDriver) string {
+func SliceName(c ContainerInfo, r ContainerRuntime, d cgroupsctrl.CgroupsDriver) string {
 	if r == Kind {
 		return sliceNameKind(c)
 	}
-	if d == DriverSystemd {
+	if d == cgroupsctrl.DriverSystemd {
 		return sliceNameDockerContainerdWithSystemd(c, r)
 	}
 	return sliceNameDockerContainerdWithCgroupfs(c, r)
@@ -165,54 +103,25 @@ func sliceNameDockerContainerdWithCgroupfs(c ContainerInfo, r ContainerRuntime) 
 }
 
 // UpdateCPUSet updates the cpu set of a given child process.
-func (c CpuPinningController) UpdateCPUSet(pPath string, container ContainerInfo, cSet string, memSet string) error {
+func (c CpuPinningController) UpdateCPUSet(container ContainerInfo, cSet string, memSet string) error {
 	runtimeURLPrefix := [2]string{"docker://", "containerd://"}
 	if c.containerRuntime == Kind || c.containerRuntime != Kind &&
 		strings.Contains(container.CID, runtimeURLPrefix[c.containerRuntime]) {
-		slice := SliceName(container, c.containerRuntime, c.cgroupDriver)
-		c.logger.V(2).Info("allocating cgroup", "cgroupPath", pPath, "slicePath", slice, "cpuSet", cSet, "memSet", memSet)
+		slice := SliceName(container, c.containerRuntime, c.cgroupsController.CgroupsDriver)
+		c.logger.V(2).Info("allocating cgroup", "cgroupPath", c.cgroupsController.CgroupsPath, "slicePath", slice, "cpuSet", cSet, "memSet", memSet)
 
-		if cgroups.Mode() == cgroups.Unified {
-			return c.updateCgroupsV2(pPath, slice, cSet, memSet)
-		}
-		return c.updateCgroupsV1(pPath, slice, cSet, memSet)
+		return c.cgroupsController.UpdateCgroups(slice, cSet, memSet)
 	}
 
 	return nil
 }
 
-func (c CpuPinningController) updateCgroupsV1(pPath, slice, cSet, memSet string) error {
-	ctrl := cgroups.NewCpuset(pPath)
-	err := ctrl.Update(slice, &specs.LinuxResources{
-		CPU: &specs.LinuxCPU{
-			Cpus: cSet,
-			Mems: memSet,
-		},
-	})
-	// if we set the memory pinning we should enable memory_migrate in cgroups v1
-	if err == nil && memSet != "" {
-		migratePath := path.Join(pPath, "cpuset", slice, "cpuset.memory_migrate")
-		err = os.WriteFile(migratePath, []byte("1"), os.FileMode(0))
-	}
-	return err
-}
-
-func (c CpuPinningController) updateCgroupsV2(pPath, slice, cSet, memSet string) error {
-	res := cgroupsv2.Resources{CPU: &cgroupsv2.CPU{
-		Cpus: cSet,
-		Mems: memSet,
-	}}
-	_, err := cgroupsv2.NewManager(pPath, slice, &res)
-	// memory migration in cgroups v2 is always enabled, no need to set it as in cgroupsv1
-	return err
-}
-
 // Apply updates the CPU set of the container.
-func (c CpuPinningController) Apply(container *ContainerInfo, cSet string) error {
-	return c.UpdateCPUSet(c.cgroupPath, *container, cSet, ResourceNotSet)
+func (c CpuPinningController) Apply(container ContainerInfo, cSet string) error {
+	return c.UpdateCPUSet(container, cSet, cgroupsctrl.ResourceNotSet)
 }
 
 // Remove updates the CPU set of the container to all the available CPUs.
-func (c CpuPinningController) Remove(container *ContainerInfo) error {
-	return c.UpdateCPUSet(c.cgroupPath, *container, c.availableCpus, ResourceNotSet)
+func (c CpuPinningController) Remove(container ContainerInfo) error {
+	return c.UpdateCPUSet(container, c.availableCpus, cgroupsctrl.ResourceNotSet)
 }

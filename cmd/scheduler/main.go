@@ -11,7 +11,6 @@ import (
 
 func main() {
 	command := app.NewSchedulerCommand(
-		// app.WithPlugin(cpubindingaware.Name, cpubindingaware.New),
 		app.WithPlugin(actischeduler.Name, actischeduler.New),
 	)
 

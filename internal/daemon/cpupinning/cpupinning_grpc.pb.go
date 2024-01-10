@@ -21,7 +21,6 @@ const _ = grpc.SupportPackageIsVersion7
 const (
 	CpuPinning_ApplyPinning_FullMethodName  = "/CpuPinning/ApplyPinning"
 	CpuPinning_RemovePinning_FullMethodName = "/CpuPinning/RemovePinning"
-	CpuPinning_UpdatePinning_FullMethodName = "/CpuPinning/UpdatePinning"
 )
 
 // CpuPinningClient is the client API for CpuPinning service.
@@ -30,7 +29,6 @@ const (
 type CpuPinningClient interface {
 	ApplyPinning(ctx context.Context, in *ApplyPinningRequest, opts ...grpc.CallOption) (*Response, error)
 	RemovePinning(ctx context.Context, in *RemovePinningRequest, opts ...grpc.CallOption) (*Response, error)
-	UpdatePinning(ctx context.Context, in *UpdatePinningRequest, opts ...grpc.CallOption) (*Response, error)
 }
 
 type cpuPinningClient struct {
@@ -59,22 +57,12 @@ func (c *cpuPinningClient) RemovePinning(ctx context.Context, in *RemovePinningR
 	return out, nil
 }
 
-func (c *cpuPinningClient) UpdatePinning(ctx context.Context, in *UpdatePinningRequest, opts ...grpc.CallOption) (*Response, error) {
-	out := new(Response)
-	err := c.cc.Invoke(ctx, CpuPinning_UpdatePinning_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // CpuPinningServer is the server API for CpuPinning service.
 // All implementations must embed UnimplementedCpuPinningServer
 // for forward compatibility
 type CpuPinningServer interface {
 	ApplyPinning(context.Context, *ApplyPinningRequest) (*Response, error)
 	RemovePinning(context.Context, *RemovePinningRequest) (*Response, error)
-	UpdatePinning(context.Context, *UpdatePinningRequest) (*Response, error)
 	mustEmbedUnimplementedCpuPinningServer()
 }
 
@@ -87,9 +75,6 @@ func (UnimplementedCpuPinningServer) ApplyPinning(context.Context, *ApplyPinning
 }
 func (UnimplementedCpuPinningServer) RemovePinning(context.Context, *RemovePinningRequest) (*Response, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RemovePinning not implemented")
-}
-func (UnimplementedCpuPinningServer) UpdatePinning(context.Context, *UpdatePinningRequest) (*Response, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UpdatePinning not implemented")
 }
 func (UnimplementedCpuPinningServer) mustEmbedUnimplementedCpuPinningServer() {}
 
@@ -140,24 +125,6 @@ func _CpuPinning_RemovePinning_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
-func _CpuPinning_UpdatePinning_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UpdatePinningRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(CpuPinningServer).UpdatePinning(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: CpuPinning_UpdatePinning_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CpuPinningServer).UpdatePinning(ctx, req.(*UpdatePinningRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 // CpuPinning_ServiceDesc is the grpc.ServiceDesc for CpuPinning service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -172,10 +139,6 @@ var CpuPinning_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RemovePinning",
 			Handler:    _CpuPinning_RemovePinning_Handler,
-		},
-		{
-			MethodName: "UpdatePinning",
-			Handler:    _CpuPinning_UpdatePinning_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

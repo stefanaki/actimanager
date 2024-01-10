@@ -96,12 +96,12 @@ func main() {
 		os.Exit(1)
 	}
 
-	topologyReconciler := &nodecputopology.NodeCpuTopologyReconciler{
+	nodeCpuTopologyReconciler := &nodecputopology.NodeCpuTopologyReconciler{
 		Client: mgr.GetClient(),
 		Scheme: mgr.GetScheme(),
 	}
 
-	if err = topologyReconciler.SetupWithManager(mgr); err != nil {
+	if err = nodeCpuTopologyReconciler.SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "NodeCpuTopology")
 		os.Exit(1)
 	}
@@ -122,7 +122,7 @@ func main() {
 
 	//+kubebuilder:scaffold:builder
 
-	if err := mgr.Add(manager.RunnableFunc(topologyReconciler.CreateInitialNodeCpuTopologies)); err != nil {
+	if err := mgr.Add(manager.RunnableFunc(nodeCpuTopologyReconciler.CreateInitialNodeCpuTopologies)); err != nil {
 		setupLog.Error(err, "unable to add runnable function", "controller", "NodeCpuTopology")
 		os.Exit(1)
 	}
