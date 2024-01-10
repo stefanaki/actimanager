@@ -3,6 +3,7 @@ package cpupinning
 import (
 	"context"
 	"fmt"
+	"strings"
 )
 
 // Server represents the CPU pinning server.
@@ -19,7 +20,8 @@ func NewCpuPinningServer(controller *CpuPinningController) *Server {
 // ApplyPinning applies CPU pinning based on the provided request.
 func (s Server) ApplyPinning(ctx context.Context, request *ApplyPinningRequest) (*Response, error) {
 	pod := request.Pod
-	cpuSet := convertCpuSetToString(request.CpuSet)
+	cpuSet := strings.Join(strings.Fields(fmt.Sprint(request.CpuSet)), ",")
+	memSet := strings.Join(strings.Fields(fmt.Sprint(request.MemSet)), ",")
 
 	for _, container := range request.Pod.Containers {
 		c := ContainerInfo{
@@ -30,7 +32,7 @@ func (s Server) ApplyPinning(ctx context.Context, request *ApplyPinningRequest) 
 			Cpus: int(container.Resources.RequestedCpus),
 		}
 
-		if err := s.Controller.Apply(c, cpuSet); err != nil {
+		if err := s.Controller.Apply(c, cpuSet, memSet); err != nil {
 			return &Response{
 				Status: ResponseStatus_ERROR,
 			}, fmt.Errorf("failed to apply CPU pinning: %v", err.Error())

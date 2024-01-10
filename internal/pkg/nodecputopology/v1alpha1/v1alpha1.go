@@ -132,3 +132,24 @@ func GetAllCpusInNuma(topology *apiv1alpha1.NodeCpuTopology, numaId int) []int {
 	}
 	return cpus
 }
+
+func GetNumaNodesOfCpuSet(cpus []apiv1alpha1.Cpu, topology apiv1alpha1.CpuTopology) []apiv1alpha1.NumaNode {
+	numaNodesMap := make(map[int]struct{})
+	var numaNodes []apiv1alpha1.NumaNode
+
+	for _, numaNode := range topology.NumaNodes {
+		for _, cpuInNuma := range numaNode.Cpus {
+			for _, cpu := range cpus {
+				if cpuInNuma.CpuId == cpu.CpuId {
+					if _, exists := numaNodesMap[numaNode.NumaNodeId]; !exists {
+						numaNodesMap[numaNode.NumaNodeId] = struct{}{}
+						numaNodes = append(numaNodes, numaNode)
+					}
+					break
+				}
+			}
+		}
+	}
+
+	return numaNodes
+}

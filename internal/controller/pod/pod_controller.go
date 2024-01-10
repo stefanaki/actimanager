@@ -51,7 +51,7 @@ func (r *PodReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 		// Handle deleted pod
 		cpuBindings := &v1alpha1.PodCpuBindingList{}
 		if err := r.List(ctx, cpuBindings, &client.ListOptions{
-			FieldSelector: fields.OneTermEqualSelector(".spec.podName", req.NamespacedName.Name),
+			FieldSelector: fields.OneTermEqualSelector("spec.podName", req.NamespacedName.Name),
 			Namespace:     pod.Namespace,
 		}); err != nil {
 			logger.Info("error listing cpu bindings", "error", err.Error())

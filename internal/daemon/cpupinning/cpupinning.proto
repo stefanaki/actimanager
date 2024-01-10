@@ -2,10 +2,6 @@ syntax = "proto3";
 
 option go_package = "/cpupinning";
 
-message CpuSet {
-  repeated int32 cpu = 1;
-}
-
 message ResourceInfo {
   int32 requestedCpus = 1;
   int32 limitCpus = 2;
@@ -28,16 +24,12 @@ message Pod {
 
 message ApplyPinningRequest {
   Pod pod = 1;
-  CpuSet cpuSet = 2;
+  repeated int32 cpuSet = 2;
+  repeated int32 memSet = 3;
 }
 
 message RemovePinningRequest {
   Pod pod = 1;
-}
-
-message UpdatePinningRequest {
-  Pod pod = 1;
-  CpuSet cpuSet = 2;
 }
 
 enum ResponseStatus {

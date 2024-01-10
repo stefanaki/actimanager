@@ -71,7 +71,7 @@ func main() {
 func createLogger() logr.Logger {
 	flags := flag.NewFlagSet("klog", flag.ContinueOnError)
 
-	config := textlogger.NewConfig()
+	config := textlogger.NewConfig(textlogger.Verbosity(3))
 	config.AddFlags(flags)
 
 	return textlogger.NewLogger(config)

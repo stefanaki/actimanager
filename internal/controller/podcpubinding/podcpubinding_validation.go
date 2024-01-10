@@ -66,7 +66,7 @@ func (r *PodCpuBindingReconciler) validateExclusivenessLevel(ctx context.Context
 	unfeasibleCpus := make(map[int]struct{})
 	podCpuBindingList := &v1alpha1.PodCpuBindingList{}
 
-	err := r.List(ctx, podCpuBindingList)
+	err := r.List(ctx, podCpuBindingList, client.MatchingFields{"status.nodeName": nodeName})
 
 	if err != nil {
 		return false, "", fmt.Errorf("failed to list PodCpuBindings: %v", err.Error())
@@ -74,8 +74,7 @@ func (r *PodCpuBindingReconciler) validateExclusivenessLevel(ctx context.Context
 
 	for _, pcb := range podCpuBindingList.Items {
 		// println("checking pcb " + pcb.Name)
-		if pcb.Status.NodeName != nodeName ||
-			(pcb.Namespace == namespacedName.Namespace && pcb.Name == namespacedName.Name) ||
+		if (pcb.Namespace == namespacedName.Namespace && pcb.Name == namespacedName.Name) ||
 			pcb.Status.ResourceStatus != v1alpha1.StatusApplied {
 			// println("this pcb should not be checked", pcb.Name)
 			continue

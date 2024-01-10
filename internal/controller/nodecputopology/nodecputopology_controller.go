@@ -68,7 +68,7 @@ func (r *NodeCpuTopologyReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 
 	// Check if specified NodeName is a valid name of a node
 	if err := r.Get(ctx, client.ObjectKey{Name: topology.Spec.NodeName}, &corev1.Node{}); err != nil {
-		logger.Info("Node with specified name not found: " + topology.Spec.NodeName)
+		logger.Info("Node not found", "nodeName", topology.Spec.NodeName)
 		topology.Status.ResourceStatus = v1alpha1.StatusNodeNotFound
 		topology.Status.InitJobStatus = v1alpha1.StatusJobNone
 
@@ -85,7 +85,7 @@ func (r *NodeCpuTopologyReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 		// If ResourceStatus is empty or NeedsSync, initiate job
 		switch topology.Status.InitJobStatus {
 		case v1alpha1.StatusJobNone:
-			logger.Info("Dispatch init job for NodeCpuBinding")
+			logger.Info("Dispatch init job for NodeCpuTopology")
 
 			jobName, err := r.createInitJob(topology, ctx, &logger)
 
@@ -125,12 +125,12 @@ func (r *NodeCpuTopologyReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 				return ctrl.Result{}, fmt.Errorf("error updating NodeCpuTopology status: %v", err)
 			}
 
-			logger.Info("NodeCpuTopology for node " + topology.Spec.NodeName + " initialized successfully")
+			logger.Info("NodeCpuTopology initialized successfully", "name", topology.Name)
 
 			if err := r.deleteJob(ctx, topology.Status.InitJobName); err != nil {
 				return ctrl.Result{}, fmt.Errorf("error updating NodeCpuTopology status: %v", err)
 			} else {
-				logger.Info("Job " + topology.Status.InitJobName + " deleted successfully")
+				logger.Info("Job deleted", "jobName", topology.Status.InitJobName)
 			}
 
 			return ctrl.Result{}, nil

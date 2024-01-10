@@ -13,8 +13,6 @@ const (
 	StatusJobCompleted string = "Completed"
 )
 
-var FinalizerNodeCpuTopology string = GroupVersion.Group + "/node-cpu-topology-finalizer"
-
 // NodeCpuTopologySpec defines the desired state of NodeCpuTopology
 type NodeCpuTopologySpec struct {
 	NodeName string `json:"nodeName"`
@@ -38,7 +36,7 @@ type NodeCpuTopologyStatus struct {
 // +kubebuilder:resource:scope=Cluster,shortName=nct
 
 // +kubebuilder:printcolumn:name="Node",type=string,JSONPath=`.spec.nodeName`
-// +kubebuilder:printcolumn:name="ResourceStatus",type=string,JSONPath=`.status.status`
+// +kubebuilder:printcolumn:name="Resource Status",type=string,JSONPath=`.status.resourceStatus`
 // +kubebuilder:printcolumn:name="Job Status",type=string,JSONPath=`.status.initJobStatus`
 // NodeCpuTopology is the Schema for the nodecputopologies API
 type NodeCpuTopology struct {
