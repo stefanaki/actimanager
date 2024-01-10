@@ -2,13 +2,15 @@ package podcpubinding
 
 import (
 	"context"
-	"cslab.ece.ntua.gr/actimanager/api/v1alpha1"
 	"fmt"
+	"reflect"
+
+	"cslab.ece.ntua.gr/actimanager/api/v1alpha1"
+	nctv1alpha1 "cslab.ece.ntua.gr/actimanager/internal/pkg/nodecputopology/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
-	"reflect"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -107,6 +109,7 @@ func (r *PodCpuBindingReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		cpuBinding.Status.ResourceStatus == v1alpha1.StatusNodeTopologyNotFound ||
 		cpuBinding.Status.ResourceStatus == v1alpha1.StatusFailed ||
 		cpuBinding.Status.ResourceStatus == v1alpha1.StatusCpuSetAllocationFailed {
+
 		cpuBinding.Status.ResourceStatus = v1alpha1.StatusBindingPending
 		if err := r.Status().Update(ctx, cpuBinding); err != nil {
 			return ctrl.Result{}, fmt.Errorf("error updating status: %v", err.Error())
@@ -181,7 +184,11 @@ func (r *PodCpuBindingReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 
 	// Handle reconcilation
 	// Apply CPU pinning
-	err = r.applyCpuPinning(ctx, cpuBinding.Spec.CpuSet, pod)
+	err = r.applyCpuPinning(
+		ctx,
+		cpuBinding.Spec.CpuSet,
+		nctv1alpha1.GetNumaNodesOfCpuSet(cpuBinding.Spec.CpuSet, topology.Spec.Topology),
+		pod)
 	if err != nil {
 		cpuBinding.Status.ResourceStatus = v1alpha1.StatusFailed
 	}
@@ -205,6 +212,13 @@ func (r *PodCpuBindingReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	if err := mgr.GetFieldIndexer().IndexField(context.Background(), &v1alpha1.NodeCpuTopology{}, "spec.nodeName", func(rawObj client.Object) []string {
 		topology := rawObj.(*v1alpha1.NodeCpuTopology)
 		return []string{topology.Spec.NodeName}
+	}); err != nil {
+		return err
+	}
+
+	if err := mgr.GetFieldIndexer().IndexField(context.Background(), &v1alpha1.PodCpuBinding{}, "status.nodeName", func(rawObj client.Object) []string {
+		podCpuBinding := rawObj.(*v1alpha1.PodCpuBinding)
+		return []string{podCpuBinding.Status.NodeName}
 	}); err != nil {
 		return err
 	}

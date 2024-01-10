@@ -11,10 +11,11 @@ import (
 )
 
 type CpuPinningController struct {
-	cgroupsController cgroupsctrl.CgroupsController
-	containerRuntime  ContainerRuntime
-	availableCpus     string
-	logger            logr.Logger
+	cgroupsController  cgroupsctrl.CgroupsController
+	containerRuntime   ContainerRuntime
+	availableCpus      string
+	availableNumaNodes string
+	logger             logr.Logger
 }
 
 // NewCpuPinningController returns a reference to a new CpuPinningController instance
@@ -25,19 +26,27 @@ func NewCpuPinningController(containerRuntime ContainerRuntime,
 	var (
 		cpuSetFilePath string
 		cpuSetFileName string
+		memSetFileName string
 	)
 
 	if cgroups.Mode() != cgroups.Unified {
 		cpuSetFilePath = cgroupsPath + "/cpuset"
 		cpuSetFileName = "cpuset.cpus"
+		memSetFileName = "cpuset.mems"
 	} else {
 		cpuSetFilePath = cgroupsPath
 		cpuSetFileName = "cpuset.cpus.effective"
+		memSetFileName = "cpuset.mems.effective"
 	}
 
 	cpuSet, err := os.ReadFile(filepath.Join(cpuSetFilePath, cpuSetFileName))
 	if err != nil {
 		return nil, fmt.Errorf("could not get cpuset from file system: %v", err)
+	}
+
+	memSet, err := os.ReadFile(filepath.Join(cpuSetFilePath, memSetFileName))
+	if err != nil {
+		return nil, fmt.Errorf("could not get memset from file system: %v", err)
 	}
 
 	cgroupsController, err := cgroupsctrl.NewCgroupsController(cgroupsDriver, cgroupsPath, logger)
@@ -46,10 +55,11 @@ func NewCpuPinningController(containerRuntime ContainerRuntime,
 	}
 
 	c := CpuPinningController{
-		containerRuntime:  containerRuntime,
-		cgroupsController: cgroupsController,
-		availableCpus:     strings.Trim(strings.Trim(string(cpuSet), " "), "\n"),
-		logger:            logger.WithName("cpu-pinning"),
+		containerRuntime:   containerRuntime,
+		cgroupsController:  cgroupsController,
+		availableCpus:      strings.Trim(strings.Trim(string(cpuSet), " "), "\n"),
+		availableNumaNodes: strings.Trim(strings.Trim(string(memSet), " "), "\n"),
+		logger:             logger.WithName("cpu-pinning"),
 	}
 
 	return &c, nil
@@ -117,11 +127,11 @@ func (c CpuPinningController) UpdateCPUSet(container ContainerInfo, cSet string,
 }
 
 // Apply updates the CPU set of the container.
-func (c CpuPinningController) Apply(container ContainerInfo, cSet string) error {
-	return c.UpdateCPUSet(container, cSet, cgroupsctrl.ResourceNotSet)
+func (c CpuPinningController) Apply(container ContainerInfo, cpuSet string, memSet string) error {
+	return c.UpdateCPUSet(container, cpuSet, memSet)
 }
 
 // Remove updates the CPU set of the container to all the available CPUs.
 func (c CpuPinningController) Remove(container ContainerInfo) error {
-	return c.UpdateCPUSet(container, c.availableCpus, cgroupsctrl.ResourceNotSet)
+	return c.UpdateCPUSet(container, c.availableCpus, c.availableNumaNodes)
 }

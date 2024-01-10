@@ -20,8 +20,8 @@ spec:
     - jsonPath: .spec.nodeName
       name: Node
       type: string
-    - jsonPath: .status.status
-      name: ResourceStatus
+    - jsonPath: .status.resourceStatus
+      name: Resource Status
       type: string
     - jsonPath: .status.initJobStatus
       name: Job Status

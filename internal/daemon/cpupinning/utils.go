@@ -3,8 +3,6 @@ package cpupinning
 import (
 	cgroupsctrl "cslab.ece.ntua.gr/actimanager/internal/pkg/cgroups"
 	"k8s.io/klog/v2"
-	"strconv"
-	"strings"
 )
 
 // QoSFromLimit returns QoS class based on limits set on pod cpu.
@@ -41,15 +39,4 @@ func ParseCgroupsDriver(driver string) cgroupsctrl.CgroupsDriver {
 		klog.Fatalf("unknown cgroups1 driver %s", driver)
 	}
 	return val
-}
-
-// convertCpuSetToString maps a CpuSet to a concatenated string.
-func convertCpuSetToString(cpuSet *CpuSet) string {
-	var cpuList []string
-
-	for _, cpu := range cpuSet.Cpu {
-		cpuList = append(cpuList, strconv.Itoa(int(cpu)))
-	}
-
-	return strings.Join(cpuList, ",")
 }

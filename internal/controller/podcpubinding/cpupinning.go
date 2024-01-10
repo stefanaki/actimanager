@@ -15,6 +15,7 @@ import (
 func (r *PodCpuBindingReconciler) applyCpuPinning(
 	ctx context.Context,
 	cpuSet []v1alpha1.Cpu,
+	memSet []v1alpha1.NumaNode,
 	pod *corev1.Pod) error {
 	logger := log.FromContext(ctx).WithName("apply-pinning")
 
@@ -34,9 +35,10 @@ func (r *PodCpuBindingReconciler) applyCpuPinning(
 	cpuPinningClient := cpupinning.NewCpuPinningClient(conn)
 	applyCpuPinningRequest := &cpupinning.ApplyPinningRequest{
 		Pod:    parsePodInfo(pod),
-		CpuSet: &cpupinning.CpuSet{Cpu: convertCpuListToInt32(cpuSet)},
+		CpuSet: convertCpuListToInt32(cpuSet),
+		MemSet: convertNumaNodeListToInt32(memSet),
 	}
-	logger.Info("dispatching cpu pinning request", "applyCpuPinningRequest", applyCpuPinningRequest)
+	logger.Info("Requesting CPU pinning", "request", applyCpuPinningRequest)
 
 	res, err := cpuPinningClient.ApplyPinning(ctx, applyCpuPinningRequest)
 	if err != nil {
@@ -66,7 +68,7 @@ func (r *PodCpuBindingReconciler) removeCpuPinning(
 
 	cpuPinningClient := cpupinning.NewCpuPinningClient(conn)
 	removeCpuPinningRequest := &cpupinning.RemovePinningRequest{Pod: parsePodInfo(pod)}
-	logger.Info("trying to remove cpu pinning", "removeCpuPinningRequest", removeCpuPinningRequest)
+	logger.Info("Removing CPU pinning", "request", removeCpuPinningRequest)
 
 	res, err := cpuPinningClient.RemovePinning(ctx, removeCpuPinningRequest)
 	if err != nil {
@@ -128,13 +130,20 @@ func parseContainerResources(containerName string, pod *corev1.Pod) *cpupinning.
 	return resources
 }
 
-// convertCpuListToInt32 maps a Cpu list to an int32 array
+// convertCpuListToInt32 maps a Cpu list to an int32 slice
 func convertCpuListToInt32(cpuSet []v1alpha1.Cpu) []int32 {
 	var cpuList []int32
-
 	for _, cpu := range cpuSet {
 		cpuList = append(cpuList, int32(cpu.CpuId))
 	}
-
 	return cpuList
+}
+
+// convertNumaNodeListToInt32 maps a NumaNode list to an int32 slice
+func convertNumaNodeListToInt32(memSet []v1alpha1.NumaNode) []int32 {
+	var nodeList []int32
+	for _, node := range memSet {
+		nodeList = append(nodeList, int32(node.NumaNodeId))
+	}
+	return nodeList
 }
