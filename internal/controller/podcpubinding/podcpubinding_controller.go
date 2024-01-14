@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"reflect"
 
+	"cslab.ece.ntua.gr/actimanager/internal/pkg/nodecputopology"
+
 	"cslab.ece.ntua.gr/actimanager/api/v1alpha1"
-	nctv1alpha1 "cslab.ece.ntua.gr/actimanager/internal/pkg/nodecputopology/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -187,7 +188,7 @@ func (r *PodCpuBindingReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 	err = r.applyCpuPinning(
 		ctx,
 		cpuBinding.Spec.CpuSet,
-		nctv1alpha1.GetNumaNodesOfCpuSet(cpuBinding.Spec.CpuSet, topology.Spec.Topology),
+		nodecputopology.GetNumaNodesOfCpuSet(cpuBinding.Spec.CpuSet, topology.Spec.Topology),
 		pod)
 	if err != nil {
 		cpuBinding.Status.ResourceStatus = v1alpha1.StatusFailed
@@ -219,6 +220,13 @@ func (r *PodCpuBindingReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	if err := mgr.GetFieldIndexer().IndexField(context.Background(), &v1alpha1.PodCpuBinding{}, "status.nodeName", func(rawObj client.Object) []string {
 		podCpuBinding := rawObj.(*v1alpha1.PodCpuBinding)
 		return []string{podCpuBinding.Status.NodeName}
+	}); err != nil {
+		return err
+	}
+
+	if err := mgr.GetFieldIndexer().IndexField(context.Background(), &v1alpha1.PodCpuBinding{}, "status.resourceStatus", func(rawObj client.Object) []string {
+		podCpuBinding := rawObj.(*v1alpha1.PodCpuBinding)
+		return []string{podCpuBinding.Status.ResourceStatus}
 	}); err != nil {
 		return err
 	}

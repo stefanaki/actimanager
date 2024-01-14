@@ -3,11 +3,13 @@ package podcpubinding
 import (
 	"context"
 	"fmt"
+
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
+// getNode retrieves the node with the given nodeName from the Kubernetes cluster.
 func (r *PodCpuBindingReconciler) getNode(ctx context.Context, nodeName string) (*corev1.Node, error) {
 	node := &corev1.Node{}
 
@@ -18,6 +20,7 @@ func (r *PodCpuBindingReconciler) getNode(ctx context.Context, nodeName string) 
 	return node, err
 }
 
+// getPod retrieves the pod with the given podNamespacedName from the Kubernetes cluster.
 func (r *PodCpuBindingReconciler) getPod(ctx context.Context, podNamespacedName types.NamespacedName) (*corev1.Pod, error) {
 	pod := &corev1.Pod{}
 
@@ -29,6 +32,7 @@ func (r *PodCpuBindingReconciler) getPod(ctx context.Context, podNamespacedName 
 	return pod, err
 }
 
+// getNodeAddress retrieves the IP address of the node with the given nodeName from the Kubernetes cluster.
 func (r *PodCpuBindingReconciler) getNodeAddress(ctx context.Context, nodeName string) (string, error) {
 	node, err := r.getNode(ctx, nodeName)
 	if err != nil {

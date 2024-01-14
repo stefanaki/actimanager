@@ -2,9 +2,10 @@ package podcpubinding
 
 import (
 	"context"
-	"cslab.ece.ntua.gr/actimanager/api/v1alpha1"
-	nctv1alpha1 "cslab.ece.ntua.gr/actimanager/internal/pkg/nodecputopology/v1alpha1"
 	"fmt"
+
+	"cslab.ece.ntua.gr/actimanager/api/v1alpha1"
+	"cslab.ece.ntua.gr/actimanager/internal/pkg/nodecputopology"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
@@ -48,7 +49,7 @@ func (r *PodCpuBindingReconciler) validateTopology(ctx context.Context, cpuBindi
 	*topology = topologies.Items[0]
 
 	// Check if specified cpuset is available in the node topology
-	if !nctv1alpha1.IsCpuSetInTopology(&topology.Spec.Topology, cpuBinding.Spec.CpuSet) {
+	if !nodecputopology.IsCpuSetInTopology(&topology.Spec.Topology, cpuBinding.Spec.CpuSet) {
 		return false, v1alpha1.StatusInvalidCpuSet, nil
 	}
 
@@ -66,7 +67,9 @@ func (r *PodCpuBindingReconciler) validateExclusivenessLevel(ctx context.Context
 	unfeasibleCpus := make(map[int]struct{})
 	podCpuBindingList := &v1alpha1.PodCpuBindingList{}
 
-	err := r.List(ctx, podCpuBindingList, client.MatchingFields{"status.nodeName": nodeName})
+	err := r.List(ctx, podCpuBindingList,
+		client.MatchingFields{"status.nodeName": nodeName},
+		client.MatchingFields{"status.resourceStatus": v1alpha1.StatusApplied})
 
 	if err != nil {
 		return false, "", fmt.Errorf("failed to list PodCpuBindings: %v", err.Error())
@@ -105,22 +108,22 @@ func getExclusiveCpusOfCpuBinding(cpuBinding *v1alpha1.PodCpuBinding, topology *
 	// println("get exclusive cpus for pcb", cpuBinding.Name)
 
 	for _, cpu := range cpuBinding.Spec.CpuSet {
-		_, coreId, socketId, numaId := nctv1alpha1.GetCpuParentInfo(topology, cpu.CpuId)
+		_, coreId, socketId, numaId := nodecputopology.GetCpuParentInfo(topology, cpu.CpuId)
 
 		switch cpuBinding.Spec.ExclusivenessLevel {
 		case "Cpu":
 			exclusiveCpus[cpu.CpuId] = struct{}{}
 		case "Core":
-			for _, c := range nctv1alpha1.GetAllCpusInCore(topology, coreId) {
+			for _, c := range nodecputopology.GetAllCpusInCore(topology, coreId) {
 				exclusiveCpus[c] = struct{}{}
 			}
 		case "Socket":
-			for _, c := range nctv1alpha1.GetAllCpusInSocket(topology, socketId) {
+			for _, c := range nodecputopology.GetAllCpusInSocket(topology, socketId) {
 				exclusiveCpus[c] = struct{}{}
 			}
 		case "Numa":
 			// println("pod", cpuBinding.Name, "is numa")
-			for _, c := range nctv1alpha1.GetAllCpusInNuma(topology, numaId) {
+			for _, c := range nodecputopology.GetAllCpusInNuma(topology, numaId) {
 				exclusiveCpus[c] = struct{}{}
 			}
 		default:

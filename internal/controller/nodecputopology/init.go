@@ -2,12 +2,16 @@ package nodecputopology
 
 import (
 	"context"
-	apiv1alpha1 "cslab.ece.ntua.gr/actimanager/api/v1alpha1"
 	"fmt"
+
+	apiv1alpha1 "cslab.ece.ntua.gr/actimanager/api/v1alpha1"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+// CreateInitialNodeCpuTopologies creates initial NodeCpuTopology resources for each cluster node.
+// It lists the cluster nodes and existing topologies, and creates a new topology for each node that doesn't have one.
+// The new topology is created with the name "<node-name>-cputopology".
 func (r *NodeCpuTopologyReconciler) CreateInitialNodeCpuTopologies(ctx context.Context) error {
 	nodes := &v1.NodeList{}
 	topologies := &apiv1alpha1.NodeCpuTopologyList{}
