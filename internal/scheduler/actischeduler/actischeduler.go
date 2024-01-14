@@ -2,8 +2,9 @@ package actischeduler
 
 import (
 	"context"
-	"cslab.ece.ntua.gr/actimanager/api/v1alpha1"
 	"fmt"
+
+	"cslab.ece.ntua.gr/actimanager/api/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
@@ -77,7 +78,7 @@ func (a *ActiScheduler) Filter(ctx context.Context, state *framework.CycleState,
 
 	var nodeBindings = make([]*v1alpha1.PodCpuBinding, 0)
 	for _, pcb := range bindings.Items {
-		if pcb.Status.NodeName == node.Name {
+		if pcb.Status.NodeName == node.Name && pcb.Status.ResourceStatus == v1alpha1.StatusApplied {
 			nodeBindings = append(nodeBindings, &pcb)
 		}
 	}

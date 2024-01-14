@@ -6,12 +6,12 @@ metadata:
 spec:
   selector:
     matchLabels:
-      app: actimanager-daemon
+      app: daemon
   template:
     metadata:
-      name: actimanager-daemon
+      name: daemon
       labels:
-        app: actimanager-daemon
+        app: daemon
     spec:
       serviceAccountName: default
       hostNetwork: true

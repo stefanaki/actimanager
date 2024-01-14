@@ -26,32 +26,28 @@ const ResourceNotSet = ""
 type CgroupsController struct {
 	CgroupsDriver CgroupsDriver
 	CgroupsPath   string
-	IsUnifiedMode bool
 	Logger        logr.Logger
 }
 
 // NewCgroupsController creates a new instance of CgroupsController.
 func NewCgroupsController(cgroupsDriver CgroupsDriver, cgroupsPath string, logger logr.Logger) (CgroupsController, error) {
-	unified := cgroups.Mode() == cgroups.Unified
-
 	return CgroupsController{
 		CgroupsDriver: cgroupsDriver,
 		CgroupsPath:   cgroupsPath,
-		IsUnifiedMode: unified,
 		Logger:        logger.WithName("cgroups-controller"),
 	}, nil
 }
 
-// UpdateCgroups updates the resources of a slice.
-func (c *CgroupsController) UpdateCgroups(slice, cpuSet, memSet string) error {
-	if c.IsUnifiedMode {
-		return c.updateCgroupsV2(slice, cpuSet, memSet)
+// UpdateCpuSet updates the resources of a slice.
+func (c *CgroupsController) UpdateCpuSet(slice, cpuSet, memSet string) error {
+	if cgroups.Mode() == cgroups.Unified {
+		return c.updateCpuSetV2(slice, cpuSet, memSet)
 	}
-	return c.updateCgroupsV1(slice, cpuSet, memSet)
+	return c.updateCpuSetV1(slice, cpuSet, memSet)
 }
 
-// updateCgroupsV1 updates cgroups for v1 mode.
-func (c *CgroupsController) updateCgroupsV1(slice, cpuSet, memSet string) error {
+// updateCpuSetV1 updates cgroups for v1 mode.
+func (c *CgroupsController) updateCpuSetV1(slice, cpuSet, memSet string) error {
 	ctrl := cgroups.NewCpuset(c.CgroupsPath)
 	err := ctrl.Update(slice, &specs.LinuxResources{
 		CPU: &specs.LinuxCPU{
@@ -69,8 +65,8 @@ func (c *CgroupsController) updateCgroupsV1(slice, cpuSet, memSet string) error 
 	return err
 }
 
-// updateCgroupsV2 updates cgroups for v2 mode.
-func (c *CgroupsController) updateCgroupsV2(slice, cpuSet, memSet string) error {
+// updateCpuSetV2 updates cgroups for v2 (unified) mode.
+func (c *CgroupsController) updateCpuSetV2(slice, cpuSet, memSet string) error {
 	res := cgroupsv2.Resources{CPU: &cgroupsv2.CPU{
 		Cpus: cpuSet,
 		Mems: memSet,

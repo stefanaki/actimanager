@@ -3,7 +3,7 @@ package nodecputopology
 import (
 	"context"
 	apiv1alpha1 "cslab.ece.ntua.gr/actimanager/api/v1alpha1"
-	nctv1alpha1 "cslab.ece.ntua.gr/actimanager/internal/pkg/nodecputopology/v1alpha1"
+	"cslab.ece.ntua.gr/actimanager/internal/pkg/nodecputopology"
 	"cslab.ece.ntua.gr/actimanager/internal/pkg/utils"
 	"fmt"
 	"github.com/go-logr/logr"
@@ -40,7 +40,7 @@ func (r *NodeCpuTopologyReconciler) parseCompletedPod(topology *apiv1alpha1.Node
 	if len(podList.Items) > 0 {
 		podLogs, _ := utils.GetPodLogs(podList.Items[0], ctx)
 
-		cpuTopology, err = nctv1alpha1.NodeCpuTopologyV1Alpha1(podLogs)
+		cpuTopology, err = nodecputopology.NewV1Alpha1CpuTopologyFromLscpuOutput(podLogs)
 
 		if err != nil {
 			logger.Error(err, "Error parsing cpu topology")

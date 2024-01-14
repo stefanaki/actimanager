@@ -120,7 +120,7 @@ func (c CpuPinningController) UpdateCPUSet(container ContainerInfo, cSet string,
 		slice := SliceName(container, c.containerRuntime, c.cgroupsController.CgroupsDriver)
 		c.logger.V(2).Info("allocating cgroup", "cgroupPath", c.cgroupsController.CgroupsPath, "slicePath", slice, "cpuSet", cSet, "memSet", memSet)
 
-		return c.cgroupsController.UpdateCgroups(slice, cSet, memSet)
+		return c.cgroupsController.UpdateCpuSet(slice, cSet, memSet)
 	}
 
 	return nil
