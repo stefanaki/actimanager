@@ -2,9 +2,9 @@ package actischeduler
 
 import (
 	"context"
-	"fmt"
-
 	"cslab.ece.ntua.gr/actimanager/api/v1alpha1"
+	nct "cslab.ece.ntua.gr/actimanager/internal/pkg/nodecputopology"
+	"fmt"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
@@ -51,7 +51,7 @@ func (a *ActiScheduler) Filter(ctx context.Context, state *framework.CycleState,
 	node := nodeInfo.Node()
 	topologies := &v1alpha1.NodeCpuTopologyList{}
 	bindings := &v1alpha1.PodCpuBindingList{}
-
+	// List NodeCpuTopologies and PodCpuBindings
 	err := a.List(ctx, topologies)
 	if err != nil {
 		return framework.NewStatus(framework.Error, fmt.Sprintf("scheduling pod %s/%s: could not list CPU topologies while fitering node %s: %v", pod.Namespace, pod.Name, node.Name, err))
@@ -62,6 +62,7 @@ func (a *ActiScheduler) Filter(ctx context.Context, state *framework.CycleState,
 		return framework.NewStatus(framework.Error, fmt.Sprintf("scheduling pod %s/%s: could not list CPU bindings while fitering node %s: %v", pod.Namespace, pod.Name, node.Name, err))
 	}
 
+	// Find the topology of the node
 	var topology *v1alpha1.NodeCpuTopology = nil
 	for _, nct := range topologies.Items {
 		if nct.Spec.NodeName == node.Name {
@@ -76,6 +77,7 @@ func (a *ActiScheduler) Filter(ctx context.Context, state *framework.CycleState,
 
 	fmt.Printf("scheduling pod %s/%s: found topology %s\n", pod.Namespace, pod.Name, topology.Name)
 
+	// Find the bindings of the node
 	var nodeBindings = make([]*v1alpha1.PodCpuBinding, 0)
 	for _, pcb := range bindings.Items {
 		if pcb.Status.NodeName == node.Name && pcb.Status.ResourceStatus == v1alpha1.StatusApplied {
@@ -83,8 +85,43 @@ func (a *ActiScheduler) Filter(ctx context.Context, state *framework.CycleState,
 		}
 	}
 
+	feasibleCpus := make(map[int]struct{})
+	for _, socket := range topology.Spec.Topology.Sockets {
+		for _, core := range socket.Cores {
+			for _, cpu := range core.Cpus {
+				feasibleCpus[cpu.CpuId] = struct{}{}
+			}
+		}
+	}
+
 	for _, b := range nodeBindings {
-		fmt.Printf("found node binding: %s/%s/%s\n", b.Status.NodeName, b.Namespace, b.Name)
+		for _, cpu := range b.Spec.CpuSet {
+			_, coreId, socketId, numaId := nct.GetCpuParentInfo(topology, cpu.CpuId)
+
+			switch b.Spec.ExclusivenessLevel {
+			case "Cpu":
+				delete(feasibleCpus, cpu.CpuId)
+			case "Core":
+				for _, cpu := range nct.GetAllCpusInCore(topology, coreId) {
+					delete(feasibleCpus, cpu)
+				}
+			case "Socket":
+				for _, cpu := range nct.GetAllCpusInSocket(topology, socketId) {
+					delete(feasibleCpus, cpu)
+				}
+			case "Numa":
+				for _, cpu := range nct.GetAllCpusInNuma(topology, numaId) {
+					delete(feasibleCpus, cpu)
+				}
+			default:
+
+			}
+		}
+
+	}
+
+	if len(feasibleCpus) == 0 {
+		return framework.NewStatus(framework.Unschedulable, fmt.Sprintf("scheduling pod %s/%s: no feasible CPUs found on node %s", pod.Namespace, pod.Name, node.Name))
 	}
 
 	return framework.NewStatus(framework.Success)
