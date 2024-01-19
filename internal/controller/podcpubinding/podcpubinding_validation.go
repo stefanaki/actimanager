@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"cslab.ece.ntua.gr/actimanager/api/v1alpha1"
-	"cslab.ece.ntua.gr/actimanager/internal/pkg/nodecputopology"
+	nct "cslab.ece.ntua.gr/actimanager/internal/pkg/nodecputopology"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
@@ -13,7 +13,7 @@ import (
 )
 
 // validatePodName checks if the specified pod exists in the namespace
-func (r *PodCpuBindingReconciler) validatePodName(ctx context.Context, cpuBinding *v1alpha1.PodCpuBinding, pod *corev1.Pod) (bool, string, error) {
+func (r *PodCpuBindingReconciler) validatePodName(ctx context.Context, cpuBinding *v1alpha1.PodCpuBinding, pod *corev1.Pod) (bool, v1alpha1.PodCpuBindingResourceStatus, error) {
 	err := r.Get(ctx, client.ObjectKey{Name: cpuBinding.Spec.PodName, Namespace: cpuBinding.ObjectMeta.Namespace}, pod)
 
 	if errors.IsNotFound(err) {
@@ -30,7 +30,7 @@ func (r *PodCpuBindingReconciler) validatePodName(ctx context.Context, cpuBindin
 // validateTopology checks if the node topology for the specified pod's
 // node is available and if the specified CPU set is valid
 func (r *PodCpuBindingReconciler) validateTopology(ctx context.Context, cpuBinding *v1alpha1.PodCpuBinding,
-	topology *v1alpha1.NodeCpuTopology, pod *corev1.Pod) (bool, string, error) {
+	topology *v1alpha1.NodeCpuTopology, pod *corev1.Pod) (bool, v1alpha1.PodCpuBindingResourceStatus, error) {
 
 	// Get NodeCpuTopology of node
 	topologies := &v1alpha1.NodeCpuTopologyList{}
@@ -49,7 +49,7 @@ func (r *PodCpuBindingReconciler) validateTopology(ctx context.Context, cpuBindi
 	*topology = topologies.Items[0]
 
 	// Check if specified cpuset is available in the node topology
-	if !nodecputopology.IsCpuSetInTopology(&topology.Spec.Topology, cpuBinding.Spec.CpuSet) {
+	if !nct.IsCpuSetInTopology(&topology.Spec.Topology, cpuBinding.Spec.CpuSet) {
 		return false, v1alpha1.StatusInvalidCpuSet, nil
 	}
 
@@ -60,7 +60,7 @@ func (r *PodCpuBindingReconciler) validateTopology(ctx context.Context, cpuBindi
 // an exclusive CPU set based on the specified exclusiveness level
 func (r *PodCpuBindingReconciler) validateExclusivenessLevel(ctx context.Context,
 	cpuBinding *v1alpha1.PodCpuBinding, topology *v1alpha1.NodeCpuTopology,
-	namespacedName types.NamespacedName, nodeName string) (bool, string, error) {
+	namespacedName types.NamespacedName, nodeName string) (bool, v1alpha1.PodCpuBindingResourceStatus, error) {
 
 	// println("validating exclusiveness lvl of cpu binding", cpuBinding.Name)
 
@@ -69,7 +69,7 @@ func (r *PodCpuBindingReconciler) validateExclusivenessLevel(ctx context.Context
 
 	err := r.List(ctx, podCpuBindingList,
 		client.MatchingFields{"status.nodeName": nodeName},
-		client.MatchingFields{"status.resourceStatus": v1alpha1.StatusApplied})
+		client.MatchingFields{"status.resourceStatus": string(v1alpha1.StatusApplied)})
 
 	if err != nil {
 		return false, "", fmt.Errorf("failed to list PodCpuBindings: %v", err.Error())
@@ -108,22 +108,22 @@ func getExclusiveCpusOfCpuBinding(cpuBinding *v1alpha1.PodCpuBinding, topology *
 	// println("get exclusive cpus for pcb", cpuBinding.Name)
 
 	for _, cpu := range cpuBinding.Spec.CpuSet {
-		_, coreId, socketId, numaId := nodecputopology.GetCpuParentInfo(topology, cpu.CpuId)
+		_, coreId, socketId, numaId := nct.GetCpuParentInfo(topology, cpu.CpuId)
 
 		switch cpuBinding.Spec.ExclusivenessLevel {
 		case "Cpu":
 			exclusiveCpus[cpu.CpuId] = struct{}{}
 		case "Core":
-			for _, c := range nodecputopology.GetAllCpusInCore(topology, coreId) {
+			for _, c := range nct.GetAllCpusInCore(topology, coreId) {
 				exclusiveCpus[c] = struct{}{}
 			}
 		case "Socket":
-			for _, c := range nodecputopology.GetAllCpusInSocket(topology, socketId) {
+			for _, c := range nct.GetAllCpusInSocket(topology, socketId) {
 				exclusiveCpus[c] = struct{}{}
 			}
 		case "Numa":
 			// println("pod", cpuBinding.Name, "is numa")
-			for _, c := range nodecputopology.GetAllCpusInNuma(topology, numaId) {
+			for _, c := range nct.GetAllCpusInNuma(topology, numaId) {
 				exclusiveCpus[c] = struct{}{}
 			}
 		default:

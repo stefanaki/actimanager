@@ -4,13 +4,16 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+type NodeCpuTopologyResourceStatus string
+type NodeCpuTopologyJobStatus string
+
 const (
-	StatusNeedsSync    string = "NeedsSync"
-	StatusNodeNotFound string = "NodeNotFound"
-	StatusFresh        string = "Fresh"
-	StatusJobNone      string = "None"
-	StatusJobPending   string = "Pending"
-	StatusJobCompleted string = "Completed"
+	StatusNeedsSync    NodeCpuTopologyResourceStatus = "NeedsSync"
+	StatusNodeNotFound NodeCpuTopologyResourceStatus = "NodeNotFound"
+	StatusFresh        NodeCpuTopologyResourceStatus = "Fresh"
+	StatusJobNone      NodeCpuTopologyJobStatus      = "None"
+	StatusJobPending   NodeCpuTopologyJobStatus      = "Pending"
+	StatusJobCompleted NodeCpuTopologyJobStatus      = "Completed"
 )
 
 // NodeCpuTopologySpec defines the desired state of NodeCpuTopology
@@ -24,20 +27,20 @@ type NodeCpuTopologySpec struct {
 // NodeCpuTopologyStatus defines the observed state of NodeCpuTopology
 type NodeCpuTopologyStatus struct {
 	//+kubebuilder:validation:Required
-	InitJobStatus string `json:"initJobStatus"`
-	InitJobName   string `json:"initJobName"`
+	InitJobStatus NodeCpuTopologyJobStatus `json:"initJobStatus"`
+	InitJobName   string                   `json:"initJobName"`
 
 	//+kubebuilder:validation:Required
-	ResourceStatus string `json:"resourceStatus"`
+	ResourceStatus NodeCpuTopologyResourceStatus `json:"resourceStatus"`
 }
 
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
 // +kubebuilder:resource:scope=Cluster,shortName=nct
-
 // +kubebuilder:printcolumn:name="Node",type=string,JSONPath=`.spec.nodeName`
 // +kubebuilder:printcolumn:name="Resource Status",type=string,JSONPath=`.status.resourceStatus`
 // +kubebuilder:printcolumn:name="Job Status",type=string,JSONPath=`.status.initJobStatus`
+
 // NodeCpuTopology is the Schema for the nodecputopologies API
 type NodeCpuTopology struct {
 	metav1.TypeMeta   `json:",inline"`

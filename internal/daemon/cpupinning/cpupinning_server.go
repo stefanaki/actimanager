@@ -20,16 +20,21 @@ func NewCpuPinningServer(controller *CpuPinningController) *Server {
 // ApplyPinning applies CPU pinning based on the provided request.
 func (s Server) ApplyPinning(ctx context.Context, request *ApplyPinningRequest) (*Response, error) {
 	pod := request.Pod
-	cpuSet := strings.Join(strings.Fields(fmt.Sprint(request.CpuSet)), ",")
-	memSet := strings.Join(strings.Fields(fmt.Sprint(request.MemSet)), ",")
+	cpuSet := strings.Trim(strings.Join(strings.Fields(fmt.Sprint(request.CpuSet)), ","), "[]")
+	memSet := strings.Trim(strings.Join(strings.Fields(fmt.Sprint(request.MemSet)), ","), "[]")
 
 	for _, container := range request.Pod.Containers {
 		c := ContainerInfo{
 			CID:  container.Id,
 			PID:  pod.Id,
 			Name: container.Name,
-			QS:   QoSFromLimit(container.Resources.LimitCpus, container.Resources.RequestedCpus),
-			Cpus: int(container.Resources.RequestedCpus),
+			QS: QoSFromLimit(
+				container.Resources.LimitCpus,
+				container.Resources.RequestedCpus,
+				container.Resources.LimitMemory,
+				container.Resources.RequestedMemory,
+			),
+			Cpus: container.Resources.RequestedCpus,
 		}
 
 		if err := s.Controller.Apply(c, cpuSet, memSet); err != nil {
@@ -53,8 +58,13 @@ func (s Server) RemovePinning(ctx context.Context, request *RemovePinningRequest
 			CID:  container.Id,
 			PID:  pod.Id,
 			Name: container.Name,
-			QS:   QoSFromLimit(container.Resources.LimitCpus, container.Resources.RequestedCpus),
-			Cpus: int(container.Resources.RequestedCpus),
+			QS: QoSFromLimit(
+				container.Resources.LimitCpus,
+				container.Resources.RequestedCpus,
+				container.Resources.LimitMemory,
+				container.Resources.RequestedMemory,
+			),
+			Cpus: container.Resources.RequestedCpus,
 		}
 
 		if err := s.Controller.Remove(c); err != nil {

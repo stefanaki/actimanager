@@ -19,9 +19,6 @@ const (
 	DriverCgroupfs
 )
 
-// ResourceNotSet is used as default resource allocation in CgroupsController.
-const ResourceNotSet = ""
-
 // CgroupsController represents a controller for managing cgroups.
 type CgroupsController struct {
 	CgroupsDriver CgroupsDriver

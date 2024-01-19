@@ -4,14 +4,16 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+type PodCpuBindingResourceStatus string
+
 const (
-	StatusBindingPending         string = "Pending"
-	StatusInvalidCpuSet          string = "InvalidCpuSet"
-	StatusPodNotFound            string = "PodNotFound"
-	StatusNodeTopologyNotFound   string = "NodeTopologyNotFound"
-	StatusApplied                string = "Applied"
-	StatusFailed                 string = "Failed"
-	StatusCpuSetAllocationFailed string = "CpuSetAllocationFailed"
+	StatusBindingPending         PodCpuBindingResourceStatus = "Pending"
+	StatusInvalidCpuSet          PodCpuBindingResourceStatus = "InvalidCpuSet"
+	StatusPodNotFound            PodCpuBindingResourceStatus = "PodNotFound"
+	StatusNodeTopologyNotFound   PodCpuBindingResourceStatus = "NodeTopologyNotFound"
+	StatusApplied                PodCpuBindingResourceStatus = "Applied"
+	StatusFailed                 PodCpuBindingResourceStatus = "Failed"
+	StatusCpuSetAllocationFailed PodCpuBindingResourceStatus = "CpuSetAllocationFailed"
 )
 
 var FinalizerPodCpuBinding string = GroupVersion.Group + "/pod-cpu-binding-finalizer"
@@ -34,8 +36,8 @@ type PodCpuBindingSpec struct {
 // PodCpuBindingStatus defines the observed state of PodCpuBinding
 type PodCpuBindingStatus struct {
 	// +kubebuilder:validation:Enum=Applied;Pending;PodNotFound;InvalidCpuSet;Collision;Failed;CpuSetAllocationFailed
-	ResourceStatus string `json:"resourceStatus"`
-	NodeName       string `json:"nodeName"`
+	ResourceStatus PodCpuBindingResourceStatus `json:"resourceStatus"`
+	NodeName       string                      `json:"nodeName"`
 }
 
 // +kubebuilder:object:root=true
