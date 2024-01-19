@@ -1,15 +1,16 @@
 package main
 
 import (
-	"cslab.ece.ntua.gr/actimanager/internal/daemon/cpupinning"
 	"flag"
+	"net"
+
+	"cslab.ece.ntua.gr/actimanager/internal/daemon/cpupinning"
 	"github.com/go-logr/logr"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health"
 	healthv1 "google.golang.org/grpc/health/grpc_health_v1"
 	"k8s.io/klog/v2"
 	"k8s.io/klog/v2/textlogger"
-	"net"
 )
 
 func main() {

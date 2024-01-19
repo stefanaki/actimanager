@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"cslab.ece.ntua.gr/actimanager/api/v1alpha1"
-	"cslab.ece.ntua.gr/actimanager/internal/pkg/nodecputopology"
+	nct "cslab.ece.ntua.gr/actimanager/internal/pkg/nodecputopology"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
@@ -49,7 +49,7 @@ func (r *PodCpuBindingReconciler) validateTopology(ctx context.Context, cpuBindi
 	*topology = topologies.Items[0]
 
 	// Check if specified cpuset is available in the node topology
-	if !nodecputopology.IsCpuSetInTopology(&topology.Spec.Topology, cpuBinding.Spec.CpuSet) {
+	if !nct.IsCpuSetInTopology(&topology.Spec.Topology, cpuBinding.Spec.CpuSet) {
 		return false, v1alpha1.StatusInvalidCpuSet, nil
 	}
 
@@ -108,22 +108,22 @@ func getExclusiveCpusOfCpuBinding(cpuBinding *v1alpha1.PodCpuBinding, topology *
 	// println("get exclusive cpus for pcb", cpuBinding.Name)
 
 	for _, cpu := range cpuBinding.Spec.CpuSet {
-		_, coreId, socketId, numaId := nodecputopology.GetCpuParentInfo(topology, cpu.CpuId)
+		_, coreId, socketId, numaId := nct.GetCpuParentInfo(topology, cpu.CpuId)
 
 		switch cpuBinding.Spec.ExclusivenessLevel {
 		case "Cpu":
 			exclusiveCpus[cpu.CpuId] = struct{}{}
 		case "Core":
-			for _, c := range nodecputopology.GetAllCpusInCore(topology, coreId) {
+			for _, c := range nct.GetAllCpusInCore(topology, coreId) {
 				exclusiveCpus[c] = struct{}{}
 			}
 		case "Socket":
-			for _, c := range nodecputopology.GetAllCpusInSocket(topology, socketId) {
+			for _, c := range nct.GetAllCpusInSocket(topology, socketId) {
 				exclusiveCpus[c] = struct{}{}
 			}
 		case "Numa":
 			// println("pod", cpuBinding.Name, "is numa")
-			for _, c := range nodecputopology.GetAllCpusInNuma(topology, numaId) {
+			for _, c := range nct.GetAllCpusInNuma(topology, numaId) {
 				exclusiveCpus[c] = struct{}{}
 			}
 		default:

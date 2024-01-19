@@ -2,8 +2,9 @@ package pod
 
 import (
 	"context"
-	"cslab.ece.ntua.gr/actimanager/api/v1alpha1"
 	"fmt"
+
+	"cslab.ece.ntua.gr/actimanager/api/v1alpha1"
 	"k8s.io/apimachinery/pkg/fields"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -76,7 +77,7 @@ func (r *PodReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *PodReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	if err := mgr.GetFieldIndexer().IndexField(context.Background(), &v1alpha1.PodCpuBinding{}, ".spec.podName", func(rawObj client.Object) []string {
+	if err := mgr.GetFieldIndexer().IndexField(context.Background(), &v1alpha1.PodCpuBinding{}, "spec.podName", func(rawObj client.Object) []string {
 		cpuBinding := rawObj.(*v1alpha1.PodCpuBinding)
 		return []string{cpuBinding.Spec.PodName}
 	}); err != nil {

@@ -5,7 +5,7 @@ leaderElection:
 clientConnection:
   kubeconfig: /home/georgios/.kube/config
 profiles:
-  - schedulerName: default-scheduler
+  - schedulerName: actischeduler
     plugins:
       score:
         disabled:

@@ -4,10 +4,16 @@ metadata:
   name: benchpod-2
   namespace: benchmarks
 spec:
+  schedulerName: actischeduler
   restartPolicy: Never
   containers:
   - name: benchmark
     image: spirals/parsec-3.0
+    resources:
+      requests:
+        cpu: "2000m"
+      limits:
+        cpu: "2000m"
     command:
     - /bin/bash
     - "-c"

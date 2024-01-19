@@ -112,8 +112,8 @@ func sliceNameDockerContainerdWithCgroupfs(c ContainerInfo, r ContainerRuntime) 
 	)
 }
 
-// UpdateCPUSet updates the cpu set of a given child process.
-func (c CpuPinningController) UpdateCPUSet(container ContainerInfo, cSet string, memSet string) error {
+// UpdateCpuSet updates the cpu set of a given child process.
+func (c CpuPinningController) UpdateCpuSet(container ContainerInfo, cSet string, memSet string) error {
 	runtimeURLPrefix := [2]string{"docker://", "containerd://"}
 	if c.containerRuntime == Kind || c.containerRuntime != Kind &&
 		strings.Contains(container.CID, runtimeURLPrefix[c.containerRuntime]) {
@@ -128,10 +128,10 @@ func (c CpuPinningController) UpdateCPUSet(container ContainerInfo, cSet string,
 
 // Apply updates the CPU set of the container.
 func (c CpuPinningController) Apply(container ContainerInfo, cpuSet string, memSet string) error {
-	return c.UpdateCPUSet(container, cpuSet, memSet)
+	return c.UpdateCpuSet(container, cpuSet, memSet)
 }
 
 // Remove updates the CPU set of the container to all the available CPUs.
 func (c CpuPinningController) Remove(container ContainerInfo) error {
-	return c.UpdateCPUSet(container, c.availableCpus, c.availableNumaNodes)
+	return c.UpdateCpuSet(container, c.availableCpus, c.availableNumaNodes)
 }

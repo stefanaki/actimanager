@@ -5,7 +5,7 @@ type ContainerInfo struct {
 	CID  string
 	PID  string
 	Name string
-	Cpus int
+	Cpus int32
 	QS   QoS
 }
 
