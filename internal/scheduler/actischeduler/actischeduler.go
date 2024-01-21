@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"math"
 
 	"cslab.ece.ntua.gr/actimanager/api/v1alpha1"
 	nct "cslab.ece.ntua.gr/actimanager/internal/pkg/nodecputopology"
@@ -16,6 +17,11 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
+// ActiScheduler is responsible for filtering and scoring nodes based on CPU topology and CPU bindings.
+// It ensures that pods are scheduled on nodes with feasible CPUs and calculates the score based on the locality of the feasible CPUs.
+// This plugin is used to optimize CPU resource allocation in a Kubernetes cluster.
+
+// Name is the name of the ActiScheduler plugin.
 const Name string = "ActiScheduler"
 
 var (
@@ -27,6 +33,8 @@ func init() {
 	utilruntime.Must(v1alpha1.AddToScheme(scheme))
 }
 
+// ActiScheduler is the implementation of the ActiScheduler plugin.
+// It embeds the Kubernetes client, framework handle, and logger.
 type ActiScheduler struct {
 	client.Client
 	handle framework.Handle
@@ -38,6 +46,7 @@ var _ framework.ScorePlugin = &ActiScheduler{}
 var _ framework.ScoreExtensions = &ActiScheduler{}
 var _ framework.PostBindPlugin = &ActiScheduler{}
 
+// Name returns the name of the ActiScheduler plugin.
 func (a *ActiScheduler) Name() string {
 	return Name
 }
@@ -60,12 +69,13 @@ func New(ctx context.Context, obj runtime.Object, h framework.Handle) (framework
 }
 
 // Filter filters the available CPUs on a node based on the CPU topology and CPU bindings.
-// It checks the CPU topology of the node and the CPU bindings of the pod to determine the feasible CPUs.
-// Feasible CPUs are those that are not already bound to other pods and are within the CPU topology of the node.
+// It checks the CPU topology and the CPU bindings of the node to determine the feasible CPUs.
+// Feasible CPUs are those that are within the CPU topology of the node and are not already exclusively bound to other pods.
 // If there are no feasible CPUs, it returns an Unschedulable status.
 // If the requested CPU resources of the pod exceed the number of feasible CPUs, it returns an Unschedulable status.
 // Otherwise, it returns a Success status.
 func (a *ActiScheduler) Filter(ctx context.Context, state *framework.CycleState, pod *corev1.Pod, nodeInfo *framework.NodeInfo) *framework.Status {
+	logger := a.logger.WithName("filter")
 	node := nodeInfo.Node()
 	topologies := &v1alpha1.NodeCpuTopologyList{}
 	bindings := &v1alpha1.PodCpuBindingList{}
@@ -81,9 +91,9 @@ func (a *ActiScheduler) Filter(ctx context.Context, state *framework.CycleState,
 
 	// Find the topology of the node
 	var topology *v1alpha1.NodeCpuTopology
-	for _, nct := range topologies.Items {
-		if nct.Spec.NodeName == node.Name {
-			topology = &nct
+	for _, n := range topologies.Items {
+		if n.Spec.NodeName == node.Name {
+			topology = &n
 			break
 		}
 	}
@@ -92,7 +102,7 @@ func (a *ActiScheduler) Filter(ctx context.Context, state *framework.CycleState,
 		return framework.NewStatus(framework.Error, fmt.Sprintf("scheduling pod %s/%s: could not find CPU topology while filtering node %s", pod.Namespace, pod.Name, node.Name))
 	}
 
-	a.logger.Info("scheduling pod %s/%s: found topology %s\n", pod.Namespace, pod.Name, topology.Name)
+	logger.Info("scheduling pod %s/%s: found topology %s\n", pod.Namespace, pod.Name, topology.Name)
 
 	// Find the bindings of the node
 	var nodeBindings []*v1alpha1.PodCpuBinding
@@ -152,18 +162,40 @@ func (a *ActiScheduler) Filter(ctx context.Context, state *framework.CycleState,
 
 // Score calculates the score for a pod on a specific node based on the locality of the feasible CPUs.
 func (a *ActiScheduler) Score(ctx context.Context, state *framework.CycleState, p *corev1.Pod, nodeName string) (int64, *framework.Status) {
-	println("I THINK ITS WORKING1...")
 	return 0, &framework.Status{}
 }
 
 func (a *ActiScheduler) NormalizeScore(ctx context.Context, state *framework.CycleState, p *corev1.Pod, scores framework.NodeScoreList) *framework.Status {
-	return &framework.Status{}
+	// Find highest and lowest scores.
+	var highest int64 = -math.MaxInt64
+	var lowest int64 = math.MaxInt64
+	for _, nodeScore := range scores {
+		if nodeScore.Score > highest {
+			highest = nodeScore.Score
+		}
+		if nodeScore.Score < lowest {
+			lowest = nodeScore.Score
+		}
+	}
+
+	// Transform the highest to lowest score range to fit the framework's min to max node score range.
+	oldRange := highest - lowest
+	newRange := framework.MaxNodeScore - framework.MinNodeScore
+	for i, nodeScore := range scores {
+		if oldRange == 0 {
+			scores[i].Score = framework.MinNodeScore
+		} else {
+			scores[i].Score = ((nodeScore.Score - lowest) * newRange / oldRange) + framework.MinNodeScore
+		}
+	}
+
+	return framework.NewStatus(framework.Success)
+}
+
+func (a *ActiScheduler) PostBind(ctx context.Context, state *framework.CycleState, p *corev1.Pod, nodeName string) {
+
 }
 
 func (a *ActiScheduler) ScoreExtensions() framework.ScoreExtensions {
 	return a
-}
-
-func (*ActiScheduler) PostBind(ctx context.Context, state *framework.CycleState, p *corev1.Pod, nodeName string) {
-	panic("unimplemented")
 }

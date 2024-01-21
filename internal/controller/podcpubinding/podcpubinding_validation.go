@@ -13,7 +13,7 @@ import (
 )
 
 // validatePodName checks if the specified pod exists in the namespace
-func (r *PodCpuBindingReconciler) validatePodName(ctx context.Context, cpuBinding *v1alpha1.PodCpuBinding, pod *corev1.Pod) (bool, string, error) {
+func (r *PodCpuBindingReconciler) validatePodName(ctx context.Context, cpuBinding *v1alpha1.PodCpuBinding, pod *corev1.Pod) (bool, v1alpha1.PodCpuBindingResourceStatus, error) {
 	err := r.Get(ctx, client.ObjectKey{Name: cpuBinding.Spec.PodName, Namespace: cpuBinding.ObjectMeta.Namespace}, pod)
 
 	if errors.IsNotFound(err) {
@@ -30,7 +30,7 @@ func (r *PodCpuBindingReconciler) validatePodName(ctx context.Context, cpuBindin
 // validateTopology checks if the node topology for the specified pod's
 // node is available and if the specified CPU set is valid
 func (r *PodCpuBindingReconciler) validateTopology(ctx context.Context, cpuBinding *v1alpha1.PodCpuBinding,
-	topology *v1alpha1.NodeCpuTopology, pod *corev1.Pod) (bool, string, error) {
+	topology *v1alpha1.NodeCpuTopology, pod *corev1.Pod) (bool, v1alpha1.PodCpuBindingResourceStatus, error) {
 
 	// Get NodeCpuTopology of node
 	topologies := &v1alpha1.NodeCpuTopologyList{}
@@ -60,7 +60,7 @@ func (r *PodCpuBindingReconciler) validateTopology(ctx context.Context, cpuBindi
 // an exclusive CPU set based on the specified exclusiveness level
 func (r *PodCpuBindingReconciler) validateExclusivenessLevel(ctx context.Context,
 	cpuBinding *v1alpha1.PodCpuBinding, topology *v1alpha1.NodeCpuTopology,
-	namespacedName types.NamespacedName, nodeName string) (bool, string, error) {
+	namespacedName types.NamespacedName, nodeName string) (bool, v1alpha1.PodCpuBindingResourceStatus, error) {
 
 	// println("validating exclusiveness lvl of cpu binding", cpuBinding.Name)
 
@@ -69,7 +69,7 @@ func (r *PodCpuBindingReconciler) validateExclusivenessLevel(ctx context.Context
 
 	err := r.List(ctx, podCpuBindingList,
 		client.MatchingFields{"status.nodeName": nodeName},
-		client.MatchingFields{"status.resourceStatus": v1alpha1.StatusApplied})
+		client.MatchingFields{"status.resourceStatus": string(v1alpha1.StatusApplied)})
 
 	if err != nil {
 		return false, "", fmt.Errorf("failed to list PodCpuBindings: %v", err.Error())

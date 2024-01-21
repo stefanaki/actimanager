@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"reflect"
+	"sigs.k8s.io/controller-runtime/pkg/controller"
 
 	"cslab.ece.ntua.gr/actimanager/internal/pkg/nodecputopology"
 
@@ -226,12 +227,13 @@ func (r *PodCpuBindingReconciler) SetupWithManager(mgr ctrl.Manager) error {
 
 	if err := mgr.GetFieldIndexer().IndexField(context.Background(), &v1alpha1.PodCpuBinding{}, "status.resourceStatus", func(rawObj client.Object) []string {
 		podCpuBinding := rawObj.(*v1alpha1.PodCpuBinding)
-		return []string{podCpuBinding.Status.ResourceStatus}
+		return []string{string(podCpuBinding.Status.ResourceStatus)}
 	}); err != nil {
 		return err
 	}
 
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&v1alpha1.PodCpuBinding{}, eventFilters).
+		WithOptions(controller.Options{MaxConcurrentReconciles: 3}).
 		Complete(r)
 }
