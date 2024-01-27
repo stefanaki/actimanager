@@ -7,8 +7,11 @@ clientConnection:
 profiles:
   - schedulerName: actischeduler
     plugins:
+      preFilter:
+        enabled:
+          - name: ActiScheduler
       score:
-        disabled:
+        enabled:
           - name: ActiScheduler
       filter:
         enabled:
