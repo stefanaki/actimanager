@@ -2,9 +2,11 @@ package podcpubinding
 
 import (
 	"context"
+	"fmt"
+	"strconv"
+
 	"cslab.ece.ntua.gr/actimanager/api/v1alpha1"
 	"cslab.ece.ntua.gr/actimanager/internal/daemon/cpupinning"
-	"fmt"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	corev1 "k8s.io/api/core/v1"
@@ -15,7 +17,7 @@ import (
 func (r *PodCpuBindingReconciler) applyCpuPinning(
 	ctx context.Context,
 	cpuSet []v1alpha1.Cpu,
-	memSet []v1alpha1.NumaNode,
+	memSet map[string]v1alpha1.NumaNode,
 	pod *corev1.Pod) error {
 	logger := log.FromContext(ctx).WithName("apply-pinning")
 
@@ -140,10 +142,11 @@ func convertCpuListToInt32(cpuSet []v1alpha1.Cpu) []int32 {
 }
 
 // convertNumaNodeListToInt32 maps a NumaNode list to an int32 slice
-func convertNumaNodeListToInt32(memSet []v1alpha1.NumaNode) []int32 {
+func convertNumaNodeListToInt32(memSet map[string]v1alpha1.NumaNode) []int32 {
 	var nodeList []int32
-	for _, node := range memSet {
-		nodeList = append(nodeList, int32(node.NumaNodeId))
+	for nodeId := range memSet {
+		nodeId, _ := strconv.Atoi(nodeId)
+		nodeList = append(nodeList, int32(nodeId))
 	}
 	return nodeList
 }

@@ -62,27 +62,24 @@ type NodeCpuTopologyList struct {
 // CpuTopology represents the hierarchical topology of the CPU of a Kubernetes node
 type CpuTopology struct {
 	//+kubebuilder:validation:Optional
-	Sockets []Socket `json:"sockets"`
+	Sockets map[string]Socket `json:"sockets"`
 	//+kubebuilder:validation:Optional
-	NumaNodes []NumaNode `json:"numaNodes"`
+	NumaNodes map[string]NumaNode `json:"numaNodes"`
 }
 
 // Socket is a CPU socket of the Kubernetes node
 type Socket struct {
-	SocketId int    `json:"socketId"`
-	Cores    []Core `json:"cores"`
+	Cores map[string]Core `json:"cores"`
 }
 
 // NumaNode is a NUMA node of the Kubernetes node
 type NumaNode struct {
-	NumaNodeId int   `json:"numaNodeId"`
-	Cpus       []Cpu `json:"cpus"`
+	Cpus map[string]Cpu `json:"cpus"`
 }
 
 // Core is a physical CPU core of the parent socket
 type Core struct {
-	CoreId int   `json:"coreId"`
-	Cpus   []Cpu `json:"cpus"`
+	Cpus map[string]Cpu `json:"cpus"`
 }
 
 // Cpu is a logical CPU core of the parent core
