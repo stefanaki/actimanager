@@ -16,7 +16,7 @@ const (
 	StatusCpuSetAllocationFailed PodCpuBindingResourceStatus = "CpuSetAllocationFailed"
 )
 
-var FinalizerPodCpuBinding string = GroupVersion.Group + "/pod-cpu-binding-finalizer"
+var FinalizerPodCpuBinding = GroupVersion.Group + "/pod-cpu-binding-finalizer"
 var FinalizerCpuBoundPod = GroupVersion.Group + "/cpu-bound-pod"
 
 // PodCpuBindingSpec defines the CPU set on which a pod is bound,

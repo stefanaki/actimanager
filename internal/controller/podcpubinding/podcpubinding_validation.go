@@ -2,6 +2,7 @@ package podcpubinding
 
 import (
 	"context"
+	pcbutils "cslab.ece.ntua.gr/actimanager/internal/pkg/podcpubinding"
 	"fmt"
 
 	"cslab.ece.ntua.gr/actimanager/api/v1alpha1"
@@ -83,7 +84,7 @@ func (r *PodCpuBindingReconciler) validateExclusivenessLevel(ctx context.Context
 			continue
 		}
 
-		exclusiveCpus := getExclusiveCpusOfCpuBinding(&pcb, topology)
+		exclusiveCpus := pcbutils.GetExclusiveCpusOfCpuBinding(&pcb, topology)
 		for c := range exclusiveCpus {
 			// println("found exclusive cpu for", pcb.Name, c)
 			unfeasibleCpus[c] = struct{}{}
@@ -100,49 +101,9 @@ func (r *PodCpuBindingReconciler) validateExclusivenessLevel(ctx context.Context
 	return true, "", nil
 }
 
-// getExclusiveCpusOfCpuBinding returns the exclusive CPUs
-// for a given CPU binding based on its exclusiveness level
-func getExclusiveCpusOfCpuBinding(cpuBinding *v1alpha1.PodCpuBinding, topology *v1alpha1.NodeCpuTopology) map[int]struct{} {
-	exclusiveCpus := make(map[int]struct{})
-
-	// println("get exclusive cpus for pcb", cpuBinding.Name)
-
-	for _, cpu := range cpuBinding.Spec.CpuSet {
-		_, coreId, socketId, numaId := nct.GetCpuParentInfo(topology, cpu.CpuId)
-
-		switch cpuBinding.Spec.ExclusivenessLevel {
-		case "Cpu":
-			exclusiveCpus[cpu.CpuId] = struct{}{}
-		case "Core":
-			for _, c := range nct.GetAllCpusInCore(topology, coreId) {
-				exclusiveCpus[c] = struct{}{}
-			}
-		case "Socket":
-			for _, c := range nct.GetAllCpusInSocket(topology, socketId) {
-				exclusiveCpus[c] = struct{}{}
-			}
-		case "Numa":
-			// println("pod", cpuBinding.Name, "is numa")
-			for _, c := range nct.GetAllCpusInNuma(topology, numaId) {
-				exclusiveCpus[c] = struct{}{}
-			}
-		default:
-
-		}
-	}
-
-	// println("end exclusive cpus for pcb", cpuBinding.Name)
-	//for c := range exclusiveCpus {
-	//	log.Printf("%v", c)
-	//}
-	//log.Printf("\n")
-
-	return exclusiveCpus
-}
-
 // hasUnfeasibleCpus checks if there are unfeasible CPUs for a given CPU binding
 func hasUnfeasibleCpus(cpuBinding *v1alpha1.PodCpuBinding, topology *v1alpha1.NodeCpuTopology, unfeasibleCpus map[int]struct{}) bool {
-	exclusiveCpus := getExclusiveCpusOfCpuBinding(cpuBinding, topology)
+	exclusiveCpus := pcbutils.GetExclusiveCpusOfCpuBinding(cpuBinding, topology)
 
 	for cpu := range exclusiveCpus {
 		if _, exists := unfeasibleCpus[cpu]; exists {

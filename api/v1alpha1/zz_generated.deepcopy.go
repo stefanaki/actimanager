@@ -29,8 +29,10 @@ func (in *Core) DeepCopyInto(out *Core) {
 	*out = *in
 	if in.Cpus != nil {
 		in, out := &in.Cpus, &out.Cpus
-		*out = make([]Cpu, len(*in))
-		copy(*out, *in)
+		*out = make(map[string]Cpu, len(*in))
+		for key, val := range *in {
+			(*out)[key] = val
+		}
 	}
 }
 
@@ -64,16 +66,16 @@ func (in *CpuTopology) DeepCopyInto(out *CpuTopology) {
 	*out = *in
 	if in.Sockets != nil {
 		in, out := &in.Sockets, &out.Sockets
-		*out = make([]Socket, len(*in))
-		for i := range *in {
-			(*in)[i].DeepCopyInto(&(*out)[i])
+		*out = make(map[string]Socket, len(*in))
+		for key, val := range *in {
+			(*out)[key] = *val.DeepCopy()
 		}
 	}
 	if in.NumaNodes != nil {
 		in, out := &in.NumaNodes, &out.NumaNodes
-		*out = make([]NumaNode, len(*in))
-		for i := range *in {
-			(*in)[i].DeepCopyInto(&(*out)[i])
+		*out = make(map[string]NumaNode, len(*in))
+		for key, val := range *in {
+			(*out)[key] = *val.DeepCopy()
 		}
 	}
 }
@@ -183,8 +185,10 @@ func (in *NumaNode) DeepCopyInto(out *NumaNode) {
 	*out = *in
 	if in.Cpus != nil {
 		in, out := &in.Cpus, &out.Cpus
-		*out = make([]Cpu, len(*in))
-		copy(*out, *in)
+		*out = make(map[string]Cpu, len(*in))
+		for key, val := range *in {
+			(*out)[key] = val
+		}
 	}
 }
 
@@ -297,9 +301,9 @@ func (in *Socket) DeepCopyInto(out *Socket) {
 	*out = *in
 	if in.Cores != nil {
 		in, out := &in.Cores, &out.Cores
-		*out = make([]Core, len(*in))
-		for i := range *in {
-			(*in)[i].DeepCopyInto(&(*out)[i])
+		*out = make(map[string]Core, len(*in))
+		for key, val := range *in {
+			(*out)[key] = *val.DeepCopy()
 		}
 	}
 }

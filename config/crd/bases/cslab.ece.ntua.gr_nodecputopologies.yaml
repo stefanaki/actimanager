@@ -53,11 +53,11 @@ spec:
                   CPU of a Kubernetes node
                 properties:
                   numaNodes:
-                    items:
+                    additionalProperties:
                       description: NumaNode is a NUMA node of the Kubernetes node
                       properties:
                         cpus:
-                          items:
+                          additionalProperties:
                             description: Cpu is a logical CPU core of the parent core
                             properties:
                               cpuId:
@@ -65,27 +65,22 @@ spec:
                             required:
                             - cpuId
                             type: object
-                          type: array
-                        numaNodeId:
-                          type: integer
+                          type: object
                       required:
                       - cpus
-                      - numaNodeId
                       type: object
-                    type: array
+                    type: object
                   sockets:
-                    items:
+                    additionalProperties:
                       description: Socket is a CPU socket of the Kubernetes node
                       properties:
                         cores:
-                          items:
+                          additionalProperties:
                             description: Core is a physical CPU core of the parent
                               socket
                             properties:
-                              coreId:
-                                type: integer
                               cpus:
-                                items:
+                                additionalProperties:
                                   description: Cpu is a logical CPU core of the parent
                                     core
                                   properties:
@@ -94,19 +89,15 @@ spec:
                                   required:
                                   - cpuId
                                   type: object
-                                type: array
+                                type: object
                             required:
-                            - coreId
                             - cpus
                             type: object
-                          type: array
-                        socketId:
-                          type: integer
+                          type: object
                       required:
                       - cores
-                      - socketId
                       type: object
-                    type: array
+                    type: object
                 type: object
             required:
             - nodeName

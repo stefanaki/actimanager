@@ -2,11 +2,11 @@ package actischeduler
 
 import (
 	"context"
+	pcbutils "cslab.ece.ntua.gr/actimanager/internal/pkg/podcpubinding"
 	"flag"
 	"fmt"
 	"math"
 
-	"golang.org/x/exp/maps"
 	"k8s.io/apimachinery/pkg/util/sets"
 
 	"cslab.ece.ntua.gr/actimanager/api/v1alpha1"
@@ -53,7 +53,7 @@ type ActiSchedulerStateData struct {
 	PodCpuBindings map[string][]v1alpha1.PodCpuBinding
 
 	// FeasibleCpus stores the feasible CPUs for each node in the cluster.
-	FeasibleCpus map[string][]int
+	FeasibleCpus map[string]v1alpha1.CpuTopology
 }
 
 var _ framework.PreFilterPlugin = &ActiScheduler{}
@@ -96,7 +96,7 @@ func (a *ActiScheduler) PreFilter(ctx context.Context, state *framework.CycleSta
 	stateData := &ActiSchedulerStateData{
 		NodeCpuTopologies: make(map[string]v1alpha1.NodeCpuTopology),
 		PodCpuBindings:    make(map[string][]v1alpha1.PodCpuBinding),
-		FeasibleCpus:      make(map[string][]int),
+		FeasibleCpus:      make(map[string]v1alpha1.CpuTopology),
 	}
 
 	// List NodeCpuTopologies and PodCpuBindings
@@ -110,52 +110,33 @@ func (a *ActiScheduler) PreFilter(ctx context.Context, state *framework.CycleSta
 
 	for _, topology := range topologies.Items {
 		// Store topology in state and update NodeNames set for Filter plugin
-		topologyNodeName := topology.Spec.NodeName
-		stateData.NodeCpuTopologies[topologyNodeName] = topology
-		nodes = nodes.Insert(topologyNodeName)
+		nodeName := topology.Spec.NodeName
+		nodes = nodes.Insert(nodeName)
+		stateData.NodeCpuTopologies[nodeName] = topology
 
-		// Initialize nodeFeasibleCpus with all topology CPUs
-		nodeFeasibleCpus := make(map[int]struct{})
-		for _, socket := range topology.Spec.Topology.Sockets {
-			for _, core := range socket.Cores {
-				for _, cpu := range core.Cpus {
-					nodeFeasibleCpus[cpu.CpuId] = struct{}{}
-				}
-			}
-		}
-
+		// nodeFeasibleCpus is initially a copy of the node's topology
+		nodeFeasibleCpus := topology.Spec.Topology
 		for _, binding := range bindings.Items {
 			// For each applied PodCpuBinding on current topology,
 			// get all exclusive CPUs based on the ExclusivenessLevel
 			// and exclude them from nodeFeasibleCpus
-			if binding.Status.ResourceStatus == v1alpha1.StatusApplied && binding.Status.NodeName == topologyNodeName {
-				stateData.PodCpuBindings[topologyNodeName] = append(stateData.PodCpuBindings[topologyNodeName], binding)
+			if binding.Status.ResourceStatus == v1alpha1.StatusApplied && binding.Status.NodeName == nodeName {
+				stateData.PodCpuBindings[nodeName] = append(stateData.PodCpuBindings[nodeName], binding)
 
-				for _, cpu := range binding.Spec.CpuSet {
-					_, coreId, socketId, numaId := nct.GetCpuParentInfo(&topology, cpu.CpuId)
-
-					switch binding.Spec.ExclusivenessLevel {
-					case "Cpu":
-						delete(nodeFeasibleCpus, cpu.CpuId)
-					case "Core":
-						for _, cpu := range nct.GetAllCpusInCore(&topology, coreId) {
-							delete(nodeFeasibleCpus, cpu)
-						}
-					case "Socket":
-						for _, cpu := range nct.GetAllCpusInSocket(&topology, socketId) {
-							delete(nodeFeasibleCpus, cpu)
-						}
-					case "Numa":
-						for _, cpu := range nct.GetAllCpusInNuma(&topology, numaId) {
-							delete(nodeFeasibleCpus, cpu)
-						}
+				// For every CPU binding, get all exclusive CPUs and remove them from the topology
+				for _, binding := range bindings.Items {
+					for exclusiveCpu := range pcbutils.GetExclusiveCpusOfCpuBinding(&binding, &topology) {
+						cpuId, coreId, socketId, numaId := nct.GetCpuParentInfo(&topology, exclusiveCpu)
+						// Delete CPU with key cpuId from nodeFeasibleCpus topology
+						delete(nodeFeasibleCpus.Sockets[socketId].Cores[coreId].Cpus, cpuId)
+						delete(nodeFeasibleCpus.NumaNodes[numaId].Cpus, cpuId)
 					}
 				}
 			}
 		}
 
 		// Store current node's feasible CPUs on cycle state
-		stateData.FeasibleCpus[topologyNodeName] = maps.Keys(nodeFeasibleCpus)
+		stateData.FeasibleCpus[nodeName] = nodeFeasibleCpus
 	}
 
 	state.Write(framework.StateKey(Name), stateData)
@@ -183,23 +164,24 @@ func (a *ActiScheduler) Filter(ctx context.Context, state *framework.CycleState,
 	}
 
 	feasibleCpus := stateData.FeasibleCpus[node.Name]
-	if len(feasibleCpus) == 0 {
+	totalCpus := int64(nct.GetTotalCpusCount(feasibleCpus))
+	if totalCpus == 0 {
 		return framework.NewStatus(framework.Unschedulable, fmt.Sprintf("scheduling pod %s/%s: no feasible CPUs found on node %s", pod.Namespace, pod.Name, node.Name))
 	}
 
 	// Get pod's CPU requests and compare them to the feasible CPUs of current node
-	podCpuRequestsMilli := int64(0)
+	podCpuRequests := int64(0)
 	for _, container := range pod.Spec.Containers {
-		podCpuRequestsMilli += container.Resources.Requests.Cpu().MilliValue()
+		podCpuRequests += container.Resources.Requests.Cpu().Value()
 	}
 
 	// If pod's CPU requests exceed the number of available CPUs
 	// mark pod as Unschedulable on current node
-	if podCpuRequestsMilli > int64(len(feasibleCpus))*1000 {
+	if podCpuRequests > totalCpus {
 		return framework.NewStatus(framework.Unschedulable, fmt.Sprintf("scheduling pod %s/%s: not enough feasible CPUs found on node %s", pod.Namespace, pod.Name, node.Name))
 	}
 
-	logger.Info("schedulable", "pod requests", podCpuRequestsMilli, "feasible cpus", feasibleCpus)
+	logger.Info("Schedulable", "totalCpus", totalCpus, "pod reqs", podCpuRequests)
 
 	return framework.NewStatus(framework.Success)
 }
@@ -218,10 +200,37 @@ func (a *ActiScheduler) Score(ctx context.Context, state *framework.CycleState, 
 		return 0, framework.NewStatus(framework.Error, fmt.Sprintf("scheduling pod %s/%s: could not cast state data while scoring node %s", pod.Namespace, pod.Name, nodeName))
 	}
 
-	score := len(stateData.FeasibleCpus[nodeName])
+	// feasibleCpus is a v1alpha1.CpuTopology that contains `only` the CPUs
+	// that are not exclusive to any pod
+	feasibleCpus := stateData.FeasibleCpus[nodeName]
+	score := int64(0)
+
+	podCpuRequests := int64(0)
+	for _, container := range pod.Spec.Containers {
+		podCpuRequests += container.Resources.Requests.Cpu().Value()
+	}
+
+	for socketId, socket := range feasibleCpus.Sockets {
+		for _, core := range socket.Cores {
+			if int64(len(core.Cpus)) >= podCpuRequests {
+				score += 10000
+			}
+		}
+
+		if int64(len(nct.GetAllCpusInSocket(&feasibleCpus, socketId))) >= podCpuRequests {
+			score += 10
+		}
+	}
+
+	for numaId := range feasibleCpus.NumaNodes {
+		if int64(len(nct.GetAllCpusInNuma(&feasibleCpus, numaId))) >= podCpuRequests {
+			score += 100
+		}
+	}
+
 	logger.Info("score", "score", score)
 
-	return int64(score), framework.NewStatus(framework.Success)
+	return score, framework.NewStatus(framework.Success)
 }
 
 // NormalizeScore normalizes the scores of nodes based on the highest and lowest scores in the given list.
