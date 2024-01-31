@@ -16,3 +16,6 @@ profiles:
       filter:
         enabled:
           - name: ActiScheduler
+      postBind:
+        enabled:
+          - name: ActiScheduler

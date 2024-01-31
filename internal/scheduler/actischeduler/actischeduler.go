@@ -2,11 +2,13 @@ package actischeduler
 
 import (
 	"context"
-	pcbutils "cslab.ece.ntua.gr/actimanager/internal/pkg/podcpubinding"
 	"flag"
 	"fmt"
 	"math"
 
+	pcbutils "cslab.ece.ntua.gr/actimanager/internal/pkg/podcpubinding"
+
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/sets"
 
 	"cslab.ece.ntua.gr/actimanager/api/v1alpha1"
@@ -71,6 +73,9 @@ func (a *ActiScheduler) Name() string {
 // It initializes the ActiScheduler with the provided context, runtime object, and framework handle.
 // It returns the ActiScheduler plugin and an error if any.
 func New(ctx context.Context, obj runtime.Object, h framework.Handle) (framework.Plugin, error) {
+	kubeconfig := h.KubeConfig()
+	kubeconfig.ContentType = "application/json"
+
 	c, err := client.New(h.KubeConfig(), client.Options{Scheme: scheme})
 
 	if err != nil {
@@ -237,7 +242,9 @@ func (a *ActiScheduler) Score(ctx context.Context, state *framework.CycleState, 
 // It transforms the highest to lowest score range to fit the framework's minimum to maximum node score range.
 // The normalized scores are updated in the provided scores list.
 // The function returns a framework.Status indicating the success of the normalization process.
-func (a *ActiScheduler) NormalizeScore(ctx context.Context, state *framework.CycleState, p *corev1.Pod, scores framework.NodeScoreList) *framework.Status {
+func (a *ActiScheduler) NormalizeScore(ctx context.Context, state *framework.CycleState, pod *corev1.Pod, scores framework.NodeScoreList) *framework.Status {
+	logger := a.logger.WithName("normalize").WithValues("pod", fmt.Sprintf("%s/%s", pod.Namespace, pod.Name))
+
 	// Find highest and lowest scores.
 	var highest int64 = -math.MaxInt64
 	var lowest int64 = math.MaxInt64
@@ -261,11 +268,92 @@ func (a *ActiScheduler) NormalizeScore(ctx context.Context, state *framework.Cyc
 		}
 	}
 
+	for _, score := range scores {
+		logger.Info("normalized", "node", score.Name, "score", score.Score)
+	}
+
 	return framework.NewStatus(framework.Success)
 }
 
-func (a *ActiScheduler) PostBind(ctx context.Context, state *framework.CycleState, p *corev1.Pod, nodeName string) {
+func (a *ActiScheduler) PostBind(ctx context.Context, state *framework.CycleState, pod *corev1.Pod, nodeName string) {
+	logger := a.logger.WithName("post-bind").WithValues("pod", fmt.Sprintf("%s/%s", pod.Namespace, pod.Name), "node", nodeName)
 
+	data, err := state.Read(framework.StateKey(Name))
+	if err != nil {
+		logger.Error(err, "could not read state data while post-binding node")
+		return
+	}
+
+	stateData, ok := data.(*ActiSchedulerStateData)
+	if !ok {
+		logger.Error(err, "could not cast state data while post-binding node")
+		return
+	}
+
+	feasibleCpus := stateData.FeasibleCpus[nodeName]
+	podCpuRequests := int64(0)
+	for _, container := range pod.Spec.Containers {
+		podCpuRequests += container.Resources.Requests.Cpu().Value()
+	}
+
+	cpuSet := make([]v1alpha1.Cpu, 0)
+	for _, socket := range feasibleCpus.Sockets {
+		for _, core := range socket.Cores {
+			for cpu := range core.Cpus {
+				cpuSet = append(cpuSet, core.Cpus[cpu])
+				break
+			}
+		}
+	}
+
+	// if you dont find a core with the needed cpu reqeuests
+	// then you need to find a socket with the needed cpu requests
+	// and then a numa node with the needed cpu requests
+
+	if len(cpuSet) == 0 {
+		for socketId, socket := range feasibleCpus.Sockets {
+			if int64(len(nct.GetAllCpusInSocket(&feasibleCpus, socketId))) >= podCpuRequests {
+				for _, core := range socket.Cores { // Fix: Iterate over the cores of the socket
+					for cpu := range core.Cpus { // Fix: Iterate over the CPUs of the core
+						cpuSet = append(cpuSet, core.Cpus[cpu])
+						break
+					}
+				}
+			}
+		}
+	}
+
+	if len(cpuSet) == 0 {
+		for numaId := range feasibleCpus.NumaNodes {
+			if int64(len(nct.GetAllCpusInNuma(&feasibleCpus, numaId))) >= podCpuRequests {
+				for cpu := range feasibleCpus.NumaNodes[numaId].Cpus {
+					cpuSet = append(cpuSet, feasibleCpus.NumaNodes[numaId].Cpus[cpu])
+					break
+				}
+			}
+		}
+	}
+
+	// create the podcpubinding object
+	cpuBinding := &v1alpha1.PodCpuBinding{
+		ObjectMeta: v1.ObjectMeta{
+			Name:      fmt.Sprintf("%s-binding", pod.Name),
+			Namespace: pod.Namespace,
+		},
+		Spec: v1alpha1.PodCpuBindingSpec{
+			PodName:            pod.Name,
+			CpuSet:             []v1alpha1.Cpu{{CpuId: 15}},
+			ExclusivenessLevel: "Cpu",
+		},
+	}
+
+	//logger.Info("cpuset for new pod", "cpus", cpuSet)
+
+	// save the podcpubinding object to the api server
+	if err := a.Create(ctx, cpuBinding); err != nil {
+		logger.Error(err, "could not create podcpubinding object")
+		return
+	}
 }
 
 func (a *ActiScheduler) ScoreExtensions() framework.ScoreExtensions {
