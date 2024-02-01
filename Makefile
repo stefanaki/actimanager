@@ -109,7 +109,7 @@ run-daemon: manifests generate fmt vet ## Run the daemon from your host.
 run-scheduler: manifests generate fmt vet ## Run the scheduler from your host.
 	go run cmd/scheduler/main.go \
 		--kubeconfig=/home/georgios/.kube/config \
-        --config=/home/georgios/source/actimanager/kube-scheduler-config.yaml \
+        --config=/home/georgios/source/actimanager/config/scheduler/kube-scheduler-config.yaml \
         --authentication-kubeconfig=/home/georgios/source/actimanager/scheduler.conf
         --authorization-kubeconfig=/home/georgios/source/actimanager/scheduler.conf
 
@@ -204,6 +204,6 @@ $(ENVTEST): $(LOCALBIN)
 .PHONY: cpupinning-codegen
 proto:
 	protoc \
-	internal/daemon/cpupinning/cpupinning.proto \
+	internal/pkg/cpupinning/cpupinning.proto \
 	--go_out=paths=source_relative:. \
 	--go-grpc_out=paths=source_relative:.

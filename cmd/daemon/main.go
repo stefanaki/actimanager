@@ -1,6 +1,7 @@
 package main
 
 import (
+	cpupinningserver "cslab.ece.ntua.gr/actimanager/internal/pkg/cpupinning"
 	"flag"
 	"net"
 
@@ -30,7 +31,7 @@ func main() {
 		"docker",
 		"Container Runtime (Default: containerd, Possible values: containerd, docker, kind)",
 	)
-	flag.StringVar(&cgroupPath, "cpath", "/sys/fs/cgroup/", "Specify Path to cgroups1")
+	flag.StringVar(&cgroupPath, "cpath", "/sys/fs/cgroup/", "Specify Path to cgroups")
 	flag.StringVar(&nodeName, "node-name", "", "Node name")
 	flag.StringVar(&cgroupDriver, "cgroup-driver", "systemd", "Set cgroup driver used by kubelet. Values: systemd, cgroupfs")
 	flag.Parse()
@@ -55,7 +56,7 @@ func main() {
 	healthServer := health.NewServer()
 	srv := grpc.NewServer()
 
-	cpupinning.RegisterCpuPinningServer(srv, cpuPinningServer)
+	cpupinningserver.RegisterCpuPinningServer(srv, cpuPinningServer)
 	healthv1.RegisterHealthServer(srv, healthServer)
 
 	lis, err := net.Listen("tcp", ":8089")

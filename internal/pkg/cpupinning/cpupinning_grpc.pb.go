@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.3.0
 // - protoc             v4.25.1
-// source: internal/daemon/cpupinning/cpupinning.proto
+// source: internal/pkg/cpupinning/cpupinning.proto
 
 package cpupinning
 
@@ -142,5 +142,5 @@ var CpuPinning_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "internal/daemon/cpupinning/cpupinning.proto",
+	Metadata: "internal/pkg/cpupinning/cpupinning.proto",
 }
