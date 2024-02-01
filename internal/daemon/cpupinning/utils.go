@@ -35,7 +35,7 @@ func ParseCgroupsDriver(driver string) cgroupsctrl.CgroupsDriver {
 		"cgroupfs": cgroupsctrl.DriverCgroupfs,
 	}[driver]
 	if !ok {
-		klog.Fatalf("unknown cgroups1 driver %s", driver)
+		klog.Fatalf("unknown cgroups driver %s", driver)
 	}
 	return val
 }

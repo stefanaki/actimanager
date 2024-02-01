@@ -76,7 +76,7 @@ func New(ctx context.Context, obj runtime.Object, h framework.Handle) (framework
 	kubeconfig := h.KubeConfig()
 	kubeconfig.ContentType = "application/json"
 
-	c, err := client.New(h.KubeConfig(), client.Options{Scheme: scheme})
+	c, err := client.New(kubeconfig, client.Options{Scheme: scheme})
 
 	if err != nil {
 		return nil, err
