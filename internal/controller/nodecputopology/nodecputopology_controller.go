@@ -2,7 +2,7 @@ package nodecputopology
 
 import (
 	"context"
-	"cslab.ece.ntua.gr/actimanager/api/v1alpha1"
+	"cslab.ece.ntua.gr/actimanager/api/cslab.ece.ntua.gr/v1alpha1"
 	"fmt"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"

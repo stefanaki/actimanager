@@ -1,8 +1,39 @@
 # actimanager
-// TODO(user): Add simple overview of use/purpose
+
+Fine-grained resource management for Kubernetes Pods.
 
 ## Description
-// TODO(user): An in-depth paragraph about your project and overview of use
+
+This repository is a framework for fine-grained orchestration of Kubernetes Pods. It utilizes the Operator Pattern, CRD's, Scheduling Framework plugins and other extension points of Kubernetes to provide a solution for fine-grained resource allocation. It consists of the following components:
+
+- **Custom Resource Definitions (CRD's)**
+    - `NodeCpuTopology`: The CPU and NUMA topology of a node.
+    - `PodCpuBinding`: The allocated CPU resources of a Pod.
+      ```yaml
+      apiVersion: cslab.ece.ntua.gr/v1alpha1
+      kind: PodCpuBinding
+      metadata:
+        name: benchpod-1-binding
+        namespace: benchmarks
+      spec:
+        exclusivenessLevel: Core
+        podName: benchpod-3
+        cpuSet:
+          - cpuId: 10
+          - cpuId: 12
+      ```
+- **Controller - Manager**
+    - Watches for changes in the CRD's and takes action accordingly.
+- **Custom Scheduler**
+  - A custom scheduler that schedules Pods based on the CRD's.
+  - Implements multiple scheduling policies for different use cases.
+- **Daemon**
+    - A gRPC server that runs on each node and tries to bind the Pods to the CPU's according to the CRD's.
+- **Utility Libraries**:
+    - Code-generated clientset, informers, listers for CRD's
+    - Utility functions for interacting with the Kubernetes API.
+    - Linux `cgroup` utilities for interacting with the host.
+
 
 ## Getting Started
 
@@ -13,65 +44,24 @@
 - Access to a Kubernetes v1.11.3+ cluster.
 
 ### To Deploy on the cluster
-**Build and push your image to the location specified by `IMG`:**
 
-```sh
-make docker-build docker-push IMG=<some-registry>/actimanager:tag
-```
+1. Clone the repository and navigate to the root directory.
 
-**NOTE:** This image ought to be published in the personal registry you specified. 
-And it is required to have access to pull the image from the working environment. 
-Make sure you have the proper permission to the registry if the above commands don’t work.
+    ```sh
+    git clone
+    cd actimanager
+    ```
+2. Install the components on the cluster.
 
-**Install the CRDs into the cluster:**
-
-```sh
-make install
-```
-
-**Deploy the Manager to the cluster with the image specified by `IMG`:**
-
-```sh
-make deploy IMG=<some-registry>/actimanager:tag
-```
-
-> **NOTE**: If you encounter RBAC errors, you may need to grant yourself cluster-admin 
-privileges or be logged in as admin.
-
-**Create instances of your solution**
-You can apply the samples (examples) from the config/sample:
-
-```sh
-kubectl apply -k config/samples/
-```
-
->**NOTE**: Ensure that the samples has default values to test it out.
+    ```sh
+    kubectl apply -k config/default
+    ```
 
 ### To Uninstall
-**Delete the instances (CRs) from the cluster:**
 
 ```sh
-kubectl delete -k config/samples/
+kubectl delete -k config/default
 ```
-
-**Delete the APIs(CRDs) from the cluster:**
-
-```sh
-make uninstall
-```
-
-**UnDeploy the controller from the cluster:**
-
-```sh
-make undeploy
-```
-
-## Contributing
-// TODO(user): Add detailed information on how you would like others to contribute to this project
-
-**NOTE:** Run `make --help` for more information on all potential `make` targets
-
-More information can be found via the [Kubebuilder Documentation](https://book.kubebuilder.io/introduction.html)
 
 ## License
 

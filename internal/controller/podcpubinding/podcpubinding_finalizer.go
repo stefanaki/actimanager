@@ -2,7 +2,7 @@ package podcpubinding
 
 import (
 	"context"
-	"cslab.ece.ntua.gr/actimanager/api/v1alpha1"
+	"cslab.ece.ntua.gr/actimanager/api/cslab.ece.ntua.gr/v1alpha1"
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/types"
 )

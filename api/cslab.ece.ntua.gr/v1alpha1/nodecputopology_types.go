@@ -34,6 +34,9 @@ type NodeCpuTopologyStatus struct {
 	ResourceStatus NodeCpuTopologyResourceStatus `json:"resourceStatus"`
 }
 
+// +genclient
+// +genclient:nonNamespaced
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
 // +kubebuilder:resource:scope=Cluster,shortName=nct
@@ -51,6 +54,8 @@ type NodeCpuTopology struct {
 }
 
 //+kubebuilder:object:root=true
+
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // NodeCpuTopologyList contains a list of NodeCpuTopology
 type NodeCpuTopologyList struct {

@@ -19,6 +19,8 @@ const (
 var FinalizerPodCpuBinding = GroupVersion.Group + "/pod-cpu-binding-finalizer"
 var FinalizerCpuBoundPod = GroupVersion.Group + "/cpu-bound-pod"
 
+var AnnotationExclusivenessLevel = GroupVersion.Group + "/exclusiveness-level"
+
 // PodCpuBindingSpec defines the CPU set on which a pod is bound,
 // as well as the level of exclusiveness of the resources it needs
 type PodCpuBindingSpec struct {
@@ -40,6 +42,8 @@ type PodCpuBindingStatus struct {
 	NodeName       string                      `json:"nodeName"`
 }
 
+// +genclient
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
 // +kubebuilder:resource:shortName=pcb
@@ -57,6 +61,8 @@ type PodCpuBinding struct {
 }
 
 //+kubebuilder:object:root=true
+
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // PodCpuBindingList contains a list of PodCpuBinding
 type PodCpuBindingList struct {

@@ -17,6 +17,7 @@ limitations under the License.
 package main
 
 import (
+	"cslab.ece.ntua.gr/actimanager/api/cslab.ece.ntua.gr/v1alpha1"
 	"cslab.ece.ntua.gr/actimanager/internal/controller/pod"
 	"cslab.ece.ntua.gr/actimanager/internal/controller/podcpubinding"
 	"flag"
@@ -38,8 +39,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
-
-	apiv1alpha1 "cslab.ece.ntua.gr/actimanager/api/v1alpha1"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -51,7 +50,7 @@ var (
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 	utilruntime.Must(batchv1.AddToScheme(scheme))
-	utilruntime.Must(apiv1alpha1.AddToScheme(scheme))
+	utilruntime.Must(v1alpha1.AddToScheme(scheme))
 
 	//+kubebuilder:scaffold:scheme
 }

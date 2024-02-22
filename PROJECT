@@ -5,6 +5,7 @@
 domain: cslab.ece.ntua.gr
 layout:
 - go.kubebuilder.io/v4
+multigroup: true
 projectName: actimanager
 repo: cslab.ece.ntua.gr/actimanager
 resources:

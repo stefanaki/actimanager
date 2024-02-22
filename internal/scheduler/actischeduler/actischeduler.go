@@ -2,6 +2,7 @@ package actischeduler
 
 import (
 	"context"
+	"cslab.ece.ntua.gr/actimanager/api/cslab.ece.ntua.gr/v1alpha1"
 	"flag"
 	"fmt"
 	"math"
@@ -11,7 +12,6 @@ import (
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/sets"
 
-	"cslab.ece.ntua.gr/actimanager/api/v1alpha1"
 	nct "cslab.ece.ntua.gr/actimanager/internal/pkg/nodecputopology"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -48,6 +48,9 @@ type ActiScheduler struct {
 
 // ActiSchedulerStateData represents the state data for the ActiScheduler.
 type ActiSchedulerStateData struct {
+	// ExclusivenessLevel is the level of exclusiveness of the resources needed by the pod.
+	ExclusivenessLevel string
+
 	// NodeCpuTopologies stores the CPU topology of each node in the cluster.
 	NodeCpuTopologies map[string]v1alpha1.NodeCpuTopology
 
@@ -98,10 +101,16 @@ func (a *ActiScheduler) PreFilter(ctx context.Context, state *framework.CycleSta
 	bindings := &v1alpha1.PodCpuBindingList{}
 	nodes := sets.Set[string]{}
 
+	exclusivenessLevel, ok := pod.Annotations[v1alpha1.AnnotationExclusivenessLevel]
+	if !ok {
+		exclusivenessLevel = "Cpu"
+	}
+
 	stateData := &ActiSchedulerStateData{
-		NodeCpuTopologies: make(map[string]v1alpha1.NodeCpuTopology),
-		PodCpuBindings:    make(map[string][]v1alpha1.PodCpuBinding),
-		FeasibleCpus:      make(map[string]v1alpha1.CpuTopology),
+		ExclusivenessLevel: exclusivenessLevel,
+		NodeCpuTopologies:  make(map[string]v1alpha1.NodeCpuTopology),
+		PodCpuBindings:     make(map[string][]v1alpha1.PodCpuBinding),
+		FeasibleCpus:       make(map[string]v1alpha1.CpuTopology),
 	}
 
 	// List NodeCpuTopologies and PodCpuBindings

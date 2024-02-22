@@ -2,10 +2,10 @@ package podcpubinding
 
 import (
 	"context"
+	"cslab.ece.ntua.gr/actimanager/api/cslab.ece.ntua.gr/v1alpha1"
 	pcbutils "cslab.ece.ntua.gr/actimanager/internal/pkg/podcpubinding"
 	"fmt"
 
-	"cslab.ece.ntua.gr/actimanager/api/v1alpha1"
 	nct "cslab.ece.ntua.gr/actimanager/internal/pkg/nodecputopology"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
