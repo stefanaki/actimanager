@@ -5,8 +5,6 @@ import (
 	"cslab.ece.ntua.gr/actimanager/api/cslab.ece.ntua.gr/v1alpha1"
 	"cslab.ece.ntua.gr/actimanager/internal/pkg/cpupinning"
 	"fmt"
-	"strconv"
-
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	corev1 "k8s.io/api/core/v1"
@@ -17,7 +15,7 @@ import (
 func (r *PodCpuBindingReconciler) applyCpuPinning(
 	ctx context.Context,
 	cpuSet []v1alpha1.Cpu,
-	memSet map[string]v1alpha1.NumaNode,
+	memSet []int,
 	pod *corev1.Pod) error {
 	logger := log.FromContext(ctx).WithName("apply-pinning")
 
@@ -38,7 +36,7 @@ func (r *PodCpuBindingReconciler) applyCpuPinning(
 	applyCpuPinningRequest := &cpupinning.ApplyPinningRequest{
 		Pod:    parsePodInfo(pod),
 		CpuSet: convertCpuListToInt32(cpuSet),
-		MemSet: convertNumaNodeListToInt32(memSet),
+		MemSet: convertIntSliceToInt32(memSet),
 	}
 	logger.Info("Requesting CPU pinning", "request", applyCpuPinningRequest)
 
@@ -141,12 +139,11 @@ func convertCpuListToInt32(cpuSet []v1alpha1.Cpu) []int32 {
 	return cpuList
 }
 
-// convertNumaNodeListToInt32 maps a NumaNode list to an int32 slice
-func convertNumaNodeListToInt32(memSet map[string]v1alpha1.NumaNode) []int32 {
-	var nodeList []int32
-	for nodeId := range memSet {
-		nodeId, _ := strconv.Atoi(nodeId)
-		nodeList = append(nodeList, int32(nodeId))
+// convertIntSliceToInt32 maps an int slice to an int32 slice
+func convertIntSliceToInt32(intSlice []int) []int32 {
+	var int32Slice []int32
+	for _, i := range intSlice {
+		int32Slice = append(int32Slice, int32(i))
 	}
-	return nodeList
+	return int32Slice
 }

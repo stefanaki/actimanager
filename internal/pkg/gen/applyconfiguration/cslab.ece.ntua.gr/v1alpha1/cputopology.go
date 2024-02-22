@@ -22,6 +22,7 @@ package v1alpha1
 type CpuTopologyApplyConfiguration struct {
 	Sockets   map[string]SocketApplyConfiguration   `json:"sockets,omitempty"`
 	NumaNodes map[string]NumaNodeApplyConfiguration `json:"numaNodes,omitempty"`
+	ListCpus  []int                                 `json:"listCpus,omitempty"`
 }
 
 // CpuTopologyApplyConfiguration constructs an declarative configuration of the CpuTopology type for use with
@@ -54,6 +55,16 @@ func (b *CpuTopologyApplyConfiguration) WithNumaNodes(entries map[string]NumaNod
 	}
 	for k, v := range entries {
 		b.NumaNodes[k] = v
+	}
+	return b
+}
+
+// WithListCpus adds the given value to the ListCpus field in the declarative configuration
+// and returns the receiver, so that objects can be build by chaining "With" function invocations.
+// If called multiple times, values provided by each call will be appended to the ListCpus field.
+func (b *CpuTopologyApplyConfiguration) WithListCpus(values ...int) *CpuTopologyApplyConfiguration {
+	for i := range values {
+		b.ListCpus = append(b.ListCpus, values[i])
 	}
 	return b
 }

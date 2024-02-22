@@ -52,6 +52,10 @@ spec:
                 description: CpuTopology represents the hierarchical topology of the
                   CPU of a Kubernetes node
                 properties:
+                  listCpus:
+                    items:
+                      type: integer
+                    type: array
                   numaNodes:
                     additionalProperties:
                       description: NumaNode is a NUMA node of the Kubernetes node
@@ -66,8 +70,13 @@ spec:
                             - cpuId
                             type: object
                           type: object
+                        listCpus:
+                          items:
+                            type: integer
+                          type: array
                       required:
                       - cpus
+                      - listCpus
                       type: object
                     type: object
                   sockets:
@@ -90,12 +99,22 @@ spec:
                                   - cpuId
                                   type: object
                                 type: object
+                              listCpus:
+                                items:
+                                  type: integer
+                                type: array
                             required:
                             - cpus
+                            - listCpus
                             type: object
                           type: object
+                        listCpus:
+                          items:
+                            type: integer
+                          type: array
                       required:
                       - cores
+                      - listCpus
                       type: object
                     type: object
                 type: object

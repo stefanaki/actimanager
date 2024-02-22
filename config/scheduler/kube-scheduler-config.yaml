@@ -5,17 +5,17 @@ leaderElection:
 clientConnection:
   kubeconfig: /home/georgios/.kube/config
 profiles:
-  - schedulerName: actischeduler
+  - schedulerName: maestro
     plugins:
       preFilter:
         enabled:
-          - name: ActiScheduler
+          - name: PodIsolation
       score:
         enabled:
-          - name: ActiScheduler
+          - name: PodIsolation
       filter:
         enabled:
-          - name: ActiScheduler
+          - name: PodIsolation
       postBind:
         enabled:
-          - name: ActiScheduler
+          - name: PodIsolation
