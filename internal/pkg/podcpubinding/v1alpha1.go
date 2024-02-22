@@ -1,13 +1,13 @@
 package podcpubinding
 
 import (
-	"cslab.ece.ntua.gr/actimanager/api/v1alpha1"
+	v1alpha12 "cslab.ece.ntua.gr/actimanager/api/cslab.ece.ntua.gr/v1alpha1"
 	nct "cslab.ece.ntua.gr/actimanager/internal/pkg/nodecputopology"
 )
 
 // GetExclusiveCpusOfCpuBinding returns the exclusive CPUs
 // for a given CPU binding based on its exclusiveness level
-func GetExclusiveCpusOfCpuBinding(cpuBinding *v1alpha1.PodCpuBinding, topology *v1alpha1.NodeCpuTopology) map[int]struct{} {
+func GetExclusiveCpusOfCpuBinding(cpuBinding *v1alpha12.PodCpuBinding, topology *v1alpha12.NodeCpuTopology) map[int]struct{} {
 	exclusiveCpus := make(map[int]struct{})
 
 	for _, cpu := range cpuBinding.Spec.CpuSet {

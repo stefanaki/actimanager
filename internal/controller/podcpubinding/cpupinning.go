@@ -2,11 +2,11 @@ package podcpubinding
 
 import (
 	"context"
+	"cslab.ece.ntua.gr/actimanager/api/cslab.ece.ntua.gr/v1alpha1"
 	"cslab.ece.ntua.gr/actimanager/internal/pkg/cpupinning"
 	"fmt"
 	"strconv"
 
-	"cslab.ece.ntua.gr/actimanager/api/v1alpha1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	corev1 "k8s.io/api/core/v1"

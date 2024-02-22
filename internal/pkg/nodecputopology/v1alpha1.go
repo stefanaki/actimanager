@@ -1,9 +1,8 @@
 package nodecputopology
 
 import (
+	"cslab.ece.ntua.gr/actimanager/api/cslab.ece.ntua.gr/v1alpha1"
 	"strconv"
-
-	"cslab.ece.ntua.gr/actimanager/api/v1alpha1"
 )
 
 // V1Alpha1 returns the v1alpha1 representation of the NodeCpuTopology.
