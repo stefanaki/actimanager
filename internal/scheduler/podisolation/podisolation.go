@@ -1,4 +1,4 @@
-package actischeduler
+package podisolation
 
 import (
 	"context"
@@ -22,12 +22,12 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-// ActiScheduler is responsible for filtering and scoring nodes based on CPU topology and CPU bindings.
+// PodIsolation is responsible for filtering and scoring nodes based on CPU topology and CPU bindings.
 // It ensures that pods are scheduled on nodes with feasible CPUs and calculates the score based on the locality of the feasible CPUs.
 // This plugin is used to optimize CPU resource allocation in a Kubernetes cluster.
 
-// Name is the name of the ActiScheduler plugin.
-const Name string = "ActiScheduler"
+// Name is the name of the PodIsolation plugin.
+const Name string = "PodIsolation"
 
 var (
 	scheme = runtime.NewScheme()
@@ -38,16 +38,16 @@ func init() {
 	utilruntime.Must(v1alpha1.AddToScheme(scheme))
 }
 
-// ActiScheduler is the implementation of the ActiScheduler plugin.
+// PodIsolation is the implementation of the PodIsolation plugin.
 // It embeds the Kubernetes client, framework handle, and logger.
-type ActiScheduler struct {
+type PodIsolation struct {
 	client.Client
 	handle framework.Handle
 	logger klog.Logger
 }
 
-// ActiSchedulerStateData represents the state data for the ActiScheduler.
-type ActiSchedulerStateData struct {
+// PodIsolationStateData represents the state data for the PodIsolation.
+type PodIsolationStateData struct {
 	// ExclusivenessLevel is the level of exclusiveness of the resources needed by the pod.
 	ExclusivenessLevel string
 
@@ -61,20 +61,20 @@ type ActiSchedulerStateData struct {
 	FeasibleCpus map[string]v1alpha1.CpuTopology
 }
 
-var _ framework.PreFilterPlugin = &ActiScheduler{}
-var _ framework.FilterPlugin = &ActiScheduler{}
-var _ framework.ScorePlugin = &ActiScheduler{}
-var _ framework.ScoreExtensions = &ActiScheduler{}
-var _ framework.PostBindPlugin = &ActiScheduler{}
+var _ framework.PreFilterPlugin = &PodIsolation{}
+var _ framework.FilterPlugin = &PodIsolation{}
+var _ framework.ScorePlugin = &PodIsolation{}
+var _ framework.ScoreExtensions = &PodIsolation{}
+var _ framework.PostBindPlugin = &PodIsolation{}
 
-// Name returns the name of the ActiScheduler plugin.
-func (a *ActiScheduler) Name() string {
+// Name returns the name of the PodIsolation plugin.
+func (p *PodIsolation) Name() string {
 	return Name
 }
 
-// New creates a new instance of ActiScheduler plugin.
-// It initializes the ActiScheduler with the provided context, runtime object, and framework handle.
-// It returns the ActiScheduler plugin and an error if any.
+// New creates a new instance of PodIsolation plugin.
+// It initializes the PodIsolation with the provided context, runtime object, and framework handle.
+// It returns the PodIsolation plugin and an error if any.
 func New(ctx context.Context, obj runtime.Object, h framework.Handle) (framework.Plugin, error) {
 	kubeconfig := h.KubeConfig()
 	kubeconfig.ContentType = "application/json"
@@ -87,26 +87,26 @@ func New(ctx context.Context, obj runtime.Object, h framework.Handle) (framework
 
 	klogFlags := flag.NewFlagSet("klog", flag.ContinueOnError)
 	klog.InitFlags(klogFlags)
-	l := klog.NewKlogr().WithName("actischeduler")
+	l := klog.NewKlogr().WithName("podisolation")
 
-	return &ActiScheduler{Client: c, handle: h, logger: l}, nil
+	return &PodIsolation{Client: c, handle: h, logger: l}, nil
 }
 
 // PreFilter is responsible for performing pre-filtering operations on a pod before filtering the nodes.
 // It lists the NodeCpuTopologies and PodCpuBindings, and populates the state data with the feasible CPUs for each node.
 // It returns the pre-filter result with the set of node names.
-func (a *ActiScheduler) PreFilter(ctx context.Context, state *framework.CycleState, pod *corev1.Pod) (*framework.PreFilterResult, *framework.Status) {
-	// logger := a.logger.WithName("pre-filter").WithValues("pod", fmt.Sprintf("%s/%s", pod.Namespace, pod.Name))
+func (p *PodIsolation) PreFilter(ctx context.Context, state *framework.CycleState, pod *corev1.Pod) (*framework.PreFilterResult, *framework.Status) {
+	// logger := p.logger.WithName("pre-filter").WithValues("pod", fmt.Sprintf("%s/%s", pod.Namespace, pod.Name))
 	topologies := &v1alpha1.NodeCpuTopologyList{}
 	bindings := &v1alpha1.PodCpuBindingList{}
 	nodes := sets.Set[string]{}
 
 	exclusivenessLevel, ok := pod.Annotations[v1alpha1.AnnotationExclusivenessLevel]
 	if !ok {
-		exclusivenessLevel = "Cpu"
+		exclusivenessLevel = "None"
 	}
 
-	stateData := &ActiSchedulerStateData{
+	stateData := &PodIsolationStateData{
 		ExclusivenessLevel: exclusivenessLevel,
 		NodeCpuTopologies:  make(map[string]v1alpha1.NodeCpuTopology),
 		PodCpuBindings:     make(map[string][]v1alpha1.PodCpuBinding),
@@ -114,11 +114,11 @@ func (a *ActiScheduler) PreFilter(ctx context.Context, state *framework.CycleSta
 	}
 
 	// List NodeCpuTopologies and PodCpuBindings
-	if err := a.List(ctx, topologies); err != nil {
+	if err := p.List(ctx, topologies); err != nil {
 		return nil, framework.NewStatus(framework.Error, fmt.Sprintf("scheduling pod %s/%s: could not list CPU topologies: %v", pod.Namespace, pod.Name, err))
 	}
 
-	if err := a.List(ctx, bindings); err != nil {
+	if err := p.List(ctx, bindings); err != nil {
 		return nil, framework.NewStatus(framework.Error, fmt.Sprintf("scheduling pod %s/%s: could not list CPU bindings: %v", pod.Namespace, pod.Name, err))
 	}
 
@@ -128,7 +128,7 @@ func (a *ActiScheduler) PreFilter(ctx context.Context, state *framework.CycleSta
 		nodes = nodes.Insert(nodeName)
 		stateData.NodeCpuTopologies[nodeName] = topology
 
-		// nodeFeasibleCpus is initially a copy of the node's topology
+		// nodeFeasibleCpus is initially p copy of the node's topology
 		nodeFeasibleCpus := topology.Spec.Topology
 		for _, binding := range bindings.Items {
 			// For each applied PodCpuBinding on current topology,
@@ -162,8 +162,8 @@ func (a *ActiScheduler) PreFilter(ctx context.Context, state *framework.CycleSta
 // If there are no feasible CPUs or if the requested CPU resources exceed the available feasible CPUs,
 // it returns an error status indicating that the pod is unschedulable.
 // Otherwise, it returns a Success status.
-func (a *ActiScheduler) Filter(ctx context.Context, state *framework.CycleState, pod *corev1.Pod, nodeInfo *framework.NodeInfo) *framework.Status {
-	logger := a.logger.WithName("filter").WithValues(fmt.Sprintf("%s/%s", pod.Namespace, pod.Name), nodeInfo.Node().Name)
+func (p *PodIsolation) Filter(ctx context.Context, state *framework.CycleState, pod *corev1.Pod, nodeInfo *framework.NodeInfo) *framework.Status {
+	logger := p.logger.WithName("filter").WithValues(fmt.Sprintf("%s/%s", pod.Namespace, pod.Name), nodeInfo.Node().Name)
 	node := nodeInfo.Node()
 
 	// Read cycle state
@@ -172,7 +172,7 @@ func (a *ActiScheduler) Filter(ctx context.Context, state *framework.CycleState,
 		return framework.NewStatus(framework.Error, fmt.Sprintf("scheduling pod %s/%s: could not read state data while filtering node %s: %v", pod.Namespace, pod.Name, node.Name, err))
 	}
 
-	stateData, ok := data.(*ActiSchedulerStateData)
+	stateData, ok := data.(*PodIsolationStateData)
 	if !ok {
 		return framework.NewStatus(framework.Error, fmt.Sprintf("scheduling pod %s/%s: could not cast state data while filtering node %s", pod.Namespace, pod.Name, node.Name))
 	}
@@ -201,20 +201,20 @@ func (a *ActiScheduler) Filter(ctx context.Context, state *framework.CycleState,
 }
 
 // Score calculates the score for a pod on a specific node based on the locality of the feasible CPUs.
-func (a *ActiScheduler) Score(ctx context.Context, state *framework.CycleState, pod *corev1.Pod, nodeName string) (int64, *framework.Status) {
-	logger := a.logger.WithName("score").WithValues(fmt.Sprintf("%s/%s", pod.Namespace, pod.Name), nodeName)
+func (p *PodIsolation) Score(ctx context.Context, state *framework.CycleState, pod *corev1.Pod, nodeName string) (int64, *framework.Status) {
+	logger := p.logger.WithName("score").WithValues(fmt.Sprintf("%s/%s", pod.Namespace, pod.Name), nodeName)
 
 	data, err := state.Read(framework.StateKey(Name))
 	if err != nil {
 		return 0, framework.NewStatus(framework.Error, fmt.Sprintf("scheduling pod %s/%s: could not read state data while scoring node %s: %v", pod.Namespace, pod.Name, nodeName, err))
 	}
 
-	stateData, ok := data.(*ActiSchedulerStateData)
+	stateData, ok := data.(*PodIsolationStateData)
 	if !ok {
 		return 0, framework.NewStatus(framework.Error, fmt.Sprintf("scheduling pod %s/%s: could not cast state data while scoring node %s", pod.Namespace, pod.Name, nodeName))
 	}
 
-	// feasibleCpus is a v1alpha1.CpuTopology that contains `only` the CPUs
+	// feasibleCpus is p v1alpha1.CpuTopology that contains `only` the CPUs
 	// that are not exclusive to any pod
 	feasibleCpus := stateData.FeasibleCpus[nodeName]
 	score := int64(0)
@@ -251,8 +251,8 @@ func (a *ActiScheduler) Score(ctx context.Context, state *framework.CycleState, 
 // It transforms the highest to lowest score range to fit the framework's minimum to maximum node score range.
 // The normalized scores are updated in the provided scores list.
 // The function returns a framework.Status indicating the success of the normalization process.
-func (a *ActiScheduler) NormalizeScore(ctx context.Context, state *framework.CycleState, pod *corev1.Pod, scores framework.NodeScoreList) *framework.Status {
-	logger := a.logger.WithName("normalize").WithValues("pod", fmt.Sprintf("%s/%s", pod.Namespace, pod.Name))
+func (p *PodIsolation) NormalizeScore(ctx context.Context, state *framework.CycleState, pod *corev1.Pod, scores framework.NodeScoreList) *framework.Status {
+	logger := p.logger.WithName("normalize").WithValues("pod", fmt.Sprintf("%s/%s", pod.Namespace, pod.Name))
 
 	// Find highest and lowest scores.
 	var highest int64 = -math.MaxInt64
@@ -284,8 +284,8 @@ func (a *ActiScheduler) NormalizeScore(ctx context.Context, state *framework.Cyc
 	return framework.NewStatus(framework.Success)
 }
 
-func (a *ActiScheduler) PostBind(ctx context.Context, state *framework.CycleState, pod *corev1.Pod, nodeName string) {
-	logger := a.logger.WithName("post-bind").WithValues("pod", fmt.Sprintf("%s/%s", pod.Namespace, pod.Name), "node", nodeName)
+func (p *PodIsolation) PostBind(ctx context.Context, state *framework.CycleState, pod *corev1.Pod, nodeName string) {
+	logger := p.logger.WithName("post-bind").WithValues("pod", fmt.Sprintf("%s/%s", pod.Namespace, pod.Name), "node", nodeName)
 
 	data, err := state.Read(framework.StateKey(Name))
 	if err != nil {
@@ -293,86 +293,58 @@ func (a *ActiScheduler) PostBind(ctx context.Context, state *framework.CycleStat
 		return
 	}
 
-	stateData, ok := data.(*ActiSchedulerStateData)
+	stateData, ok := data.(*PodIsolationStateData)
 	if !ok {
 		logger.Error(err, "could not cast state data while post-binding node")
 		return
 	}
 
 	feasibleCpus := stateData.FeasibleCpus[nodeName]
+	topology := stateData.NodeCpuTopologies[nodeName].Spec.Topology
 	podCpuRequests := int64(0)
 	for _, container := range pod.Spec.Containers {
 		podCpuRequests += container.Resources.Requests.Cpu().Value()
 	}
 
+	c, err := pcbutils.CalculateCpuSetForPod(podCpuRequests, stateData.ExclusivenessLevel, feasibleCpus, topology)
+	if err != nil {
+		logger.Error(err, "could not calculate cpuset for pod")
+		return
+	}
+
+	logger.Info("calculated cpuset", "cpuset", c)
+
 	cpuSet := make([]v1alpha1.Cpu, 0)
-	for _, socket := range feasibleCpus.Sockets {
-		for _, core := range socket.Cores {
-			for cpu := range core.Cpus {
-				cpuSet = append(cpuSet, core.Cpus[cpu])
-				break
-			}
-		}
+	for _, cpu := range c {
+		cpuSet = append(cpuSet, v1alpha1.Cpu{CpuId: cpu})
 	}
 
-	// if you dont find a core with the needed cpu reqeuests
-	// then you need to find a socket with the needed cpu requests
-	// and then a numa node with the needed cpu requests
-
-	if len(cpuSet) == 0 {
-		for socketId, socket := range feasibleCpus.Sockets {
-			if int64(len(nct.GetAllCpusInSocket(&feasibleCpus, socketId))) >= podCpuRequests {
-				for _, core := range socket.Cores { // Fix: Iterate over the cores of the socket
-					for cpu := range core.Cpus { // Fix: Iterate over the CPUs of the core
-						cpuSet = append(cpuSet, core.Cpus[cpu])
-						break
-					}
-				}
-			}
-		}
-	}
-
-	if len(cpuSet) == 0 {
-		for numaId := range feasibleCpus.NumaNodes {
-			if int64(len(nct.GetAllCpusInNuma(&feasibleCpus, numaId))) >= podCpuRequests {
-				for cpu := range feasibleCpus.NumaNodes[numaId].Cpus {
-					cpuSet = append(cpuSet, feasibleCpus.NumaNodes[numaId].Cpus[cpu])
-					break
-				}
-			}
-		}
-	}
-
-	// create the podcpubinding object
 	cpuBinding := &v1alpha1.PodCpuBinding{
 		ObjectMeta: v1.ObjectMeta{
-			Name:      fmt.Sprintf("%s-binding", pod.Name),
+			Name:      fmt.Sprintf("%s-%s", pod.Name, nodeName),
 			Namespace: pod.Namespace,
 		},
 		Spec: v1alpha1.PodCpuBindingSpec{
 			PodName:            pod.Name,
-			CpuSet:             []v1alpha1.Cpu{{CpuId: 15}},
-			ExclusivenessLevel: "Cpu",
+			CpuSet:             cpuSet,
+			ExclusivenessLevel: stateData.ExclusivenessLevel,
 		},
 	}
 
-	//logger.Info("cpuset for new pod", "cpus", cpuSet)
-
-	// save the podcpubinding object to the api server
-	if err := a.Create(ctx, cpuBinding); err != nil {
+	if err := p.Create(ctx, cpuBinding); err != nil {
 		logger.Error(err, "could not create podcpubinding object")
 		return
 	}
 }
 
-func (a *ActiScheduler) ScoreExtensions() framework.ScoreExtensions {
-	return a
+func (p *PodIsolation) ScoreExtensions() framework.ScoreExtensions {
+	return p
 }
 
-func (a *ActiScheduler) PreFilterExtensions() framework.PreFilterExtensions {
+func (p *PodIsolation) PreFilterExtensions() framework.PreFilterExtensions {
 	return nil
 }
 
-func (s *ActiSchedulerStateData) Clone() framework.StateData {
+func (s *PodIsolationStateData) Clone() framework.StateData {
 	return s
 }

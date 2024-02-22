@@ -4,7 +4,7 @@ metadata:
   name: benchpod-5
   namespace: benchmarks
 spec:
-  schedulerName: actischeduler
+  schedulerName: podisolation
   restartPolicy: Never
   containers:
   - name: benchmark

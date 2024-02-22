@@ -3,11 +3,17 @@ kind: Pod
 metadata:
   name: benchpod-1
   namespace: benchmarks
+  annotations:
+    cslab.ece.ntua.gr/exclusiveness-level: Core
 spec:
+  schedulerName: podisolation
   restartPolicy: Never
   containers:
   - name: benchmark
     image: spirals/parsec-3.0
+    resources:
+      requests:
+        cpu: "2"
     command:
     - /bin/bash
     - "-c"
