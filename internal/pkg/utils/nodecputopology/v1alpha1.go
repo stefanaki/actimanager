@@ -161,6 +161,7 @@ func DeleteCpuFromTopology(topology *v1alpha1.CpuTopology, cpuId int) {
 					delete(core.Cpus, strconv.Itoa(cpuId))
 					core.ListCpus = append(core.ListCpus[:i], core.ListCpus[i+1:]...)
 					break
+
 				}
 			}
 		}
