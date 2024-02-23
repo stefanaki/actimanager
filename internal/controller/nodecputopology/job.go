@@ -3,8 +3,8 @@ package nodecputopology
 import (
 	"context"
 	"cslab.ece.ntua.gr/actimanager/api/cslab.ece.ntua.gr/v1alpha1"
-	"cslab.ece.ntua.gr/actimanager/internal/pkg/nodecputopology"
 	"cslab.ece.ntua.gr/actimanager/internal/pkg/utils"
+	"cslab.ece.ntua.gr/actimanager/internal/pkg/utils/nodecputopology"
 	"fmt"
 	"github.com/go-logr/logr"
 	"github.com/google/uuid"

@@ -1,19 +1,19 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: benchpod-1
+  name: benchpod-core-1
   namespace: benchmarks
   annotations:
     cslab.ece.ntua.gr/exclusiveness-level: Core
 spec:
-  schedulerName: podisolation
+  schedulerName: maestro
   restartPolicy: Never
   containers:
   - name: benchmark
     image: spirals/parsec-3.0
     resources:
       requests:
-        cpu: "2"
+        cpu: "7"
     command:
     - /bin/bash
     - "-c"

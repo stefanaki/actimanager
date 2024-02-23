@@ -3,11 +3,10 @@ package podcpubinding
 import (
 	"context"
 	"cslab.ece.ntua.gr/actimanager/api/cslab.ece.ntua.gr/v1alpha1"
+	"cslab.ece.ntua.gr/actimanager/internal/pkg/utils/nodecputopology"
 	"fmt"
 	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
-
-	"cslab.ece.ntua.gr/actimanager/internal/pkg/nodecputopology"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -65,11 +64,9 @@ func (r *PodCpuBindingReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 	if cpuBinding.ObjectMeta.DeletionTimestamp.IsZero() {
 		if !controllerutil.ContainsFinalizer(cpuBinding, v1alpha1.FinalizerPodCpuBinding) {
 			controllerutil.AddFinalizer(cpuBinding, v1alpha1.FinalizerPodCpuBinding)
-
 			if err := r.Update(ctx, cpuBinding); err != nil {
 				return ctrl.Result{}, fmt.Errorf("failed to add finalizer: %v", err.Error())
 			}
-
 		}
 	} else {
 		// If CR is deleted and contains the finalizer,
@@ -78,13 +75,11 @@ func (r *PodCpuBindingReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 			if err := r.PodCpuBindingFinalizer(ctx, cpuBinding, logger); err != nil {
 				return ctrl.Result{}, err
 			}
-
 			controllerutil.RemoveFinalizer(cpuBinding, v1alpha1.FinalizerPodCpuBinding)
 			if err := r.Update(ctx, cpuBinding); err != nil {
 				return ctrl.Result{}, err
 			}
 		}
-
 		return ctrl.Result{}, nil
 	}
 
@@ -94,11 +89,9 @@ func (r *PodCpuBindingReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 			Namespace: cpuBinding.Namespace,
 			Name:      cpuBinding.Spec.PodName,
 		})
-
 		if err != nil {
 			return ctrl.Result{}, fmt.Errorf("error getting pod: %v", err.Error())
 		}
-
 		if err := r.removeCpuPinning(ctx, pod); err != nil {
 			return ctrl.Result{}, fmt.Errorf("error removing cpu pinning: %v", err.Error())
 		}
@@ -116,7 +109,6 @@ func (r *PodCpuBindingReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		if err := r.Status().Update(ctx, cpuBinding); err != nil {
 			return ctrl.Result{}, fmt.Errorf("error updating status: %v", err.Error())
 		}
-
 		return ctrl.Result{}, nil
 	}
 
@@ -128,13 +120,11 @@ func (r *PodCpuBindingReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		if err != nil {
 			return ctrl.Result{}, err
 		}
-
 		if status != "" {
 			cpuBinding.Status.ResourceStatus = status
 			if err := r.Status().Update(ctx, cpuBinding); err != nil {
 				return ctrl.Result{}, fmt.Errorf("error updating status: %v", err.Error())
 			}
-
 			return ctrl.Result{}, nil
 		}
 	}
@@ -147,14 +137,11 @@ func (r *PodCpuBindingReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		if err != nil {
 			return ctrl.Result{}, err
 		}
-
 		if status != "" {
 			cpuBinding.Status.ResourceStatus = status
-
 			if err := r.Status().Update(ctx, cpuBinding); err != nil {
 				return ctrl.Result{}, fmt.Errorf("error updating status: %v", err.Error())
 			}
-
 			return ctrl.Result{}, nil
 		}
 	}
@@ -165,14 +152,11 @@ func (r *PodCpuBindingReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		if err != nil {
 			return ctrl.Result{}, err
 		}
-
 		if status != "" {
 			cpuBinding.Status.ResourceStatus = status
-
 			if err := r.Status().Update(ctx, cpuBinding); err != nil {
 				return ctrl.Result{}, fmt.Errorf("error updating status: %v", err.Error())
 			}
-
 			return ctrl.Result{}, nil
 		}
 	}

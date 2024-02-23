@@ -20,7 +20,8 @@ package v1alpha1
 // SocketApplyConfiguration represents an declarative configuration of the Socket type for use
 // with apply.
 type SocketApplyConfiguration struct {
-	Cores map[string]CoreApplyConfiguration `json:"cores,omitempty"`
+	Cores    map[string]CoreApplyConfiguration `json:"cores,omitempty"`
+	ListCpus []int                             `json:"listCpus,omitempty"`
 }
 
 // SocketApplyConfiguration constructs an declarative configuration of the Socket type for use with
@@ -39,6 +40,16 @@ func (b *SocketApplyConfiguration) WithCores(entries map[string]CoreApplyConfigu
 	}
 	for k, v := range entries {
 		b.Cores[k] = v
+	}
+	return b
+}
+
+// WithListCpus adds the given value to the ListCpus field in the declarative configuration
+// and returns the receiver, so that objects can be build by chaining "With" function invocations.
+// If called multiple times, values provided by each call will be appended to the ListCpus field.
+func (b *SocketApplyConfiguration) WithListCpus(values ...int) *SocketApplyConfiguration {
+	for i := range values {
+		b.ListCpus = append(b.ListCpus, values[i])
 	}
 	return b
 }
