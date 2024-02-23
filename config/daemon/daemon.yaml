@@ -28,8 +28,12 @@ spec:
             capabilities:
               drop:
                 - all
-#         args: ["-cpath", "/cgroup", "-runtime", "docker", "--node-name=$(NODE_NAME)"]
-          args: ["-cpath", "/cgroup", "-runtime", "containerd", "--node-name=$(NODE_NAME)"]
+          args:
+            - '--node-name=$(NODE_NAME)'
+            - '--container-runtime=docker'
+#           - '--container-runtime=containerd'
+            - '--cgroups-path=/cgroup'
+            - '--cgroups-driver=systemd'
           env:
             - name: NODE_NAME
               valueFrom:
