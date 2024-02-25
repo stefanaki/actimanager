@@ -1,21 +1,19 @@
-apiVersion: v1
-kind: Pod
-metadata:
-  name: nginx15
-spec:
-  containers:
-    - name: nginx
-      image: nginx
-  restartPolicy: Never
----
 apiVersion: cslab.ece.ntua.gr/v1alpha1
 kind: PodCpuBinding
 metadata:
-  name: n15
+  creationTimestamp: "2024-02-23T20:25:20Z"
+  finalizers:
+  - cslab.ece.ntua.gr/pod-cpu-binding-finalizer
+  generation: 1
+  name: benchpod-core-2-minikube
   namespace: benchmarks
+  resourceVersion: "1551531"
+  uid: 87c006e5-7c87-4723-9e4e-30b1bc320e2d
 spec:
-  exclusivenessLevel: Cpu
-  podName: nginx15
   cpuSet:
-    - cpuId: 0
-    - cpuId: 1
+  - cpuId: 0
+  - cpuId: 1
+  - cpuId: 2
+  exclusivenessLevel: Cpu
+  podName: benchpod-core-2
+

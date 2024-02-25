@@ -35,3 +35,19 @@ func GetExclusiveCpusOfCpuBinding(cpuBinding *v1alpha1.PodCpuBinding, topology *
 
 	return exclusiveCpus
 }
+
+func ConvertCpuSliceToIntSlice(cpuSlice []v1alpha1.Cpu) []int {
+	intSlice := make([]int, len(cpuSlice))
+	for i, cpu := range cpuSlice {
+		intSlice[i] = cpu.CpuId
+	}
+	return intSlice
+}
+
+func ConvertIntSliceToCpuSlice(intSlice []int) []v1alpha1.Cpu {
+	cpuSlice := make([]v1alpha1.Cpu, len(intSlice))
+	for i, cpuId := range intSlice {
+		cpuSlice[i] = v1alpha1.Cpu{CpuId: cpuId}
+	}
+	return cpuSlice
+}

@@ -337,11 +337,6 @@ func (p *PodIsolation) PostBind(ctx context.Context, state *framework.CycleState
 		}
 	}
 
-	cpuSet := make([]v1alpha1.Cpu, 0)
-	for i := 0; i < int(stateData.PodCpuRequests); i++ {
-		cpuSet = append(cpuSet, v1alpha1.Cpu{CpuId: cpus[i]})
-	}
-
 	cpuBinding := &v1alpha1.PodCpuBinding{
 		ObjectMeta: v1.ObjectMeta{
 			Name:      fmt.Sprintf("%s-%s", pod.Name, nodeName),
@@ -349,7 +344,7 @@ func (p *PodIsolation) PostBind(ctx context.Context, state *framework.CycleState
 		},
 		Spec: v1alpha1.PodCpuBindingSpec{
 			PodName:            pod.Name,
-			CpuSet:             cpuSet,
+			CpuSet:             pcbutils.ConvertIntSliceToCpuSlice(cpus),
 			ExclusivenessLevel: exclusivenessLevel,
 		},
 	}

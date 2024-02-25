@@ -3,10 +3,13 @@ package podcpubinding
 import (
 	"context"
 	"cslab.ece.ntua.gr/actimanager/api/cslab.ece.ntua.gr/v1alpha1"
-	"cslab.ece.ntua.gr/actimanager/internal/pkg/utils/nodecputopology"
+	nctutils "cslab.ece.ntua.gr/actimanager/internal/pkg/utils/nodecputopology"
+	pcbutils "cslab.ece.ntua.gr/actimanager/internal/pkg/utils/podcpubinding"
 	"fmt"
+	"k8s.io/client-go/tools/record"
 	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
+	"time"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -24,7 +27,8 @@ import (
 // PodCpuBindingReconciler reconciles a PodCpuBinding object
 type PodCpuBindingReconciler struct {
 	client.Client
-	Scheme *runtime.Scheme
+	Scheme   *runtime.Scheme
+	Recorder record.EventRecorder
 }
 
 var eventFilters = builder.WithPredicates(predicate.Funcs{
@@ -45,6 +49,7 @@ var eventFilters = builder.WithPredicates(predicate.Funcs{
 // +kubebuilder:rbac:groups=cslab.ece.ntua.gr,resources=podcpubindings/finalizers,verbs=update
 // +kubebuilder:rbac:groups=core,resources=pods,verbs=get;list;watch
 // +kubebuilder:rbac:groups=core,resources=nodes,verbs=get;list;watch
+// +kubebuilder:rbac:groups="",resources=events,verbs=create;patch
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
@@ -95,6 +100,7 @@ func (r *PodCpuBindingReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		if err := r.removeCpuPinning(ctx, pod); err != nil {
 			return ctrl.Result{}, fmt.Errorf("error removing cpu pinning: %v", err.Error())
 		}
+		r.Recorder.Eventf(cpuBinding, corev1.EventTypeNormal, "CpuPinningRemoved", "CPU pinning removed from pod %s", cpuBinding.Spec.PodName)
 	}
 
 	// Initialize CR
@@ -109,30 +115,14 @@ func (r *PodCpuBindingReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		if err := r.Status().Update(ctx, cpuBinding); err != nil {
 			return ctrl.Result{}, fmt.Errorf("error updating status: %v", err.Error())
 		}
+		r.Recorder.Eventf(cpuBinding, corev1.EventTypeNormal, string(v1alpha1.StatusBindingPending), "CPU binding for pod %s/%s is pending", cpuBinding.Namespace, cpuBinding.Spec.PodName)
 		return ctrl.Result{}, nil
 	}
 
-	// Validate Pod name
+	// Validate Resource
 	pod := &corev1.Pod{}
-	ok, status, err := r.validatePodName(ctx, cpuBinding, pod)
-
-	if !ok {
-		if err != nil {
-			return ctrl.Result{}, err
-		}
-		if status != "" {
-			cpuBinding.Status.ResourceStatus = status
-			if err := r.Status().Update(ctx, cpuBinding); err != nil {
-				return ctrl.Result{}, fmt.Errorf("error updating status: %v", err.Error())
-			}
-			return ctrl.Result{}, nil
-		}
-	}
-
-	// Assert specified cpuset is part of the node's topology
 	topology := &v1alpha1.NodeCpuTopology{}
-	ok, status, err = r.validateTopology(ctx, cpuBinding, topology, pod)
-
+	ok, status, message, err := r.validateResource(ctx, cpuBinding, topology, pod)
 	if !ok {
 		if err != nil {
 			return ctrl.Result{}, err
@@ -142,21 +132,7 @@ func (r *PodCpuBindingReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 			if err := r.Status().Update(ctx, cpuBinding); err != nil {
 				return ctrl.Result{}, fmt.Errorf("error updating status: %v", err.Error())
 			}
-			return ctrl.Result{}, nil
-		}
-	}
-
-	// Validate exclusiveness level
-	ok, status, err = r.validateExclusivenessLevel(ctx, cpuBinding, topology, req.NamespacedName, pod.Spec.NodeName)
-	if !ok {
-		if err != nil {
-			return ctrl.Result{}, err
-		}
-		if status != "" {
-			cpuBinding.Status.ResourceStatus = status
-			if err := r.Status().Update(ctx, cpuBinding); err != nil {
-				return ctrl.Result{}, fmt.Errorf("error updating status: %v", err.Error())
-			}
+			r.Recorder.Event(cpuBinding, corev1.EventTypeWarning, string(status), message)
 			return ctrl.Result{}, nil
 		}
 	}
@@ -164,18 +140,17 @@ func (r *PodCpuBindingReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 	// Check if all containers are ready
 	for _, containerStatus := range pod.Status.ContainerStatuses {
 		if !containerStatus.Ready {
-			return ctrl.Result{Requeue: true}, nil
+			return ctrl.Result{Requeue: true, RequeueAfter: time.Second * 5}, nil
 		}
 	}
 
 	// Handle reconcilation
 	// Apply CPU pinning
-	err = r.applyCpuPinning(
-		ctx,
-		cpuBinding.Spec.CpuSet,
-		nodecputopology.GetNumaNodesOfCpuSet(cpuBinding.Spec.CpuSet, topology.Spec.Topology),
-		pod)
+	cpuSet := pcbutils.ConvertCpuSliceToIntSlice(cpuBinding.Spec.CpuSet)
+	memSet := nctutils.GetNumaNodesOfCpuSet(cpuBinding.Spec.CpuSet, topology.Spec.Topology)
+	err = r.applyCpuPinning(ctx, cpuSet, memSet, pod)
 	if err != nil {
+		r.Recorder.Eventf(cpuBinding, corev1.EventTypeWarning, string(v1alpha1.StatusFailed), "Failed to apply CPU pinning to pod %s: %v", cpuBinding.Spec.PodName, err)
 		cpuBinding.Status.ResourceStatus = v1alpha1.StatusFailed
 	}
 	cpuBinding.Status.ResourceStatus = v1alpha1.StatusApplied
@@ -185,6 +160,7 @@ func (r *PodCpuBindingReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		return ctrl.Result{}, fmt.Errorf("error updating status: %v", err.Error())
 	}
 
+	r.Recorder.Eventf(cpuBinding, corev1.EventTypeNormal, string(v1alpha1.StatusApplied), "CPUSet %v, MemSet %v applied to pod %s/%s", cpuSet, memSet, pod.Namespace, pod.Name)
 	controllerutil.AddFinalizer(pod, v1alpha1.FinalizerCpuBoundPod)
 	if err := r.Update(ctx, pod); err != nil {
 		return ctrl.Result{}, fmt.Errorf("failed to add finalizer to pod: %v", err.Error())
