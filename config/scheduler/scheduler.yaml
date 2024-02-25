@@ -1,0 +1,100 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: maestro-scheduler
+  namespace: kube-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: maestro-scheduler-as-kube-scheduler
+subjects:
+  - kind: ServiceAccount
+    name: maestro-scheduler
+    namespace: kube-system
+roleRef:
+  kind: ClusterRole
+  name: system:kube-scheduler
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: maestro-scheduler-config
+  namespace: kube-system
+data:
+  maestro-scheduler-config.yaml: |
+    apiVersion: kubescheduler.config.k8s.io/v1
+    kind: KubeSchedulerConfiguration
+    leaderElection:
+      leaderElect: false
+    profiles:
+      - schedulerName: maestro
+        plugins:
+          preFilter:
+            enabled:
+              - name: PodIsolation
+          score:
+            enabled:
+              - name: PodIsolation
+          filter:
+            enabled:
+              - name: PodIsolation
+          postBind:
+            enabled:
+              - name: PodIsolation
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    component: scheduler
+    tier: control-plane
+  name: maestro-scheduler
+  namespace: kube-system
+spec:
+  selector:
+    matchLabels:
+      component: scheduler
+      tier: control-plane
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        component: scheduler
+        tier: control-plane
+        version: second
+    spec:
+      serviceAccountName: maestro-scheduler
+      containers:
+        - command:
+            - ./scheduler
+            - --config=/etc/kubernetes/maestro-scheduler/maestro-scheduler-config.yaml
+          image: stefanaki/actimanager:dev
+          imagePullPolicy: Always
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 10259
+              scheme: HTTPS
+            initialDelaySeconds: 15
+          name: kube-second-scheduler
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 10259
+              scheme: HTTPS
+          resources:
+            requests:
+              cpu: '0.1'
+          securityContext:
+            privileged: false
+          volumeMounts:
+            - name: config-volume
+              mountPath: /etc/kubernetes/maestro-scheduler
+      hostNetwork: false
+      hostPID: false
+      volumes:
+        - name: config-volume
+          configMap:
+            name: maestro-scheduler-config

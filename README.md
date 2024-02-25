@@ -51,7 +51,16 @@ This repository is a framework for fine-grained orchestration of Kubernetes Pods
     git clone
     cd actimanager
     ```
-2. Install the components on the cluster.
+2. Edit the DaemonSet manifest under `config/daemon/daemon.yaml` to match your nodes' configuration.
+    
+    ```yaml
+     args:
+       - '--node-name=$(NODE_NAME)'
+       - '--container-runtime=docker' # containerd, kind
+       - '--cgroups-path=/cgroup'
+       - '--cgroups-driver=systemd' # cgroupfs
+    ```
+3. Install the components on the cluster.
 
     ```sh
     kubectl apply -k config/default

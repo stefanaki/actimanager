@@ -56,7 +56,6 @@ func NewV1Alpha1CpuTopologyFromLscpuOutput(lscpuOutput string) (v1alpha1.CpuTopo
 // IsCpuSetInTopology checks if a given CPU set is present in the provided topology.
 func IsCpuSetInTopology(topology *v1alpha1.CpuTopology, cpuSet []v1alpha1.Cpu) bool {
 	remaining := len(cpuSet)
-
 	for _, socket := range topology.Sockets {
 		for _, core := range socket.Cores {
 			for _, cpu := range core.Cpus {
@@ -69,7 +68,6 @@ func IsCpuSetInTopology(topology *v1alpha1.CpuTopology, cpuSet []v1alpha1.Cpu) b
 			}
 		}
 	}
-
 	return remaining == 0
 }
 
@@ -94,7 +92,6 @@ func GetCpuParentInfo(topology *v1alpha1.CpuTopology, targetCpuId int) (string, 
 			}
 		}
 	}
-
 	return "-1", "-1", "-1", "-1"
 }
 

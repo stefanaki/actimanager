@@ -96,8 +96,9 @@ func main() {
 	}
 
 	nodeCpuTopologyReconciler := &nodecputopology.NodeCpuTopologyReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
+		Client:   mgr.GetClient(),
+		Scheme:   mgr.GetScheme(),
+		Recorder: mgr.GetEventRecorderFor("nodecputopology-controller"),
 	}
 
 	if err = nodeCpuTopologyReconciler.SetupWithManager(mgr); err != nil {
@@ -105,8 +106,9 @@ func main() {
 		os.Exit(1)
 	}
 	if err = (&podcpubinding.PodCpuBindingReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
+		Client:   mgr.GetClient(),
+		Scheme:   mgr.GetScheme(),
+		Recorder: mgr.GetEventRecorderFor("podcpubinding-controller"),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "PodCpuBinding")
 		os.Exit(1)

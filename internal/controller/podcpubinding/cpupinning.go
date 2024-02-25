@@ -2,7 +2,6 @@ package podcpubinding
 
 import (
 	"context"
-	"cslab.ece.ntua.gr/actimanager/api/cslab.ece.ntua.gr/v1alpha1"
 	"cslab.ece.ntua.gr/actimanager/internal/pkg/cpupinning"
 	"fmt"
 	"google.golang.org/grpc"
@@ -14,7 +13,7 @@ import (
 // applyCpuPinning applies CPU pinning for a given pod on a specified node
 func (r *PodCpuBindingReconciler) applyCpuPinning(
 	ctx context.Context,
-	cpuSet []v1alpha1.Cpu,
+	cpuSet []int,
 	memSet []int,
 	pod *corev1.Pod) error {
 	logger := log.FromContext(ctx).WithName("apply-pinning")
@@ -35,7 +34,7 @@ func (r *PodCpuBindingReconciler) applyCpuPinning(
 	cpuPinningClient := cpupinning.NewCpuPinningClient(conn)
 	applyCpuPinningRequest := &cpupinning.ApplyPinningRequest{
 		Pod:    parsePodInfo(pod),
-		CpuSet: convertCpuListToInt32(cpuSet),
+		CpuSet: convertIntSliceToInt32(cpuSet),
 		MemSet: convertIntSliceToInt32(memSet),
 	}
 	logger.Info("Requesting CPU pinning", "request", applyCpuPinningRequest)
@@ -128,15 +127,6 @@ func parseContainerResources(containerName string, pod *corev1.Pod) *cpupinning.
 	}
 
 	return resources
-}
-
-// convertCpuListToInt32 maps a Cpu list to an int32 slice
-func convertCpuListToInt32(cpuSet []v1alpha1.Cpu) []int32 {
-	var cpuList []int32
-	for _, cpu := range cpuSet {
-		cpuList = append(cpuList, int32(cpu.CpuId))
-	}
-	return cpuList
 }
 
 // convertIntSliceToInt32 maps an int slice to an int32 slice
