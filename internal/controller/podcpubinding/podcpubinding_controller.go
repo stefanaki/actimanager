@@ -140,7 +140,7 @@ func (r *PodCpuBindingReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 	// Check if all containers are ready
 	for _, containerStatus := range pod.Status.ContainerStatuses {
 		if !containerStatus.Ready {
-			return ctrl.Result{Requeue: true, RequeueAfter: time.Second * 5}, nil
+			return ctrl.Result{Requeue: true, RequeueAfter: time.Second * 2}, nil
 		}
 	}
 

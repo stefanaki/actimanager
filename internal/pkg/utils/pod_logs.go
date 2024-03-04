@@ -10,7 +10,7 @@ import (
 )
 
 func GetPodLogs(pod corev1.Pod, ctx context.Context) (string, error) {
-	clientset, err := client.New()
+	clientset, err := client.NewClient()
 
 	if err != nil {
 		log.Printf("error getting clientset: %v", err.Error())

@@ -113,14 +113,14 @@ func sliceNameDockerContainerdWithCgroupfs(c ContainerInfo, r ContainerRuntime) 
 }
 
 // UpdateCpuSet updates the cpu set of a given child process.
-func (c CpuPinningController) UpdateCpuSet(container ContainerInfo, cSet string, memSet string) error {
+func (c CpuPinningController) UpdateCpuSet(container ContainerInfo, cSet string, memSet string, quota *int64, shares, period *uint64) error {
 	runtimeURLPrefix := [2]string{"docker://", "containerd://"}
 	if c.containerRuntime == Kind || c.containerRuntime != Kind &&
 		strings.Contains(container.CID, runtimeURLPrefix[c.containerRuntime]) {
 		slice := SliceName(container, c.containerRuntime, c.cgroupsController.CgroupsDriver)
 		c.logger.V(2).Info("allocating cgroup", "cgroupPath", c.cgroupsController.CgroupsPath, "slicePath", slice, "cpuSet", cSet, "memSet", memSet)
 
-		return c.cgroupsController.UpdateCpuSet(slice, cSet, memSet)
+		return c.cgroupsController.UpdateCpuSet(slice, cSet, memSet, quota, shares, period)
 	}
 
 	return nil
@@ -128,10 +128,18 @@ func (c CpuPinningController) UpdateCpuSet(container ContainerInfo, cSet string,
 
 // Apply updates the CPU set of the container.
 func (c CpuPinningController) Apply(container ContainerInfo, cpuSet string, memSet string) error {
-	return c.UpdateCpuSet(container, cpuSet, memSet)
+	shares := uint64(262144)
+	quota := int64(-1)
+	period := uint64(100000)
+
+	return c.UpdateCpuSet(container, cpuSet, memSet, &quota, &shares, &period)
 }
 
 // Remove updates the CPU set of the container to all the available CPUs.
 func (c CpuPinningController) Remove(container ContainerInfo) error {
-	return c.UpdateCpuSet(container, c.availableCpus, c.availableNumaNodes)
+	shares := uint64(0)
+	quota := int64(0)
+	period := uint64(100000)
+
+	return c.UpdateCpuSet(container, c.availableCpus, c.availableNumaNodes, &quota, &shares, &period)
 }
