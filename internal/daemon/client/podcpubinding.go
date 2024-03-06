@@ -1,0 +1,75 @@
+package client
+
+import (
+	"cslab.ece.ntua.gr/actimanager/api/cslab.ece.ntua.gr/v1alpha1"
+	clientset "cslab.ece.ntua.gr/actimanager/internal/pkg/generated/clientset/versioned"
+	"cslab.ece.ntua.gr/actimanager/internal/pkg/generated/informers/externalversions"
+	"errors"
+	"fmt"
+	"github.com/go-logr/logr"
+	"k8s.io/client-go/tools/cache"
+	"time"
+)
+
+type PodCpuBindingClient struct {
+	client          clientset.Clientset
+	informer        cache.SharedIndexInformer
+	informerFactory externalversions.SharedInformerFactory
+	stopCh          *chan struct{}
+	logger          logr.Logger
+}
+
+func NewPodCpuBindingClient(cslabClient clientset.Clientset, logger logr.Logger) (*PodCpuBindingClient, error) {
+	client := &PodCpuBindingClient{}
+	informerFactory := externalversions.NewSharedInformerFactory(&cslabClient, 30*time.Second)
+	informer := informerFactory.Cslab().V1alpha1().PodCpuBindings().Informer()
+	err := informer.AddIndexers(cache.Indexers{
+		"nodeName": func(obj interface{}) ([]string, error) {
+			pcb, ok := obj.(*v1alpha1.PodCpuBinding)
+			if !ok {
+				return []string{}, fmt.Errorf("failed to use podcpubinding index")
+			}
+			return []string{pcb.Status.NodeName}, nil
+		},
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to create node name index for podcpubinding: %v", err)
+	}
+	client.client = cslabClient
+	client.informer = informer
+	client.informerFactory = informerFactory
+	client.logger = logger.WithName("podcpubinding-client")
+	return client, nil
+}
+
+func (c *PodCpuBindingClient) Start(stopCh *chan struct{}) error {
+	c.stopCh = stopCh
+	c.informerFactory.Start(*stopCh)
+	c.logger.Info("Starting PodCpuBinding informer")
+	c.logger.Info("Waiting for cache to sync")
+	if ok := cache.WaitForCacheSync(*stopCh, c.informer.HasSynced); !ok {
+		return errors.New("failed to sync cache")
+	}
+	return nil
+}
+
+func (c *PodCpuBindingClient) Stop() {
+	c.logger.Info("Stopping PodCpuBinding informer")
+	*c.stopCh <- struct{}{}
+}
+
+func (c *PodCpuBindingClient) PodCpuBindingsForNode(nodeName string) ([]v1alpha1.PodCpuBinding, error) {
+	b, err := c.informer.GetIndexer().ByIndex("nodeName", nodeName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get podcpubinding for node %s: %v", nodeName, err)
+	}
+	bindings := make([]v1alpha1.PodCpuBinding, 0)
+	for _, obj := range b {
+		binding, ok := obj.(*v1alpha1.PodCpuBinding)
+		if !ok {
+			return nil, fmt.Errorf("failed to cast podcpubinding for node %s", nodeName)
+		}
+		bindings = append(bindings, *binding)
+	}
+	return bindings, nil
+}

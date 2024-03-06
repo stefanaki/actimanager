@@ -2,7 +2,7 @@ package podcpubinding
 
 import (
 	"context"
-	"cslab.ece.ntua.gr/actimanager/internal/pkg/cpupinning"
+	"cslab.ece.ntua.gr/actimanager/internal/pkg/protobuf/cpupinning"
 	"fmt"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -33,7 +33,7 @@ func (r *PodCpuBindingReconciler) applyCpuPinning(
 
 	cpuPinningClient := cpupinning.NewCpuPinningClient(conn)
 	applyCpuPinningRequest := &cpupinning.ApplyPinningRequest{
-		Pod:    parsePodInfo(pod),
+		Pod:    cpupinning.ParsePodInfo(pod),
 		CpuSet: convertIntSliceToInt32(cpuSet),
 		MemSet: convertIntSliceToInt32(memSet),
 	}
@@ -66,7 +66,7 @@ func (r *PodCpuBindingReconciler) removeCpuPinning(
 	defer conn.Close()
 
 	cpuPinningClient := cpupinning.NewCpuPinningClient(conn)
-	removeCpuPinningRequest := &cpupinning.RemovePinningRequest{Pod: parsePodInfo(pod)}
+	removeCpuPinningRequest := &cpupinning.RemovePinningRequest{Pod: cpupinning.ParsePodInfo(pod)}
 	logger.Info("Removing CPU pinning", "request", removeCpuPinningRequest)
 
 	res, err := cpuPinningClient.RemovePinning(ctx, removeCpuPinningRequest)
@@ -79,54 +79,6 @@ func (r *PodCpuBindingReconciler) removeCpuPinning(
 	}
 
 	return nil
-}
-
-// parsePodInfo extracts relevant information from a Pod to create a cpupinning.Pod object
-func parsePodInfo(pod *corev1.Pod) *cpupinning.Pod {
-	p := &cpupinning.Pod{
-		Id:         string(pod.ObjectMeta.UID),
-		Name:       pod.Name,
-		Namespace:  pod.Namespace,
-		Containers: nil,
-	}
-
-	containers := make([]*cpupinning.Container, 0)
-	for _, containerStatus := range pod.Status.ContainerStatuses {
-		containers = append(containers, &cpupinning.Container{
-			Id:        containerStatus.ContainerID,
-			Name:      containerStatus.Name,
-			Resources: parseContainerResources(containerStatus.Name, pod),
-		})
-	}
-
-	p.Containers = containers
-
-	return p
-}
-
-// parseContainerResources extracts resource information from a container
-func parseContainerResources(containerName string, pod *corev1.Pod) *cpupinning.ResourceInfo {
-	resources := &cpupinning.ResourceInfo{}
-
-	for _, container := range pod.Spec.Containers {
-		if container.Name == containerName {
-			limitCpus := container.Resources.Limits.Cpu()
-			limitMemory := container.Resources.Limits.Memory()
-			requestCpus := container.Resources.Requests.Cpu()
-			requestMemory := container.Resources.Requests.Memory()
-
-			resources = &cpupinning.ResourceInfo{
-				RequestedCpus:   int32(requestCpus.MilliValue()),
-				LimitCpus:       int32(limitCpus.MilliValue()),
-				RequestedMemory: requestMemory.String(),
-				LimitMemory:     limitMemory.String(),
-			}
-
-			return resources
-		}
-	}
-
-	return resources
 }
 
 // convertIntSliceToInt32 maps an int slice to an int32 slice

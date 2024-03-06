@@ -23,9 +23,6 @@ spec:
     - jsonPath: .status.resourceStatus
       name: Resource Status
       type: string
-    - jsonPath: .status.initJobStatus
-      name: Job Status
-      type: string
     name: v1alpha1
     schema:
       openAPIV3Schema:
@@ -124,15 +121,9 @@ spec:
           status:
             description: NodeCpuTopologyStatus defines the observed state of NodeCpuTopology
             properties:
-              initJobName:
-                type: string
-              initJobStatus:
-                type: string
               resourceStatus:
                 type: string
             required:
-            - initJobName
-            - initJobStatus
             - resourceStatus
             type: object
         type: object

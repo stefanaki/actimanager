@@ -4,7 +4,7 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-OUTPUT_PKG=internal/pkg/gen
+OUTPUT_PKG=internal/pkg/generated
 MODULE=cslab.ece.ntua.gr/actimanager
 
 SCRIPT_ROOT=$(dirname "${BASH_SOURCE[0]}")/..

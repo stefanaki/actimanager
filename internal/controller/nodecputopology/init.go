@@ -15,39 +15,35 @@ import (
 func (r *NodeCpuTopologyReconciler) CreateInitialNodeCpuTopologies(ctx context.Context) error {
 	nodes := &v1.NodeList{}
 	topologies := &v1alpha1.NodeCpuTopologyList{}
-
 	if err := r.List(ctx, nodes); err != nil {
 		return fmt.Errorf("error listing cluster nodes: %v", err.Error())
 	}
-
 	if err := r.List(ctx, topologies); err != nil {
 		return fmt.Errorf("error listing topologies: %v", err.Error())
 	}
-
 	for _, n := range nodes.Items {
 		skip := false
+		if _, controlPlane := n.Labels["node-role.kubernetes.io/control-plane"]; controlPlane {
+			continue
+		}
 		for _, t := range topologies.Items {
 			if t.Spec.NodeName == n.Name {
 				skip = true
 				break
 			}
 		}
-
 		if skip {
 			continue
 		}
-
 		newTopology := &v1alpha1.NodeCpuTopology{
 			ObjectMeta: metav1.ObjectMeta{Name: n.Name + "-cputopology"},
 			Spec: v1alpha1.NodeCpuTopologySpec{
 				NodeName: n.Name,
 			},
 		}
-
 		if err := r.Create(ctx, newTopology); err != nil {
 			return fmt.Errorf("error creating new topology: %v", err.Error())
 		}
 	}
-
 	return nil
 }

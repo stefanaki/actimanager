@@ -7,52 +7,6 @@ import (
 	"strconv"
 )
 
-// V1Alpha1 returns the v1alpha1 representation of the NodeCpuTopology.
-// It converts the NodeCpuTopology struct into the v1alpha1.CpuTopology struct,
-// mapping the Sockets, Cores, and Cpus accordingly.
-// The returned v1alpha1.CpuTopology contains the converted data.
-func (t *NodeCpuTopology) V1Alpha1() v1alpha1.CpuTopology {
-	topology := v1alpha1.CpuTopology{
-		Sockets:   make(map[string]v1alpha1.Socket),
-		NumaNodes: make(map[string]v1alpha1.NumaNode),
-		ListCpus:  t.ListCpus,
-	}
-
-	for socketId, socket := range t.Sockets {
-		s := v1alpha1.Socket{
-			Cores:    make(map[string]v1alpha1.Core),
-			ListCpus: socket.ListCpus,
-		}
-		for coreId, core := range socket.Cores {
-			c := v1alpha1.Core{
-				Cpus:     make(map[string]v1alpha1.Cpu),
-				ListCpus: core.ListCpus,
-			}
-			for cpuId := range core.Cpus {
-				c.Cpus[strconv.Itoa(cpuId)] = v1alpha1.Cpu{CpuId: cpuId}
-			}
-			s.Cores[strconv.Itoa(coreId)] = c
-		}
-		topology.Sockets[strconv.Itoa(socketId)] = s
-	}
-	for numaNodeId, numaNode := range t.NumaNodes {
-		n := v1alpha1.NumaNode{Cpus: make(map[string]v1alpha1.Cpu), ListCpus: numaNode.ListCpus}
-		for cpuId := range numaNode.Cpus {
-			n.Cpus[strconv.Itoa(cpuId)] = v1alpha1.Cpu{CpuId: cpuId}
-		}
-		topology.NumaNodes[strconv.Itoa(numaNodeId)] = n
-	}
-	return topology
-}
-
-// NewV1Alpha1CpuTopologyFromLscpuOutput creates a v1alpha1.CpuTopology object
-// from the output of the `lscpu -p=socket,node,core,cpu` command.
-// It parses the lscpu output and returns the v1alpha1.CpuTopology object along with any error encountered during parsing.
-func NewV1Alpha1CpuTopologyFromLscpuOutput(lscpuOutput string) (v1alpha1.CpuTopology, error) {
-	nct, err := ParseNodeCpuTopology(lscpuOutput)
-	return nct.V1Alpha1(), err
-}
-
 // IsCpuSetInTopology checks if a given CPU set is present in the provided topology.
 func IsCpuSetInTopology(topology *v1alpha1.CpuTopology, cpuSet []v1alpha1.Cpu) bool {
 	remaining := len(cpuSet)
@@ -128,12 +82,12 @@ func GetAllCpusInNuma(topology *v1alpha1.CpuTopology, targetNumaId string) []int
 }
 
 // GetNumaNodesOfCpuSet returns a map of NumaNodes that contain the given CPUs in the provided CpuTopology.
-func GetNumaNodesOfCpuSet(cpus []v1alpha1.Cpu, topology v1alpha1.CpuTopology) []int {
+func GetNumaNodesOfCpuSet(cpus []int, topology v1alpha1.CpuTopology) []int {
 	numaNodes := make(map[int]struct{})
 	for numaNodeId, numaNode := range topology.NumaNodes {
 		for _, cpuInNuma := range numaNode.Cpus {
 			for _, cpu := range cpus {
-				if cpuInNuma.CpuId == cpu.CpuId {
+				if cpuInNuma.CpuId == cpu {
 					id, _ := strconv.Atoi(numaNodeId)
 					numaNodes[id] = struct{}{}
 					break
@@ -158,7 +112,6 @@ func DeleteCpuFromTopology(topology *v1alpha1.CpuTopology, cpuId int) {
 					delete(core.Cpus, strconv.Itoa(cpuId))
 					core.ListCpus = append(core.ListCpus[:i], core.ListCpus[i+1:]...)
 					break
-
 				}
 			}
 		}

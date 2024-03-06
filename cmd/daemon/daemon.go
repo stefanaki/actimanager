@@ -3,7 +3,9 @@ package main
 import (
 	"context"
 	cpupinningserver "cslab.ece.ntua.gr/actimanager/internal/daemon/cpupinning"
-	"cslab.ece.ntua.gr/actimanager/internal/pkg/cpupinning"
+	topologyserver "cslab.ece.ntua.gr/actimanager/internal/daemon/topology"
+	"cslab.ece.ntua.gr/actimanager/internal/pkg/protobuf/cpupinning"
+	"cslab.ece.ntua.gr/actimanager/internal/pkg/protobuf/topology"
 	"fmt"
 	"github.com/go-logr/logr"
 	"google.golang.org/grpc"
@@ -18,14 +20,19 @@ type DaemonServer struct {
 	grpcServer       *grpc.Server
 	endpoint         string
 	cpuPinningServer *cpupinningserver.Server
+	topologyServer   *topologyserver.Server
 	logger           logr.Logger
 }
 
-func NewDaemonServer(endpoint string, cpuPinningServer *cpupinningserver.Server, logger logr.Logger) *DaemonServer {
+func NewDaemonServer(endpoint string,
+	cpuPinningServer *cpupinningserver.Server,
+	topologyServer *topologyserver.Server,
+	logger logr.Logger) *DaemonServer {
 	return &DaemonServer{
 		grpcServer:       nil,
 		endpoint:         endpoint,
 		cpuPinningServer: cpuPinningServer,
+		topologyServer:   topologyServer,
 		logger:           logger.WithName("daemon-server"),
 	}
 }
@@ -40,6 +47,7 @@ func (s *DaemonServer) Start() error {
 
 	// Register servers below
 	cpupinning.RegisterCpuPinningServer(s.grpcServer, *s.cpuPinningServer)
+	topology.RegisterTopologyServer(s.grpcServer, *s.topologyServer)
 	healthv1.RegisterHealthServer(s.grpcServer, health.NewServer())
 
 	go func() {

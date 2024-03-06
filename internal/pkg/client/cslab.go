@@ -1,7 +1,7 @@
 package client
 
 import (
-	clientset "cslab.ece.ntua.gr/actimanager/internal/pkg/gen/clientset/versioned"
+	clientset "cslab.ece.ntua.gr/actimanager/internal/pkg/generated/clientset/versioned"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/util/homedir"

@@ -3,6 +3,7 @@ package nodecputopology
 import (
 	"context"
 	"cslab.ece.ntua.gr/actimanager/api/cslab.ece.ntua.gr/v1alpha1"
+	nctutils "cslab.ece.ntua.gr/actimanager/internal/pkg/utils/nodecputopology"
 	"fmt"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -12,7 +13,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/event"
-	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 )
 
@@ -41,13 +41,12 @@ var eventFilters = builder.WithPredicates(predicate.Funcs{
 // +kubebuilder:rbac:groups=core,resources=pods,verbs=get;list;watch
 // +kubebuilder:rbac:groups=core,resources=pods/log,verbs=get;list;watch
 // +kubebuilder:rbac:groups=core,resources=nodes,verbs=get;list;watch
-// +kubebuilder:rbac:groups=batch,resources=jobs,verbs=get;list;watch;create;delete
 // +kubebuilder:rbac:groups="",resources=events,verbs=create;patch
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
 func (r *NodeCpuTopologyReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	logger := log.FromContext(ctx).WithName("nct-controller")
+	// logger := log.FromContext(ctx).WithName("nct-controller")
 
 	// Get NodeCpuTopology CR
 	topology := &v1alpha1.NodeCpuTopology{}
@@ -59,9 +58,10 @@ func (r *NodeCpuTopologyReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 	}
 
 	// Initialize CR
-	if topology.Status.ResourceStatus == "" || topology.Status.ResourceStatus == v1alpha1.StatusNodeNotFound {
+	if topology.Status.ResourceStatus == "" ||
+		topology.Status.ResourceStatus == v1alpha1.StatusNodeNotFound ||
+		topology.Status.ResourceStatus == v1alpha1.StatusTopologyFailed {
 		topology.Status.ResourceStatus = v1alpha1.StatusNeedsSync
-		topology.Status.InitJobStatus = v1alpha1.StatusJobNone
 		if err := r.Status().Update(ctx, topology); err != nil {
 			return ctrl.Result{}, fmt.Errorf("error updating resource: %v", err)
 		}
@@ -69,86 +69,37 @@ func (r *NodeCpuTopologyReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 	}
 
 	// Check if specified NodeName is a valid name of a node
-	if err := r.Get(ctx, client.ObjectKey{Name: topology.Spec.NodeName}, &corev1.Node{}); err != nil {
-		logger.Info("Node not found", "nodeName", topology.Spec.NodeName)
+	node := &corev1.Node{}
+	if err := r.Get(ctx, client.ObjectKey{Name: topology.Spec.NodeName}, node); err != nil {
 		topology.Status.ResourceStatus = v1alpha1.StatusNodeNotFound
-		topology.Status.InitJobStatus = v1alpha1.StatusJobNone
-
 		if err := r.Status().Update(ctx, topology); err != nil {
 			return ctrl.Result{}, fmt.Errorf("could not update status: %v", err)
 		}
 		r.Recorder.Eventf(topology, corev1.EventTypeWarning, string(v1alpha1.StatusNodeNotFound), "Node %s not found", topology.Spec.NodeName)
-
 		return ctrl.Result{}, nil
 	}
 
-	// Handle reconcilation
-	switch topology.Status.ResourceStatus {
-	case v1alpha1.StatusNeedsSync:
-		// If ResourceStatus is empty or NeedsSync, initiate job
-		switch topology.Status.InitJobStatus {
-		case v1alpha1.StatusJobNone:
-			jobName, err := r.createInitJob(topology, ctx, &logger)
-
-			r.Recorder.Eventf(topology, corev1.EventTypeNormal, string(v1alpha1.StatusJobPending), "Created initialization job %v", jobName)
-
-			topology.Status.InitJobStatus = v1alpha1.StatusJobPending
-			topology.Status.InitJobName = jobName
-
-			if err = r.Status().Update(ctx, topology); err != nil {
-				return ctrl.Result{}, fmt.Errorf("error updating resource: %v", err)
-			}
-
-			return ctrl.Result{}, nil
-		case v1alpha1.StatusJobPending:
-			// While InitJobStatus is Pending, requeue the CR until the pod completes
-			isCompleted, err := r.isJobCompleted(topology, ctx)
-			if err != nil {
-				r.Recorder.Eventf(topology, corev1.EventTypeWarning, string(v1alpha1.StatusFailed), "Failed to get job status: %v", err)
-				return ctrl.Result{}, err
-			}
-
-			if !isCompleted {
-				return ctrl.Result{Requeue: true}, nil
-			}
-
-			cpuTopology, err := r.parseCompletedPod(topology, ctx, &logger)
-
-			if err != nil {
-				r.Recorder.Eventf(topology, corev1.EventTypeWarning, string(v1alpha1.StatusFailed), "Failed to parse job logs: %v", err)
-				return ctrl.Result{}, fmt.Errorf("error getting cpu topology: %v", err)
-			}
-
-			topology.Spec.Topology = cpuTopology
-			if err := r.Update(ctx, topology); err != nil {
-				r.Recorder.Eventf(topology, corev1.EventTypeWarning, string(v1alpha1.StatusFailed), "Failed to update spec: %v", err)
-				return ctrl.Result{Requeue: true}, fmt.Errorf("error updating NodeCpuTopology spec: %v", err)
-			}
-
-			topology.Status.ResourceStatus = v1alpha1.StatusFresh
-			topology.Status.InitJobStatus = v1alpha1.StatusJobCompleted
-			if err = r.Status().Update(ctx, topology); err != nil {
-				r.Recorder.Eventf(topology, corev1.EventTypeWarning, string(v1alpha1.StatusFailed), "Failed to update status: %v", err)
-				return ctrl.Result{}, fmt.Errorf("error updating NodeCpuTopology status: %v", err)
-			}
-
-			r.Recorder.Event(topology, corev1.EventTypeNormal, string(v1alpha1.StatusJobCompleted), "Initialized successfully")
-
-			if err := r.deleteJob(ctx, topology.Status.InitJobName); err != nil {
-				r.Recorder.Eventf(topology, corev1.EventTypeWarning, string(v1alpha1.StatusFailed), "Failed to delete job: %v", err)
-				return ctrl.Result{}, fmt.Errorf("error updating NodeCpuTopology status: %v", err)
-			} else {
-				logger.Info("Job deleted", "jobName", topology.Status.InitJobName)
-			}
-
-			return ctrl.Result{}, nil
-
-		default:
-			return ctrl.Result{}, nil
-		}
-	default:
-		return ctrl.Result{}, nil
+	// Handle reconciliation
+	topologyResponse, err := r.getTopology(ctx, node)
+	if err != nil {
+		r.Recorder.Eventf(topology, corev1.EventTypeWarning, string(v1alpha1.StatusTopologyFailed), "Failed to get topology: %v", err)
+		return ctrl.Result{}, err
 	}
+	cpuTopology := nctutils.TopologyToV1Alpha1(topologyResponse)
+	topology.Spec.Topology = *cpuTopology
+	topology.Spec.NodeName = node.Name
+	if err := r.Update(ctx, topology); err != nil {
+		r.Recorder.Eventf(topology, corev1.EventTypeWarning, string(v1alpha1.StatusTopologyFailed), "Failed to update topology: %v", err)
+		return ctrl.Result{}, err
+	}
+	topology.Status.ResourceStatus = v1alpha1.StatusFresh
+	if err := r.Status().Update(ctx, topology); err != nil {
+		r.Recorder.Eventf(topology, corev1.EventTypeWarning, string(v1alpha1.StatusTopologyFailed), "Failed to update status: %v", err)
+		return ctrl.Result{}, err
+	}
+
+	r.Recorder.Eventf(topology, corev1.EventTypeNormal, string(v1alpha1.StatusFresh), "Topology is up to date, CPUs: %v", topology.Spec.Topology.ListCpus)
+	return ctrl.Result{}, nil
 }
 
 // SetupWithManager sets up the controller with the Manager.

@@ -25,9 +25,16 @@ RUN CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} go build -a -o ma
 RUN CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} go build -a -o daemon cmd/daemon/main.go cmd/daemon/daemon.go
 RUN CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} go build -a -o scheduler cmd/scheduler/main.go
 
-# Use distroless as minimal base image to package the manager binary
-# Refer to https://github.com/GoogleContainerTools/distroless for more details
-FROM gcr.io/distroless/static:nonroot
+## Use distroless as minimal base image to package the manager binary
+## Refer to https://github.com/GoogleContainerTools/distroless for more details
+#FROM gcr.io/distroless/static:nonroot
+#WORKDIR /
+#COPY --from=builder /workspace/manager .
+#COPY --from=builder /workspace/daemon .
+#COPY --from=builder /workspace/scheduler .
+#USER root:root
+
+FROM ubuntu
 WORKDIR /
 COPY --from=builder /workspace/manager .
 COPY --from=builder /workspace/daemon .

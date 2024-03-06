@@ -68,7 +68,7 @@ func (c *CgroupsController) updateCpuSetV1(slice, cpuSet, memSet string, quota *
 
 // updateCpuSetV2 updates cgroups for v2 (unified) mode.
 func (c *CgroupsController) updateCpuSetV2(slice, cpuSet, memSet string, quota *int64, shares, period *uint64) error {
-	weight := uint64(CpuSharesToCpuWeight(*shares))
+	weight := CpuSharesToCpuWeight(*shares)
 
 	res := cgroupsv2.Resources{CPU: &cgroupsv2.CPU{
 		Cpus:   cpuSet,
