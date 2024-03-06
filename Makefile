@@ -49,7 +49,7 @@ manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole and Cust
 	$(CONTROLLER_GEN) rbac:roleName=manager-role crd webhook paths="./..." output:crd:artifacts:config=config/crd/bases
 
 .PHONY: generate
-generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.
+generate: controller-gen proto codegen ## Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.
 	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./..."
 
 .PHONY: fmt
@@ -201,9 +201,17 @@ envtest: $(ENVTEST) ## Download envtest-setup locally if necessary.
 $(ENVTEST): $(LOCALBIN)
 	test -s $(LOCALBIN)/setup-envtest || GOBIN=$(LOCALBIN) go install sigs.k8s.io/controller-runtime/tools/setup-envtest@latest
 
-.PHONY: cpupinning-codegen
+.PHONY: proto
 proto:
 	protoc \
-	internal/pkg/cpupinning/cpupinning.proto \
+	internal/pkg/protobuf/cpupinning/cpupinning.proto \
 	--go_out=paths=source_relative:. \
 	--go-grpc_out=paths=source_relative:.
+	protoc \
+	internal/pkg/protobuf/topology/topology.proto \
+	--go_out=paths=source_relative:. \
+	--go-grpc_out=paths=source_relative:.
+
+.PHONY: codegen
+codegen:
+	hack/update-codegen.sh

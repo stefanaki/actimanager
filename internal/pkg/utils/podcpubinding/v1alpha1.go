@@ -7,33 +7,37 @@ import (
 
 // GetExclusiveCpusOfCpuBinding returns the exclusive CPUs
 // for a given CPU binding based on its exclusiveness level
-func GetExclusiveCpusOfCpuBinding(cpuBinding *v1alpha1.PodCpuBinding, topology *v1alpha1.NodeCpuTopology) map[int]struct{} {
+func GetExclusiveCpusOfCpuBinding(cpuBinding *v1alpha1.PodCpuBinding, topology *v1alpha1.CpuTopology) map[int]struct{} {
 	exclusiveCpus := make(map[int]struct{})
-
 	for _, cpu := range cpuBinding.Spec.CpuSet {
-		_, coreId, socketId, numaId := nct.GetCpuParentInfo(&topology.Spec.Topology, cpu.CpuId)
-
+		_, coreId, socketId, numaId := nct.GetCpuParentInfo(topology, cpu.CpuId)
 		switch cpuBinding.Spec.ExclusivenessLevel {
 		case "Cpu":
 			exclusiveCpus[cpu.CpuId] = struct{}{}
 		case "Core":
-			for _, c := range nct.GetAllCpusInCore(&topology.Spec.Topology, coreId) {
+			for _, c := range nct.GetAllCpusInCore(topology, coreId) {
 				exclusiveCpus[c] = struct{}{}
 			}
 		case "Socket":
-			for _, c := range nct.GetAllCpusInSocket(&topology.Spec.Topology, socketId) {
+			for _, c := range nct.GetAllCpusInSocket(topology, socketId) {
 				exclusiveCpus[c] = struct{}{}
 			}
 		case "Numa":
-			for _, c := range nct.GetAllCpusInNuma(&topology.Spec.Topology, numaId) {
+			for _, c := range nct.GetAllCpusInNuma(topology, numaId) {
 				exclusiveCpus[c] = struct{}{}
 			}
 		default:
-
 		}
 	}
-
 	return exclusiveCpus
+}
+
+func GetCpusOfCpuBinding(cpuBinding *v1alpha1.PodCpuBinding) map[int]struct{} {
+	cpus := make(map[int]struct{})
+	for _, cpu := range cpuBinding.Spec.CpuSet {
+		cpus[cpu.CpuId] = struct{}{}
+	}
+	return cpus
 }
 
 func ConvertCpuSliceToIntSlice(cpuSlice []v1alpha1.Cpu) []int {

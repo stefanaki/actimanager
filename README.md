@@ -28,11 +28,14 @@ This repository is a framework for fine-grained orchestration of Kubernetes Pods
   - A custom scheduler that schedules Pods based on the CRD's.
   - Implements multiple scheduling policies for different use cases.
 - **Daemon**
-    - A gRPC server that runs on each node and tries to bind the Pods to the CPU's according to the CRD's.
+    - A gRPC server that runs on each node as a DaemonSet.
+    - Exposes `Topology` and `CpuPinning` services to interact with each node.
+    - Reconciles the resources of the Pods inside each host.
 - **Utility Libraries**:
     - Code-generated clientset, informers, listers for CRD's
+    - Protobuf definitions for the gRPC services.
     - Utility functions for interacting with the Kubernetes API.
-    - Linux `cgroup` utilities for interacting with the host.
+    - Linux cgroup utilities for interacting with the host.
 
 
 ## Getting Started

@@ -13,7 +13,7 @@ spec:
       labels:
         app: daemon
     spec:
-      serviceAccountName: default
+      serviceAccountName: controller-manager
       hostNetwork: true
       containers:
         - name: actimanager-daemon

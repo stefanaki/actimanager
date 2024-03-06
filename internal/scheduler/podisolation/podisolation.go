@@ -151,7 +151,7 @@ func (p *PodIsolation) PreFilter(ctx context.Context, state *framework.CycleStat
 			// and exclude them from nodeFeasibleCpus
 			stateData.PodCpuBindings[nodeName] = append(stateData.PodCpuBindings[nodeName], binding)
 			// For every CPU binding, get all exclusive CPUs and remove them from the topology
-			for exclusiveCpu := range pcbutils.GetExclusiveCpusOfCpuBinding(&binding, &topology) {
+			for exclusiveCpu := range pcbutils.GetExclusiveCpusOfCpuBinding(&binding, &topology.Spec.Topology) {
 				// Delete CPU with key cpuId from nodeFeasibleCpus topology
 				nctutils.DeleteCpuFromTopology(nodeFeasibleCpus, exclusiveCpu)
 			}

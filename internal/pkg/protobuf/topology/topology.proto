@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+
+option go_package = "/topology";
+
+message NUMANode {
+  int64 id = 1;
+  repeated int64 cpus = 2;
+}
+
+message Socket {
+  int64 id = 1;
+  map<string, Core> cores = 2;
+}
+
+message Core {
+  int64 id = 1;
+  repeated int64 cpus = 2;
+}
+
+message TopologyResponse {
+  map<string, NUMANode> numaNodes = 1;
+  map<string, Socket> sockets = 2;
+  repeated int64 cpus = 3;
+}
+
+service Topology {
+  rpc GetTopology (google.protobuf.Empty) returns (TopologyResponse) {}
+}

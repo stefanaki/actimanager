@@ -9,7 +9,7 @@ MODULE=cslab.ece.ntua.gr/actimanager
 # api package
 APIS_PKG=api
 # generated output package
-OUTPUT_PKG=internal/pkg/gen
+OUTPUT_PKG=internal/pkg/generated
 
 GROUP_VERSION=cslab.ece.ntua.gr:v1alpha1
 

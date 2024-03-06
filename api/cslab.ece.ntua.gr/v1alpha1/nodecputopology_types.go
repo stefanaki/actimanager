@@ -5,15 +5,12 @@ import (
 )
 
 type NodeCpuTopologyResourceStatus string
-type NodeCpuTopologyJobStatus string
 
 const (
-	StatusNeedsSync    NodeCpuTopologyResourceStatus = "NeedsSync"
-	StatusNodeNotFound NodeCpuTopologyResourceStatus = "NodeNotFound"
-	StatusFresh        NodeCpuTopologyResourceStatus = "Fresh"
-	StatusJobNone      NodeCpuTopologyJobStatus      = "None"
-	StatusJobPending   NodeCpuTopologyJobStatus      = "Pending"
-	StatusJobCompleted NodeCpuTopologyJobStatus      = "Completed"
+	StatusNeedsSync      NodeCpuTopologyResourceStatus = "NeedsSync"
+	StatusNodeNotFound   NodeCpuTopologyResourceStatus = "NodeNotFound"
+	StatusFresh          NodeCpuTopologyResourceStatus = "Fresh"
+	StatusTopologyFailed NodeCpuTopologyResourceStatus = "Failed"
 )
 
 // NodeCpuTopologySpec defines the desired state of NodeCpuTopology
@@ -27,10 +24,6 @@ type NodeCpuTopologySpec struct {
 // NodeCpuTopologyStatus defines the observed state of NodeCpuTopology
 type NodeCpuTopologyStatus struct {
 	//+kubebuilder:validation:Required
-	InitJobStatus NodeCpuTopologyJobStatus `json:"initJobStatus"`
-	InitJobName   string                   `json:"initJobName"`
-
-	//+kubebuilder:validation:Required
 	ResourceStatus NodeCpuTopologyResourceStatus `json:"resourceStatus"`
 }
 
@@ -42,7 +35,6 @@ type NodeCpuTopologyStatus struct {
 // +kubebuilder:resource:scope=Cluster,shortName=nct
 // +kubebuilder:printcolumn:name="Node",type=string,JSONPath=`.spec.nodeName`
 // +kubebuilder:printcolumn:name="Resource Status",type=string,JSONPath=`.status.resourceStatus`
-// +kubebuilder:printcolumn:name="Job Status",type=string,JSONPath=`.status.initJobStatus`
 
 // NodeCpuTopology is the Schema for the nodecputopologies API
 type NodeCpuTopology struct {

@@ -1,12 +1,18 @@
 package cpupinning
 
+type ResourceInfo struct {
+	RequestedCpus   int64
+	LimitCpus       int64
+	RequestedMemory string
+	LimitMemory     string
+}
+
 // ContainerInfo Represents a container in the Daemon.
 type ContainerInfo struct {
-	CID  string
-	PID  string
-	Name string
-	Cpus int32
-	QS   QoS
+	CID       string
+	PID       string
+	Name      string
+	Resources ResourceInfo
 }
 
 // QoS pod and containers quality of service type.

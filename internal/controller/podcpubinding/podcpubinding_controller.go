@@ -147,7 +147,7 @@ func (r *PodCpuBindingReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 	// Handle reconcilation
 	// Apply CPU pinning
 	cpuSet := pcbutils.ConvertCpuSliceToIntSlice(cpuBinding.Spec.CpuSet)
-	memSet := nctutils.GetNumaNodesOfCpuSet(cpuBinding.Spec.CpuSet, topology.Spec.Topology)
+	memSet := nctutils.GetNumaNodesOfCpuSet(cpuSet, topology.Spec.Topology)
 	err = r.applyCpuPinning(ctx, cpuSet, memSet, pod)
 	if err != nil {
 		r.Recorder.Eventf(cpuBinding, corev1.EventTypeWarning, string(v1alpha1.StatusFailed), "Failed to apply CPU pinning to pod %s: %v", cpuBinding.Spec.PodName, err)
