@@ -23,22 +23,22 @@ import (
 	v1 "k8s.io/client-go/applyconfigurations/meta/v1"
 )
 
-// PodCpuBindingApplyConfiguration represents an declarative configuration of the PodCpuBinding type for use
+// PodCPUBindingApplyConfiguration represents an declarative configuration of the PodCPUBinding type for use
 // with apply.
-type PodCpuBindingApplyConfiguration struct {
+type PodCPUBindingApplyConfiguration struct {
 	v1.TypeMetaApplyConfiguration    `json:",inline"`
 	*v1.ObjectMetaApplyConfiguration `json:"metadata,omitempty"`
-	Spec                             *PodCpuBindingSpecApplyConfiguration   `json:"spec,omitempty"`
-	Status                           *PodCpuBindingStatusApplyConfiguration `json:"status,omitempty"`
+	Spec                             *PodCPUBindingSpecApplyConfiguration   `json:"spec,omitempty"`
+	Status                           *PodCPUBindingStatusApplyConfiguration `json:"status,omitempty"`
 }
 
-// PodCpuBinding constructs an declarative configuration of the PodCpuBinding type for use with
+// PodCPUBinding constructs an declarative configuration of the PodCPUBinding type for use with
 // apply.
-func PodCpuBinding(name, namespace string) *PodCpuBindingApplyConfiguration {
-	b := &PodCpuBindingApplyConfiguration{}
+func PodCPUBinding(name, namespace string) *PodCPUBindingApplyConfiguration {
+	b := &PodCPUBindingApplyConfiguration{}
 	b.WithName(name)
 	b.WithNamespace(namespace)
-	b.WithKind("PodCpuBinding")
+	b.WithKind("PodCPUBinding")
 	b.WithAPIVersion("cslab.ece.ntua.gr/v1alpha1")
 	return b
 }
@@ -46,7 +46,7 @@ func PodCpuBinding(name, namespace string) *PodCpuBindingApplyConfiguration {
 // WithKind sets the Kind field in the declarative configuration to the given value
 // and returns the receiver, so that objects can be built by chaining "With" function invocations.
 // If called multiple times, the Kind field is set to the value of the last call.
-func (b *PodCpuBindingApplyConfiguration) WithKind(value string) *PodCpuBindingApplyConfiguration {
+func (b *PodCPUBindingApplyConfiguration) WithKind(value string) *PodCPUBindingApplyConfiguration {
 	b.Kind = &value
 	return b
 }
@@ -54,7 +54,7 @@ func (b *PodCpuBindingApplyConfiguration) WithKind(value string) *PodCpuBindingA
 // WithAPIVersion sets the APIVersion field in the declarative configuration to the given value
 // and returns the receiver, so that objects can be built by chaining "With" function invocations.
 // If called multiple times, the APIVersion field is set to the value of the last call.
-func (b *PodCpuBindingApplyConfiguration) WithAPIVersion(value string) *PodCpuBindingApplyConfiguration {
+func (b *PodCPUBindingApplyConfiguration) WithAPIVersion(value string) *PodCPUBindingApplyConfiguration {
 	b.APIVersion = &value
 	return b
 }
@@ -62,7 +62,7 @@ func (b *PodCpuBindingApplyConfiguration) WithAPIVersion(value string) *PodCpuBi
 // WithName sets the Name field in the declarative configuration to the given value
 // and returns the receiver, so that objects can be built by chaining "With" function invocations.
 // If called multiple times, the Name field is set to the value of the last call.
-func (b *PodCpuBindingApplyConfiguration) WithName(value string) *PodCpuBindingApplyConfiguration {
+func (b *PodCPUBindingApplyConfiguration) WithName(value string) *PodCPUBindingApplyConfiguration {
 	b.ensureObjectMetaApplyConfigurationExists()
 	b.Name = &value
 	return b
@@ -71,7 +71,7 @@ func (b *PodCpuBindingApplyConfiguration) WithName(value string) *PodCpuBindingA
 // WithGenerateName sets the GenerateName field in the declarative configuration to the given value
 // and returns the receiver, so that objects can be built by chaining "With" function invocations.
 // If called multiple times, the GenerateName field is set to the value of the last call.
-func (b *PodCpuBindingApplyConfiguration) WithGenerateName(value string) *PodCpuBindingApplyConfiguration {
+func (b *PodCPUBindingApplyConfiguration) WithGenerateName(value string) *PodCPUBindingApplyConfiguration {
 	b.ensureObjectMetaApplyConfigurationExists()
 	b.GenerateName = &value
 	return b
@@ -80,7 +80,7 @@ func (b *PodCpuBindingApplyConfiguration) WithGenerateName(value string) *PodCpu
 // WithNamespace sets the Namespace field in the declarative configuration to the given value
 // and returns the receiver, so that objects can be built by chaining "With" function invocations.
 // If called multiple times, the Namespace field is set to the value of the last call.
-func (b *PodCpuBindingApplyConfiguration) WithNamespace(value string) *PodCpuBindingApplyConfiguration {
+func (b *PodCPUBindingApplyConfiguration) WithNamespace(value string) *PodCPUBindingApplyConfiguration {
 	b.ensureObjectMetaApplyConfigurationExists()
 	b.Namespace = &value
 	return b
@@ -89,7 +89,7 @@ func (b *PodCpuBindingApplyConfiguration) WithNamespace(value string) *PodCpuBin
 // WithUID sets the UID field in the declarative configuration to the given value
 // and returns the receiver, so that objects can be built by chaining "With" function invocations.
 // If called multiple times, the UID field is set to the value of the last call.
-func (b *PodCpuBindingApplyConfiguration) WithUID(value types.UID) *PodCpuBindingApplyConfiguration {
+func (b *PodCPUBindingApplyConfiguration) WithUID(value types.UID) *PodCPUBindingApplyConfiguration {
 	b.ensureObjectMetaApplyConfigurationExists()
 	b.UID = &value
 	return b
@@ -98,7 +98,7 @@ func (b *PodCpuBindingApplyConfiguration) WithUID(value types.UID) *PodCpuBindin
 // WithResourceVersion sets the ResourceVersion field in the declarative configuration to the given value
 // and returns the receiver, so that objects can be built by chaining "With" function invocations.
 // If called multiple times, the ResourceVersion field is set to the value of the last call.
-func (b *PodCpuBindingApplyConfiguration) WithResourceVersion(value string) *PodCpuBindingApplyConfiguration {
+func (b *PodCPUBindingApplyConfiguration) WithResourceVersion(value string) *PodCPUBindingApplyConfiguration {
 	b.ensureObjectMetaApplyConfigurationExists()
 	b.ResourceVersion = &value
 	return b
@@ -107,7 +107,7 @@ func (b *PodCpuBindingApplyConfiguration) WithResourceVersion(value string) *Pod
 // WithGeneration sets the Generation field in the declarative configuration to the given value
 // and returns the receiver, so that objects can be built by chaining "With" function invocations.
 // If called multiple times, the Generation field is set to the value of the last call.
-func (b *PodCpuBindingApplyConfiguration) WithGeneration(value int64) *PodCpuBindingApplyConfiguration {
+func (b *PodCPUBindingApplyConfiguration) WithGeneration(value int64) *PodCPUBindingApplyConfiguration {
 	b.ensureObjectMetaApplyConfigurationExists()
 	b.Generation = &value
 	return b
@@ -116,7 +116,7 @@ func (b *PodCpuBindingApplyConfiguration) WithGeneration(value int64) *PodCpuBin
 // WithCreationTimestamp sets the CreationTimestamp field in the declarative configuration to the given value
 // and returns the receiver, so that objects can be built by chaining "With" function invocations.
 // If called multiple times, the CreationTimestamp field is set to the value of the last call.
-func (b *PodCpuBindingApplyConfiguration) WithCreationTimestamp(value metav1.Time) *PodCpuBindingApplyConfiguration {
+func (b *PodCPUBindingApplyConfiguration) WithCreationTimestamp(value metav1.Time) *PodCPUBindingApplyConfiguration {
 	b.ensureObjectMetaApplyConfigurationExists()
 	b.CreationTimestamp = &value
 	return b
@@ -125,7 +125,7 @@ func (b *PodCpuBindingApplyConfiguration) WithCreationTimestamp(value metav1.Tim
 // WithDeletionTimestamp sets the DeletionTimestamp field in the declarative configuration to the given value
 // and returns the receiver, so that objects can be built by chaining "With" function invocations.
 // If called multiple times, the DeletionTimestamp field is set to the value of the last call.
-func (b *PodCpuBindingApplyConfiguration) WithDeletionTimestamp(value metav1.Time) *PodCpuBindingApplyConfiguration {
+func (b *PodCPUBindingApplyConfiguration) WithDeletionTimestamp(value metav1.Time) *PodCPUBindingApplyConfiguration {
 	b.ensureObjectMetaApplyConfigurationExists()
 	b.DeletionTimestamp = &value
 	return b
@@ -134,7 +134,7 @@ func (b *PodCpuBindingApplyConfiguration) WithDeletionTimestamp(value metav1.Tim
 // WithDeletionGracePeriodSeconds sets the DeletionGracePeriodSeconds field in the declarative configuration to the given value
 // and returns the receiver, so that objects can be built by chaining "With" function invocations.
 // If called multiple times, the DeletionGracePeriodSeconds field is set to the value of the last call.
-func (b *PodCpuBindingApplyConfiguration) WithDeletionGracePeriodSeconds(value int64) *PodCpuBindingApplyConfiguration {
+func (b *PodCPUBindingApplyConfiguration) WithDeletionGracePeriodSeconds(value int64) *PodCPUBindingApplyConfiguration {
 	b.ensureObjectMetaApplyConfigurationExists()
 	b.DeletionGracePeriodSeconds = &value
 	return b
@@ -144,7 +144,7 @@ func (b *PodCpuBindingApplyConfiguration) WithDeletionGracePeriodSeconds(value i
 // and returns the receiver, so that objects can be build by chaining "With" function invocations.
 // If called multiple times, the entries provided by each call will be put on the Labels field,
 // overwriting an existing map entries in Labels field with the same key.
-func (b *PodCpuBindingApplyConfiguration) WithLabels(entries map[string]string) *PodCpuBindingApplyConfiguration {
+func (b *PodCPUBindingApplyConfiguration) WithLabels(entries map[string]string) *PodCPUBindingApplyConfiguration {
 	b.ensureObjectMetaApplyConfigurationExists()
 	if b.Labels == nil && len(entries) > 0 {
 		b.Labels = make(map[string]string, len(entries))
@@ -159,7 +159,7 @@ func (b *PodCpuBindingApplyConfiguration) WithLabels(entries map[string]string) 
 // and returns the receiver, so that objects can be build by chaining "With" function invocations.
 // If called multiple times, the entries provided by each call will be put on the Annotations field,
 // overwriting an existing map entries in Annotations field with the same key.
-func (b *PodCpuBindingApplyConfiguration) WithAnnotations(entries map[string]string) *PodCpuBindingApplyConfiguration {
+func (b *PodCPUBindingApplyConfiguration) WithAnnotations(entries map[string]string) *PodCPUBindingApplyConfiguration {
 	b.ensureObjectMetaApplyConfigurationExists()
 	if b.Annotations == nil && len(entries) > 0 {
 		b.Annotations = make(map[string]string, len(entries))
@@ -173,7 +173,7 @@ func (b *PodCpuBindingApplyConfiguration) WithAnnotations(entries map[string]str
 // WithOwnerReferences adds the given value to the OwnerReferences field in the declarative configuration
 // and returns the receiver, so that objects can be build by chaining "With" function invocations.
 // If called multiple times, values provided by each call will be appended to the OwnerReferences field.
-func (b *PodCpuBindingApplyConfiguration) WithOwnerReferences(values ...*v1.OwnerReferenceApplyConfiguration) *PodCpuBindingApplyConfiguration {
+func (b *PodCPUBindingApplyConfiguration) WithOwnerReferences(values ...*v1.OwnerReferenceApplyConfiguration) *PodCPUBindingApplyConfiguration {
 	b.ensureObjectMetaApplyConfigurationExists()
 	for i := range values {
 		if values[i] == nil {
@@ -187,7 +187,7 @@ func (b *PodCpuBindingApplyConfiguration) WithOwnerReferences(values ...*v1.Owne
 // WithFinalizers adds the given value to the Finalizers field in the declarative configuration
 // and returns the receiver, so that objects can be build by chaining "With" function invocations.
 // If called multiple times, values provided by each call will be appended to the Finalizers field.
-func (b *PodCpuBindingApplyConfiguration) WithFinalizers(values ...string) *PodCpuBindingApplyConfiguration {
+func (b *PodCPUBindingApplyConfiguration) WithFinalizers(values ...string) *PodCPUBindingApplyConfiguration {
 	b.ensureObjectMetaApplyConfigurationExists()
 	for i := range values {
 		b.Finalizers = append(b.Finalizers, values[i])
@@ -195,7 +195,7 @@ func (b *PodCpuBindingApplyConfiguration) WithFinalizers(values ...string) *PodC
 	return b
 }
 
-func (b *PodCpuBindingApplyConfiguration) ensureObjectMetaApplyConfigurationExists() {
+func (b *PodCPUBindingApplyConfiguration) ensureObjectMetaApplyConfigurationExists() {
 	if b.ObjectMetaApplyConfiguration == nil {
 		b.ObjectMetaApplyConfiguration = &v1.ObjectMetaApplyConfiguration{}
 	}
@@ -204,7 +204,7 @@ func (b *PodCpuBindingApplyConfiguration) ensureObjectMetaApplyConfigurationExis
 // WithSpec sets the Spec field in the declarative configuration to the given value
 // and returns the receiver, so that objects can be built by chaining "With" function invocations.
 // If called multiple times, the Spec field is set to the value of the last call.
-func (b *PodCpuBindingApplyConfiguration) WithSpec(value *PodCpuBindingSpecApplyConfiguration) *PodCpuBindingApplyConfiguration {
+func (b *PodCPUBindingApplyConfiguration) WithSpec(value *PodCPUBindingSpecApplyConfiguration) *PodCPUBindingApplyConfiguration {
 	b.Spec = value
 	return b
 }
@@ -212,7 +212,7 @@ func (b *PodCpuBindingApplyConfiguration) WithSpec(value *PodCpuBindingSpecApply
 // WithStatus sets the Status field in the declarative configuration to the given value
 // and returns the receiver, so that objects can be built by chaining "With" function invocations.
 // If called multiple times, the Status field is set to the value of the last call.
-func (b *PodCpuBindingApplyConfiguration) WithStatus(value *PodCpuBindingStatusApplyConfiguration) *PodCpuBindingApplyConfiguration {
+func (b *PodCPUBindingApplyConfiguration) WithStatus(value *PodCPUBindingStatusApplyConfiguration) *PodCPUBindingApplyConfiguration {
 	b.Status = value
 	return b
 }

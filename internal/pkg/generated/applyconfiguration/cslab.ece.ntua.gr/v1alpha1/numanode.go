@@ -17,24 +17,24 @@ limitations under the License.
 
 package v1alpha1
 
-// NumaNodeApplyConfiguration represents an declarative configuration of the NumaNode type for use
+// NUMANodeApplyConfiguration represents an declarative configuration of the NUMANode type for use
 // with apply.
-type NumaNodeApplyConfiguration struct {
-	Cpus []int `json:"cpus,omitempty"`
+type NUMANodeApplyConfiguration struct {
+	CPUs []int `json:"cpus,omitempty"`
 }
 
-// NumaNodeApplyConfiguration constructs an declarative configuration of the NumaNode type for use with
+// NUMANodeApplyConfiguration constructs an declarative configuration of the NUMANode type for use with
 // apply.
-func NumaNode() *NumaNodeApplyConfiguration {
-	return &NumaNodeApplyConfiguration{}
+func NUMANode() *NUMANodeApplyConfiguration {
+	return &NUMANodeApplyConfiguration{}
 }
 
-// WithCpus adds the given value to the Cpus field in the declarative configuration
+// WithCPUs adds the given value to the CPUs field in the declarative configuration
 // and returns the receiver, so that objects can be build by chaining "With" function invocations.
-// If called multiple times, values provided by each call will be appended to the Cpus field.
-func (b *NumaNodeApplyConfiguration) WithCpus(values ...int) *NumaNodeApplyConfiguration {
+// If called multiple times, values provided by each call will be appended to the CPUs field.
+func (b *NUMANodeApplyConfiguration) WithCPUs(values ...int) *NUMANodeApplyConfiguration {
 	for i := range values {
-		b.Cpus = append(b.Cpus, values[i])
+		b.CPUs = append(b.CPUs, values[i])
 	}
 	return b
 }

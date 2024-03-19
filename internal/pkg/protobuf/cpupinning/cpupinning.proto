@@ -3,8 +3,8 @@ syntax = "proto3";
 option go_package = "/cpupinning";
 
 message ResourceInfo {
-  int32 requestedCpus = 1;
-  int32 limitCpus = 2;
+  int32 requestedCPUs = 1;
+  int32 limitCPUs = 2;
   string requestedMemory = 3;
   string limitMemory = 4;
 }
@@ -50,7 +50,7 @@ message Response {
   optional ErrorType errorType = 3;
 }
 
-service CpuPinning {
+service CPUPinning {
   rpc ApplyPinning(ApplyPinningRequest) returns (Response);
   rpc RemovePinning(RemovePinningRequest) returns (Response);
 }

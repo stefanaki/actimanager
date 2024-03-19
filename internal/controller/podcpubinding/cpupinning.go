@@ -10,8 +10,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
-// applyCpuPinning applies CPU pinning for a given pod on a specified node
-func (r *PodCpuBindingReconciler) applyCpuPinning(
+// applyCPUPinning applies CPU pinning for a given pod on a specified node
+func (r *PodCPUBindingReconciler) applyCPUPinning(
 	ctx context.Context,
 	cpuSet []int,
 	memSet []int,
@@ -31,15 +31,15 @@ func (r *PodCpuBindingReconciler) applyCpuPinning(
 
 	defer conn.Close()
 
-	cpuPinningClient := cpupinning.NewCpuPinningClient(conn)
-	applyCpuPinningRequest := &cpupinning.ApplyPinningRequest{
+	cpuPinningClient := cpupinning.NewCPUPinningClient(conn)
+	applyCPUPinningRequest := &cpupinning.ApplyPinningRequest{
 		Pod:    cpupinning.ParsePodInfo(pod),
 		CpuSet: convertIntSliceToInt32(cpuSet),
 		MemSet: convertIntSliceToInt32(memSet),
 	}
-	logger.Info("Requesting CPU pinning", "request", applyCpuPinningRequest)
+	logger.Info("Requesting CPU pinning", "request", applyCPUPinningRequest)
 
-	res, err := cpuPinningClient.ApplyPinning(ctx, applyCpuPinningRequest)
+	res, err := cpuPinningClient.ApplyPinning(ctx, applyCPUPinningRequest)
 	if err != nil {
 		return fmt.Errorf("failed to apply CPU pinning: %v", err.Error())
 	}
@@ -51,8 +51,8 @@ func (r *PodCpuBindingReconciler) applyCpuPinning(
 	return nil
 }
 
-// removeCpuPinning removes CPU pinning for a given pod on a specified node
-func (r *PodCpuBindingReconciler) removeCpuPinning(
+// removeCPUPinning removes CPU pinning for a given pod on a specified node
+func (r *PodCPUBindingReconciler) removeCPUPinning(
 	ctx context.Context,
 	pod *corev1.Pod) error {
 	logger := log.FromContext(ctx).WithName("remove-pinning")
@@ -65,11 +65,11 @@ func (r *PodCpuBindingReconciler) removeCpuPinning(
 	conn, err := grpc.Dial(fmt.Sprintf("%v:8089", nodeAddress), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	defer conn.Close()
 
-	cpuPinningClient := cpupinning.NewCpuPinningClient(conn)
-	removeCpuPinningRequest := &cpupinning.RemovePinningRequest{Pod: cpupinning.ParsePodInfo(pod)}
-	logger.Info("Removing CPU pinning", "request", removeCpuPinningRequest)
+	cpuPinningClient := cpupinning.NewCPUPinningClient(conn)
+	removeCPUPinningRequest := &cpupinning.RemovePinningRequest{Pod: cpupinning.ParsePodInfo(pod)}
+	logger.Info("Removing CPU pinning", "request", removeCPUPinningRequest)
 
-	res, err := cpuPinningClient.RemovePinning(ctx, removeCpuPinningRequest)
+	res, err := cpuPinningClient.RemovePinning(ctx, removeCPUPinningRequest)
 	if err != nil {
 		return fmt.Errorf("failed to remove CPU pinning: %v", err.Error())
 	}

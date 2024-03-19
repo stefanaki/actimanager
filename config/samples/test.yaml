@@ -1,5 +1,5 @@
 apiVersion: cslab.ece.ntua.gr/v1alpha1
-kind: PodCpuBinding
+kind: PodCPUBinding
 metadata:
   creationTimestamp: "2024-02-23T20:25:20Z"
   finalizers:
@@ -11,9 +11,9 @@ metadata:
   uid: 87c006e5-7c87-4723-9e4e-30b1bc320e2d
 spec:
   cpuSet:
-  - cpuId: 0
-  - cpuId: 1
-  - cpuId: 2
-  exclusivenessLevel: Cpu
+  - cpuID: 0
+  - cpuID: 1
+  - cpuID: 2
+  exclusivenessLevel: CPU
   podName: benchpod-core-2
 

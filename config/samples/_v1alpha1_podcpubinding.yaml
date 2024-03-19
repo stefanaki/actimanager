@@ -1,5 +1,5 @@
 apiVersion: cslab.ece.ntua.gr/v1alpha1
-kind: PodCpuBinding
+kind: PodCPUBinding
 metadata:
   labels:
     app.kubernetes.io/name: podcpubinding
@@ -10,9 +10,9 @@ metadata:
   name: bind
   namespace: benchmarks
 spec:
-  exclusivenessLevel: Cpu
+  exclusivenessLevel: CPU
   podName: run-parsec-blackscholes-gcc-4-native-cljhc
   cpuSet:
-  - cpuId: 12
-  - cpuId: 13
+  - cpuID: 12
+  - cpuID: 13
 

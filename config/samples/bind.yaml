@@ -1,27 +1,27 @@
 apiVersion: cslab.ece.ntua.gr/v1alpha1
-kind: PodCpuBinding
+kind: PodCPUBinding
 metadata:
   name: benchpod-1-binding
   namespace: benchmarks
 spec:
-  exclusivenessLevel: Cpu
+  exclusivenessLevel: CPU
   podName: benchpod-1
   cpuSet:
-  - cpuId: 2
+  - cpuID: 2
 ---
 apiVersion: cslab.ece.ntua.gr/v1alpha1
-kind: PodCpuBinding
+kind: PodCPUBinding
 metadata:
   name: benchpod-2-binding
   namespace: benchmarks
 spec:
-  exclusivenessLevel: Cpu
+  exclusivenessLevel: CPU
   podName: benchpod-2
   cpuSet:
-    - cpuId: 0
+    - cpuID: 0
 ---
 apiVersion: cslab.ece.ntua.gr/v1alpha1
-kind: PodCpuBinding
+kind: PodCPUBinding
 metadata:
   name: benchpod-3-binding
   namespace: benchmarks
@@ -29,16 +29,16 @@ spec:
   exclusivenessLevel: Core
   podName: benchpod-3
   cpuSet:
-    - cpuId: 10
-    - cpuId: 12
+    - cpuID: 10
+    - cpuID: 12
 ---
 apiVersion: cslab.ece.ntua.gr/v1alpha1
-kind: PodCpuBinding
+kind: PodCPUBinding
 metadata:
   name: benchpod-4-binding
   namespace: benchmarks
 spec:
-  exclusivenessLevel: Cpu
+  exclusivenessLevel: CPU
   podName: benchpod-4
   cpuSet:
-    - cpuId: 1
+    - cpuID: 1

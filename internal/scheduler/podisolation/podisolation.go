@@ -52,17 +52,17 @@ type PodIsolationStateData struct {
 	// ExclusivenessLevel is the level of exclusiveness of the resources needed by the pod.
 	ExclusivenessLevel string
 
-	// NodeCpuTopologies stores the CPU topology of each node in the cluster.
-	NodeCpuTopologies map[string]v1alpha1.NodeCpuTopology
+	// NodeCPUTopologies stores the CPU topology of each node in the cluster.
+	NodeCPUTopologies map[string]v1alpha1.NodeCPUTopology
 
-	// PodCpuBindings stores the CPU bindings for each node in the cluster.
-	PodCpuBindings map[string][]v1alpha1.PodCpuBinding
+	// PodCPUBindings stores the CPU bindings for each node in the cluster.
+	PodCPUBindings map[string][]v1alpha1.PodCPUBinding
 
-	// FeasibleCpus stores the feasible CPUs for each node in the cluster.
-	FeasibleCpus map[string]v1alpha1.CpuTopology
+	// FeasibleCPUs stores the feasible CPUs for each node in the cluster.
+	FeasibleCPUs map[string]v1alpha1.CPUTopology
 
-	// PodCpuRequests is the total CPU requests of the pod.
-	PodCpuRequests int64
+	// PodCPURequests is the total CPU requests of the pod.
+	PodCPURequests int64
 }
 
 var _ framework.PreFilterPlugin = &PodIsolation{}
@@ -104,8 +104,8 @@ func New(ctx context.Context, obj runtime.Object, h framework.Handle) (framework
 // The method also stores the pre-filtering state data in the cycle state for later use by other scheduling plugins.
 func (p *PodIsolation) PreFilter(ctx context.Context, state *framework.CycleState, pod *corev1.Pod) (*framework.PreFilterResult, *framework.Status) {
 	// logger := p.logger.WithName("pre-filter").WithValues("pod", fmt.Sprintf("%s/%s", pod.Namespace, pod.Name))
-	topologies := &v1alpha1.NodeCpuTopologyList{}
-	bindings := &v1alpha1.PodCpuBindingList{}
+	topologies := &v1alpha1.NodeCPUTopologyList{}
+	bindings := &v1alpha1.PodCPUBindingList{}
 	nodes := sets.Set[string]{}
 
 	exclusivenessLevel, ok := pod.Annotations[v1alpha1.AnnotationExclusivenessLevel]
@@ -113,20 +113,20 @@ func (p *PodIsolation) PreFilter(ctx context.Context, state *framework.CycleStat
 		exclusivenessLevel = "None"
 	}
 
-	podCpuRequests := int64(0)
+	podCPURequests := int64(0)
 	for _, container := range pod.Spec.Containers {
-		podCpuRequests += container.Resources.Requests.Cpu().Value()
+		podCPURequests += container.Resources.Requests.Cpu().Value()
 	}
 
 	stateData := &PodIsolationStateData{
 		ExclusivenessLevel: exclusivenessLevel,
-		PodCpuRequests:     podCpuRequests,
-		NodeCpuTopologies:  make(map[string]v1alpha1.NodeCpuTopology),
-		PodCpuBindings:     make(map[string][]v1alpha1.PodCpuBinding),
-		FeasibleCpus:       make(map[string]v1alpha1.CpuTopology),
+		PodCPURequests:     podCPURequests,
+		NodeCPUTopologies:  make(map[string]v1alpha1.NodeCPUTopology),
+		PodCPUBindings:     make(map[string][]v1alpha1.PodCPUBinding),
+		FeasibleCPUs:       make(map[string]v1alpha1.CPUTopology),
 	}
 
-	// List NodeCpuTopologies and PodCpuBindings
+	// List NodeCPUTopologies and PodCPUBindings
 	if err := p.List(ctx, topologies); err != nil {
 		return nil, framework.NewStatus(framework.Error, fmt.Sprintf("%s/%s: could not list CPU topologies: %v", pod.Namespace, pod.Name, err))
 	}
@@ -139,25 +139,25 @@ func (p *PodIsolation) PreFilter(ctx context.Context, state *framework.CycleStat
 		// Store topology in state and update NodeNames set for Filter plugin
 		nodeName := topology.Spec.NodeName
 		nodes = nodes.Insert(nodeName)
-		stateData.NodeCpuTopologies[nodeName] = topology
-		// nodeFeasibleCpus is initially p copy of the node's topology
-		nodeFeasibleCpus := topology.Spec.Topology.DeepCopy()
+		stateData.NodeCPUTopologies[nodeName] = topology
+		// nodeFeasibleCPUs is initially p copy of the node's topology
+		nodeFeasibleCPUs := topology.Spec.Topology.DeepCopy()
 		for _, binding := range bindings.Items {
 			if !(binding.Status.ResourceStatus == v1alpha1.StatusApplied && binding.Status.NodeName == nodeName) {
 				continue
 			}
-			// For each applied PodCpuBinding on current topology,
+			// For each applied PodCPUBinding on current topology,
 			// get all exclusive CPUs based on the ExclusivenessLevel
-			// and exclude them from nodeFeasibleCpus
-			stateData.PodCpuBindings[nodeName] = append(stateData.PodCpuBindings[nodeName], binding)
+			// and exclude them from nodeFeasibleCPUs
+			stateData.PodCPUBindings[nodeName] = append(stateData.PodCPUBindings[nodeName], binding)
 			// For every CPU binding, get all exclusive CPUs and remove them from the topology
-			for exclusiveCpu := range pcbutils.GetExclusiveCpusOfCpuBinding(&binding, &topology.Spec.Topology) {
-				// Delete CPU with key cpuId from nodeFeasibleCpus topology
-				nctutils.DeleteCpuFromTopology(nodeFeasibleCpus, exclusiveCpu)
+			for exclusiveCPU := range pcbutils.GetExclusiveCPUsOfCPUBinding(&binding, &topology.Spec.Topology) {
+				// Delete CPU with key cpuID from nodeFeasibleCPUs topology
+				nctutils.DeleteCPUFromTopology(nodeFeasibleCPUs, exclusiveCPU)
 			}
 		}
 		// Store current node's feasible CPUs on cycle state
-		stateData.FeasibleCpus[nodeName] = *nodeFeasibleCpus
+		stateData.FeasibleCPUs[nodeName] = *nodeFeasibleCPUs
 	}
 	state.Write(framework.StateKey(Name), stateData)
 	return &framework.PreFilterResult{NodeNames: nodes}, nil
@@ -183,16 +183,16 @@ func (p *PodIsolation) Filter(ctx context.Context, state *framework.CycleState, 
 		return framework.NewStatus(framework.Error, fmt.Sprintf("%s/%s: could not cast state data while filtering node %s", pod.Namespace, pod.Name, node.Name))
 	}
 
-	feasibleCpus := stateData.FeasibleCpus[node.Name]
-	topology := stateData.NodeCpuTopologies[node.Name].Spec.Topology
+	feasibleCPUs := stateData.FeasibleCPUs[node.Name]
+	topology := stateData.NodeCPUTopologies[node.Name].Spec.Topology
 	exclusivenessLevel := stateData.ExclusivenessLevel
-	totalCpus := int64(nctutils.GetTotalCpusCount(feasibleCpus))
+	totalCPUs := int64(nctutils.GetTotalCPUsCount(feasibleCPUs))
 
-	if totalCpus == 0 {
+	if totalCPUs == 0 {
 		return framework.NewStatus(framework.Unschedulable, fmt.Sprintf("%s/%s: node has no unreserved CPUs", pod.Namespace, pod.Name))
 	}
 
-	availableResources := nctutils.GetAvailableResources(exclusivenessLevel, feasibleCpus, topology)
+	availableResources := nctutils.GetAvailableResources(exclusivenessLevel, feasibleCPUs, topology)
 
 	// Check if there are enough allocatable resources of the exclusiveness level type needed by the pod
 	res := 0
@@ -201,23 +201,23 @@ func (p *PodIsolation) Filter(ctx context.Context, state *framework.CycleState, 
 		id := strconv.Itoa(r)
 		switch exclusivenessLevel {
 		case "Core":
-			cpus = nctutils.GetAllCpusInCore(&feasibleCpus, id)
+			cpus = nctutils.GetAllCPUsInCore(&feasibleCPUs, id)
 		case "Socket":
-			cpus = nctutils.GetAllCpusInSocket(&feasibleCpus, id)
-		case "Numa":
-			cpus = nctutils.GetAllCpusInNuma(&feasibleCpus, id)
+			cpus = nctutils.GetAllCPUsInSocket(&feasibleCPUs, id)
+		case "NUMA":
+			cpus = nctutils.GetAllCPUsInNUMA(&feasibleCPUs, id)
 		default:
-			res = int(totalCpus)
+			res = int(totalCPUs)
 			break
 		}
 		res += len(cpus)
-		if res >= int(stateData.PodCpuRequests) {
+		if res >= int(stateData.PodCPURequests) {
 			break
 		}
 	}
 
-	if res < int(stateData.PodCpuRequests) {
-		p.logger.Info("Unschedulable", "resource", exclusivenessLevel, "available", availableResources, "requested", stateData.PodCpuRequests, "res", res)
+	if res < int(stateData.PodCPURequests) {
+		p.logger.Info("Unschedulable", "resource", exclusivenessLevel, "available", availableResources, "requested", stateData.PodCPURequests, "res", res)
 		return framework.NewStatus(framework.Unschedulable, fmt.Sprintf("%s/%s: no available resources found on node %s for resource %s", pod.Namespace, pod.Name, node.Name, exclusivenessLevel))
 	}
 
@@ -240,11 +240,11 @@ func (p *PodIsolation) Score(ctx context.Context, state *framework.CycleState, p
 		return 0, framework.NewStatus(framework.Error, fmt.Sprintf("%s/%s: could not cast state data while scoring node %s", pod.Namespace, pod.Name, nodeName))
 	}
 
-	feasibleCpus := stateData.FeasibleCpus[nodeName]
-	topology := stateData.NodeCpuTopologies[nodeName].Spec.Topology
+	feasibleCPUs := stateData.FeasibleCPUs[nodeName]
+	topology := stateData.NodeCPUTopologies[nodeName].Spec.Topology
 	exclusivenessLevel := stateData.ExclusivenessLevel
 
-	availableResources := nctutils.GetAvailableResources(exclusivenessLevel, feasibleCpus, topology)
+	availableResources := nctutils.GetAvailableResources(exclusivenessLevel, feasibleCPUs, topology)
 	score := int64(len(availableResources) * 100)
 
 	logger.Info("scored", "score", score, "node", nodeName)
@@ -291,7 +291,7 @@ func (p *PodIsolation) NormalizeScore(ctx context.Context, state *framework.Cycl
 // PostBind is a method of the PodIsolation struct that is called after a pod is bound to a node.
 // It assigns CPU resources to the pod based on the specified exclusiveness level and the available resources on the node.
 // The method takes the context, cycle state, pod, and nodeName as parameters.
-// It returns an error if there is any issue creating the PodCpuBinding object.
+// It returns an error if there is any issue creating the PodCPUBinding object.
 func (p *PodIsolation) PostBind(ctx context.Context, state *framework.CycleState, pod *corev1.Pod, nodeName string) {
 	logger := p.logger.WithName("post-bind").WithValues("pod", fmt.Sprintf("%s/%s", pod.Namespace, pod.Name), "node", nodeName)
 
@@ -307,44 +307,44 @@ func (p *PodIsolation) PostBind(ctx context.Context, state *framework.CycleState
 	}
 
 	cpus := make([]int, 0)
-	feasibleCpus := stateData.FeasibleCpus[nodeName]
-	topology := stateData.NodeCpuTopologies[nodeName].Spec.Topology
+	feasibleCPUs := stateData.FeasibleCPUs[nodeName]
+	topology := stateData.NodeCPUTopologies[nodeName].Spec.Topology
 	exclusivenessLevel := stateData.ExclusivenessLevel
-	requestedCpus := stateData.PodCpuRequests
-	availableResources := nctutils.GetAvailableResources(exclusivenessLevel, feasibleCpus, topology)
+	requestedCPUs := stateData.PodCPURequests
+	availableResources := nctutils.GetAvailableResources(exclusivenessLevel, feasibleCPUs, topology)
 
 	for _, r := range availableResources {
 		id := strconv.Itoa(r)
 		switch exclusivenessLevel {
-		case "Cpu":
+		case "CPU":
 			cpus = append(cpus, r)
-			requestedCpus--
+			requestedCPUs--
 		case "Core":
-			c := nctutils.GetAllCpusInCore(&feasibleCpus, id)
+			c := nctutils.GetAllCPUsInCore(&feasibleCPUs, id)
 			cpus = append(cpus, c...)
-			requestedCpus -= int64(len(c))
+			requestedCPUs -= int64(len(c))
 		case "Socket":
-			c := nctutils.GetAllCpusInSocket(&feasibleCpus, id)
+			c := nctutils.GetAllCPUsInSocket(&feasibleCPUs, id)
 			cpus = append(cpus, c...)
-			requestedCpus -= int64(len(c))
-		case "Numa":
-			c := nctutils.GetAllCpusInNuma(&feasibleCpus, id)
+			requestedCPUs -= int64(len(c))
+		case "NUMA":
+			c := nctutils.GetAllCPUsInNUMA(&feasibleCPUs, id)
 			cpus = append(cpus, c...)
-			requestedCpus -= int64(len(c))
+			requestedCPUs -= int64(len(c))
 		}
-		if requestedCpus <= 0 {
+		if requestedCPUs <= 0 {
 			break
 		}
 	}
 
-	cpuBinding := &v1alpha1.PodCpuBinding{
+	cpuBinding := &v1alpha1.PodCPUBinding{
 		ObjectMeta: v1.ObjectMeta{
 			Name:      fmt.Sprintf("%s-%s", pod.Name, nodeName),
 			Namespace: pod.Namespace,
 		},
-		Spec: v1alpha1.PodCpuBindingSpec{
+		Spec: v1alpha1.PodCPUBindingSpec{
 			PodName:            pod.Name,
-			CpuSet:             pcbutils.ConvertIntSliceToCpuSlice(cpus),
+			CPUSet:             pcbutils.ConvertIntSliceToCPUSlice(cpus),
 			ExclusivenessLevel: exclusivenessLevel,
 		},
 	}

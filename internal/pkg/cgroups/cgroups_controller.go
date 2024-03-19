@@ -35,16 +35,16 @@ func NewCgroupsController(cgroupsDriver CgroupsDriver, cgroupsPath string, logge
 	}, nil
 }
 
-// UpdateCpuSet updates the resources of a slice.
-func (c *CgroupsController) UpdateCpuSet(slice, cpuSet, memSet string, quota *int64, shares, period *uint64) error {
+// UpdateCPUSet updates the resources of a slice.
+func (c *CgroupsController) UpdateCPUSet(slice, cpuSet, memSet string, quota *int64, shares, period *uint64) error {
 	if cgroups.Mode() == cgroups.Unified {
-		return c.updateCpuSetV2(slice, cpuSet, memSet, quota, shares, period)
+		return c.updateCPUSetV2(slice, cpuSet, memSet, quota, shares, period)
 	}
-	return c.updateCpuSetV1(slice, cpuSet, memSet, quota, shares, period)
+	return c.updateCPUSetV1(slice, cpuSet, memSet, quota, shares, period)
 }
 
-// updateCpuSetV1 updates cgroups for v1 mode.
-func (c *CgroupsController) updateCpuSetV1(slice, cpuSet, memSet string, quota *int64, shares, period *uint64) error {
+// updateCPUSetV1 updates cgroups for v1 mode.
+func (c *CgroupsController) updateCPUSetV1(slice, cpuSet, memSet string, quota *int64, shares, period *uint64) error {
 	ctrl := cgroups.NewCpuset(c.CgroupsPath)
 
 	err := ctrl.Update(slice, &specs.LinuxResources{
@@ -66,9 +66,9 @@ func (c *CgroupsController) updateCpuSetV1(slice, cpuSet, memSet string, quota *
 	return err
 }
 
-// updateCpuSetV2 updates cgroups for v2 (unified) mode.
-func (c *CgroupsController) updateCpuSetV2(slice, cpuSet, memSet string, quota *int64, shares, period *uint64) error {
-	weight := CpuSharesToCpuWeight(*shares)
+// updateCPUSetV2 updates cgroups for v2 (unified) mode.
+func (c *CgroupsController) updateCPUSetV2(slice, cpuSet, memSet string, quota *int64, shares, period *uint64) error {
+	weight := CPUSharesToCPUWeight(*shares)
 
 	res := cgroupsv2.Resources{CPU: &cgroupsv2.CPU{
 		Cpus:   cpuSet,
@@ -82,6 +82,6 @@ func (c *CgroupsController) updateCpuSetV2(slice, cpuSet, memSet string, quota *
 	return err
 }
 
-func CpuSharesToCpuWeight(cpuShares uint64) uint64 {
+func CPUSharesToCPUWeight(cpuShares uint64) uint64 {
 	return uint64((((cpuShares - 2) * 9999) / 262142) + 1)
 }

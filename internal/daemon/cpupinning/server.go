@@ -8,12 +8,12 @@ import (
 
 // Server represents the CPU pinning server.
 type Server struct {
-	Controller *CpuPinningController
-	cpupinning.UnimplementedCpuPinningServer
+	Controller *CPUPinningController
+	cpupinning.UnimplementedCPUPinningServer
 }
 
-// NewCpuPinningServer creates a new instance of the CPU pinning server.
-func NewCpuPinningServer(controller *CpuPinningController) *Server {
+// NewCPUPinningServer creates a new instance of the CPU pinning server.
+func NewCPUPinningServer(controller *CPUPinningController) *Server {
 	return &Server{Controller: controller}
 }
 

@@ -17,23 +17,23 @@ limitations under the License.
 
 package v1alpha1
 
-// NodeCpuTopologySpecApplyConfiguration represents an declarative configuration of the NodeCpuTopologySpec type for use
+// NodeCPUTopologySpecApplyConfiguration represents an declarative configuration of the NodeCPUTopologySpec type for use
 // with apply.
-type NodeCpuTopologySpecApplyConfiguration struct {
+type NodeCPUTopologySpecApplyConfiguration struct {
 	NodeName *string                        `json:"nodeName,omitempty"`
-	Topology *CpuTopologyApplyConfiguration `json:"topology,omitempty"`
+	Topology *CPUTopologyApplyConfiguration `json:"topology,omitempty"`
 }
 
-// NodeCpuTopologySpecApplyConfiguration constructs an declarative configuration of the NodeCpuTopologySpec type for use with
+// NodeCPUTopologySpecApplyConfiguration constructs an declarative configuration of the NodeCPUTopologySpec type for use with
 // apply.
-func NodeCpuTopologySpec() *NodeCpuTopologySpecApplyConfiguration {
-	return &NodeCpuTopologySpecApplyConfiguration{}
+func NodeCPUTopologySpec() *NodeCPUTopologySpecApplyConfiguration {
+	return &NodeCPUTopologySpecApplyConfiguration{}
 }
 
 // WithNodeName sets the NodeName field in the declarative configuration to the given value
 // and returns the receiver, so that objects can be built by chaining "With" function invocations.
 // If called multiple times, the NodeName field is set to the value of the last call.
-func (b *NodeCpuTopologySpecApplyConfiguration) WithNodeName(value string) *NodeCpuTopologySpecApplyConfiguration {
+func (b *NodeCPUTopologySpecApplyConfiguration) WithNodeName(value string) *NodeCPUTopologySpecApplyConfiguration {
 	b.NodeName = &value
 	return b
 }
@@ -41,7 +41,7 @@ func (b *NodeCpuTopologySpecApplyConfiguration) WithNodeName(value string) *Node
 // WithTopology sets the Topology field in the declarative configuration to the given value
 // and returns the receiver, so that objects can be built by chaining "With" function invocations.
 // If called multiple times, the Topology field is set to the value of the last call.
-func (b *NodeCpuTopologySpecApplyConfiguration) WithTopology(value *CpuTopologyApplyConfiguration) *NodeCpuTopologySpecApplyConfiguration {
+func (b *NodeCPUTopologySpecApplyConfiguration) WithTopology(value *CPUTopologyApplyConfiguration) *NodeCPUTopologySpecApplyConfiguration {
 	b.Topology = value
 	return b
 }

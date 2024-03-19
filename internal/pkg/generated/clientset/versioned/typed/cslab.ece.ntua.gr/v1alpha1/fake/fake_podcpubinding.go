@@ -31,31 +31,31 @@ import (
 	testing "k8s.io/client-go/testing"
 )
 
-// FakePodCpuBindings implements PodCpuBindingInterface
-type FakePodCpuBindings struct {
+// FakePodCPUBindings implements PodCPUBindingInterface
+type FakePodCPUBindings struct {
 	Fake *FakeCslabV1alpha1
 	ns   string
 }
 
 var podcpubindingsResource = v1alpha1.SchemeGroupVersion.WithResource("podcpubindings")
 
-var podcpubindingsKind = v1alpha1.SchemeGroupVersion.WithKind("PodCpuBinding")
+var podcpubindingsKind = v1alpha1.SchemeGroupVersion.WithKind("PodCPUBinding")
 
-// Get takes name of the podCpuBinding, and returns the corresponding podCpuBinding object, and an error if there is any.
-func (c *FakePodCpuBindings) Get(ctx context.Context, name string, options v1.GetOptions) (result *v1alpha1.PodCpuBinding, err error) {
+// Get takes name of the podCPUBinding, and returns the corresponding podCPUBinding object, and an error if there is any.
+func (c *FakePodCPUBindings) Get(ctx context.Context, name string, options v1.GetOptions) (result *v1alpha1.PodCPUBinding, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewGetAction(podcpubindingsResource, c.ns, name), &v1alpha1.PodCpuBinding{})
+		Invokes(testing.NewGetAction(podcpubindingsResource, c.ns, name), &v1alpha1.PodCPUBinding{})
 
 	if obj == nil {
 		return nil, err
 	}
-	return obj.(*v1alpha1.PodCpuBinding), err
+	return obj.(*v1alpha1.PodCPUBinding), err
 }
 
-// List takes label and field selectors, and returns the list of PodCpuBindings that match those selectors.
-func (c *FakePodCpuBindings) List(ctx context.Context, opts v1.ListOptions) (result *v1alpha1.PodCpuBindingList, err error) {
+// List takes label and field selectors, and returns the list of PodCPUBindings that match those selectors.
+func (c *FakePodCPUBindings) List(ctx context.Context, opts v1.ListOptions) (result *v1alpha1.PodCPUBindingList, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewListAction(podcpubindingsResource, podcpubindingsKind, c.ns, opts), &v1alpha1.PodCpuBindingList{})
+		Invokes(testing.NewListAction(podcpubindingsResource, podcpubindingsKind, c.ns, opts), &v1alpha1.PodCPUBindingList{})
 
 	if obj == nil {
 		return nil, err
@@ -65,8 +65,8 @@ func (c *FakePodCpuBindings) List(ctx context.Context, opts v1.ListOptions) (res
 	if label == nil {
 		label = labels.Everything()
 	}
-	list := &v1alpha1.PodCpuBindingList{ListMeta: obj.(*v1alpha1.PodCpuBindingList).ListMeta}
-	for _, item := range obj.(*v1alpha1.PodCpuBindingList).Items {
+	list := &v1alpha1.PodCPUBindingList{ListMeta: obj.(*v1alpha1.PodCPUBindingList).ListMeta}
+	for _, item := range obj.(*v1alpha1.PodCPUBindingList).Items {
 		if label.Matches(labels.Set(item.Labels)) {
 			list.Items = append(list.Items, item)
 		}
@@ -74,115 +74,115 @@ func (c *FakePodCpuBindings) List(ctx context.Context, opts v1.ListOptions) (res
 	return list, err
 }
 
-// Watch returns a watch.Interface that watches the requested podCpuBindings.
-func (c *FakePodCpuBindings) Watch(ctx context.Context, opts v1.ListOptions) (watch.Interface, error) {
+// Watch returns a watch.Interface that watches the requested podCPUBindings.
+func (c *FakePodCPUBindings) Watch(ctx context.Context, opts v1.ListOptions) (watch.Interface, error) {
 	return c.Fake.
 		InvokesWatch(testing.NewWatchAction(podcpubindingsResource, c.ns, opts))
 
 }
 
-// Create takes the representation of a podCpuBinding and creates it.  Returns the server's representation of the podCpuBinding, and an error, if there is any.
-func (c *FakePodCpuBindings) Create(ctx context.Context, podCpuBinding *v1alpha1.PodCpuBinding, opts v1.CreateOptions) (result *v1alpha1.PodCpuBinding, err error) {
+// Create takes the representation of a podCPUBinding and creates it.  Returns the server's representation of the podCPUBinding, and an error, if there is any.
+func (c *FakePodCPUBindings) Create(ctx context.Context, podCPUBinding *v1alpha1.PodCPUBinding, opts v1.CreateOptions) (result *v1alpha1.PodCPUBinding, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewCreateAction(podcpubindingsResource, c.ns, podCpuBinding), &v1alpha1.PodCpuBinding{})
+		Invokes(testing.NewCreateAction(podcpubindingsResource, c.ns, podCPUBinding), &v1alpha1.PodCPUBinding{})
 
 	if obj == nil {
 		return nil, err
 	}
-	return obj.(*v1alpha1.PodCpuBinding), err
+	return obj.(*v1alpha1.PodCPUBinding), err
 }
 
-// Update takes the representation of a podCpuBinding and updates it. Returns the server's representation of the podCpuBinding, and an error, if there is any.
-func (c *FakePodCpuBindings) Update(ctx context.Context, podCpuBinding *v1alpha1.PodCpuBinding, opts v1.UpdateOptions) (result *v1alpha1.PodCpuBinding, err error) {
+// Update takes the representation of a podCPUBinding and updates it. Returns the server's representation of the podCPUBinding, and an error, if there is any.
+func (c *FakePodCPUBindings) Update(ctx context.Context, podCPUBinding *v1alpha1.PodCPUBinding, opts v1.UpdateOptions) (result *v1alpha1.PodCPUBinding, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewUpdateAction(podcpubindingsResource, c.ns, podCpuBinding), &v1alpha1.PodCpuBinding{})
+		Invokes(testing.NewUpdateAction(podcpubindingsResource, c.ns, podCPUBinding), &v1alpha1.PodCPUBinding{})
 
 	if obj == nil {
 		return nil, err
 	}
-	return obj.(*v1alpha1.PodCpuBinding), err
+	return obj.(*v1alpha1.PodCPUBinding), err
 }
 
 // UpdateStatus was generated because the type contains a Status member.
 // Add a +genclient:noStatus comment above the type to avoid generating UpdateStatus().
-func (c *FakePodCpuBindings) UpdateStatus(ctx context.Context, podCpuBinding *v1alpha1.PodCpuBinding, opts v1.UpdateOptions) (*v1alpha1.PodCpuBinding, error) {
+func (c *FakePodCPUBindings) UpdateStatus(ctx context.Context, podCPUBinding *v1alpha1.PodCPUBinding, opts v1.UpdateOptions) (*v1alpha1.PodCPUBinding, error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewUpdateSubresourceAction(podcpubindingsResource, "status", c.ns, podCpuBinding), &v1alpha1.PodCpuBinding{})
+		Invokes(testing.NewUpdateSubresourceAction(podcpubindingsResource, "status", c.ns, podCPUBinding), &v1alpha1.PodCPUBinding{})
 
 	if obj == nil {
 		return nil, err
 	}
-	return obj.(*v1alpha1.PodCpuBinding), err
+	return obj.(*v1alpha1.PodCPUBinding), err
 }
 
-// Delete takes name of the podCpuBinding and deletes it. Returns an error if one occurs.
-func (c *FakePodCpuBindings) Delete(ctx context.Context, name string, opts v1.DeleteOptions) error {
+// Delete takes name of the podCPUBinding and deletes it. Returns an error if one occurs.
+func (c *FakePodCPUBindings) Delete(ctx context.Context, name string, opts v1.DeleteOptions) error {
 	_, err := c.Fake.
-		Invokes(testing.NewDeleteActionWithOptions(podcpubindingsResource, c.ns, name, opts), &v1alpha1.PodCpuBinding{})
+		Invokes(testing.NewDeleteActionWithOptions(podcpubindingsResource, c.ns, name, opts), &v1alpha1.PodCPUBinding{})
 
 	return err
 }
 
 // DeleteCollection deletes a collection of objects.
-func (c *FakePodCpuBindings) DeleteCollection(ctx context.Context, opts v1.DeleteOptions, listOpts v1.ListOptions) error {
+func (c *FakePodCPUBindings) DeleteCollection(ctx context.Context, opts v1.DeleteOptions, listOpts v1.ListOptions) error {
 	action := testing.NewDeleteCollectionAction(podcpubindingsResource, c.ns, listOpts)
 
-	_, err := c.Fake.Invokes(action, &v1alpha1.PodCpuBindingList{})
+	_, err := c.Fake.Invokes(action, &v1alpha1.PodCPUBindingList{})
 	return err
 }
 
-// Patch applies the patch and returns the patched podCpuBinding.
-func (c *FakePodCpuBindings) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *v1alpha1.PodCpuBinding, err error) {
+// Patch applies the patch and returns the patched podCPUBinding.
+func (c *FakePodCPUBindings) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *v1alpha1.PodCPUBinding, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewPatchSubresourceAction(podcpubindingsResource, c.ns, name, pt, data, subresources...), &v1alpha1.PodCpuBinding{})
+		Invokes(testing.NewPatchSubresourceAction(podcpubindingsResource, c.ns, name, pt, data, subresources...), &v1alpha1.PodCPUBinding{})
 
 	if obj == nil {
 		return nil, err
 	}
-	return obj.(*v1alpha1.PodCpuBinding), err
+	return obj.(*v1alpha1.PodCPUBinding), err
 }
 
-// Apply takes the given apply declarative configuration, applies it and returns the applied podCpuBinding.
-func (c *FakePodCpuBindings) Apply(ctx context.Context, podCpuBinding *cslabecentuagrv1alpha1.PodCpuBindingApplyConfiguration, opts v1.ApplyOptions) (result *v1alpha1.PodCpuBinding, err error) {
-	if podCpuBinding == nil {
-		return nil, fmt.Errorf("podCpuBinding provided to Apply must not be nil")
+// Apply takes the given apply declarative configuration, applies it and returns the applied podCPUBinding.
+func (c *FakePodCPUBindings) Apply(ctx context.Context, podCPUBinding *cslabecentuagrv1alpha1.PodCPUBindingApplyConfiguration, opts v1.ApplyOptions) (result *v1alpha1.PodCPUBinding, err error) {
+	if podCPUBinding == nil {
+		return nil, fmt.Errorf("podCPUBinding provided to Apply must not be nil")
 	}
-	data, err := json.Marshal(podCpuBinding)
+	data, err := json.Marshal(podCPUBinding)
 	if err != nil {
 		return nil, err
 	}
-	name := podCpuBinding.Name
+	name := podCPUBinding.Name
 	if name == nil {
-		return nil, fmt.Errorf("podCpuBinding.Name must be provided to Apply")
+		return nil, fmt.Errorf("podCPUBinding.Name must be provided to Apply")
 	}
 	obj, err := c.Fake.
-		Invokes(testing.NewPatchSubresourceAction(podcpubindingsResource, c.ns, *name, types.ApplyPatchType, data), &v1alpha1.PodCpuBinding{})
+		Invokes(testing.NewPatchSubresourceAction(podcpubindingsResource, c.ns, *name, types.ApplyPatchType, data), &v1alpha1.PodCPUBinding{})
 
 	if obj == nil {
 		return nil, err
 	}
-	return obj.(*v1alpha1.PodCpuBinding), err
+	return obj.(*v1alpha1.PodCPUBinding), err
 }
 
 // ApplyStatus was generated because the type contains a Status member.
 // Add a +genclient:noStatus comment above the type to avoid generating ApplyStatus().
-func (c *FakePodCpuBindings) ApplyStatus(ctx context.Context, podCpuBinding *cslabecentuagrv1alpha1.PodCpuBindingApplyConfiguration, opts v1.ApplyOptions) (result *v1alpha1.PodCpuBinding, err error) {
-	if podCpuBinding == nil {
-		return nil, fmt.Errorf("podCpuBinding provided to Apply must not be nil")
+func (c *FakePodCPUBindings) ApplyStatus(ctx context.Context, podCPUBinding *cslabecentuagrv1alpha1.PodCPUBindingApplyConfiguration, opts v1.ApplyOptions) (result *v1alpha1.PodCPUBinding, err error) {
+	if podCPUBinding == nil {
+		return nil, fmt.Errorf("podCPUBinding provided to Apply must not be nil")
 	}
-	data, err := json.Marshal(podCpuBinding)
+	data, err := json.Marshal(podCPUBinding)
 	if err != nil {
 		return nil, err
 	}
-	name := podCpuBinding.Name
+	name := podCPUBinding.Name
 	if name == nil {
-		return nil, fmt.Errorf("podCpuBinding.Name must be provided to Apply")
+		return nil, fmt.Errorf("podCPUBinding.Name must be provided to Apply")
 	}
 	obj, err := c.Fake.
-		Invokes(testing.NewPatchSubresourceAction(podcpubindingsResource, c.ns, *name, types.ApplyPatchType, data, "status"), &v1alpha1.PodCpuBinding{})
+		Invokes(testing.NewPatchSubresourceAction(podcpubindingsResource, c.ns, *name, types.ApplyPatchType, data, "status"), &v1alpha1.PodCPUBinding{})
 
 	if obj == nil {
 		return nil, err
 	}
-	return obj.(*v1alpha1.PodCpuBinding), err
+	return obj.(*v1alpha1.PodCPUBinding), err
 }

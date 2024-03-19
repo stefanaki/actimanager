@@ -20,7 +20,7 @@ package v1alpha1
 // CoreApplyConfiguration represents an declarative configuration of the Core type for use
 // with apply.
 type CoreApplyConfiguration struct {
-	Cpus []int `json:"cpus,omitempty"`
+	CPUs []int `json:"cpus,omitempty"`
 }
 
 // CoreApplyConfiguration constructs an declarative configuration of the Core type for use with
@@ -29,12 +29,12 @@ func Core() *CoreApplyConfiguration {
 	return &CoreApplyConfiguration{}
 }
 
-// WithCpus adds the given value to the Cpus field in the declarative configuration
+// WithCPUs adds the given value to the CPUs field in the declarative configuration
 // and returns the receiver, so that objects can be build by chaining "With" function invocations.
-// If called multiple times, values provided by each call will be appended to the Cpus field.
-func (b *CoreApplyConfiguration) WithCpus(values ...int) *CoreApplyConfiguration {
+// If called multiple times, values provided by each call will be appended to the CPUs field.
+func (b *CoreApplyConfiguration) WithCPUs(values ...int) *CoreApplyConfiguration {
 	for i := range values {
-		b.Cpus = append(b.Cpus, values[i])
+		b.CPUs = append(b.CPUs, values[i])
 	}
 	return b
 }

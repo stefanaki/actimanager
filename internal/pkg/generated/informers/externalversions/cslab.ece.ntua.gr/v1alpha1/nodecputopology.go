@@ -31,58 +31,58 @@ import (
 	cache "k8s.io/client-go/tools/cache"
 )
 
-// NodeCpuTopologyInformer provides access to a shared informer and lister for
-// NodeCpuTopologies.
-type NodeCpuTopologyInformer interface {
+// NodeCPUTopologyInformer provides access to a shared informer and lister for
+// NodeCPUTopologies.
+type NodeCPUTopologyInformer interface {
 	Informer() cache.SharedIndexInformer
-	Lister() v1alpha1.NodeCpuTopologyLister
+	Lister() v1alpha1.NodeCPUTopologyLister
 }
 
-type nodeCpuTopologyInformer struct {
+type nodeCPUTopologyInformer struct {
 	factory          internalinterfaces.SharedInformerFactory
 	tweakListOptions internalinterfaces.TweakListOptionsFunc
 }
 
-// NewNodeCpuTopologyInformer constructs a new informer for NodeCpuTopology type.
+// NewNodeCPUTopologyInformer constructs a new informer for NodeCPUTopology type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
-func NewNodeCpuTopologyInformer(client versioned.Interface, resyncPeriod time.Duration, indexers cache.Indexers) cache.SharedIndexInformer {
-	return NewFilteredNodeCpuTopologyInformer(client, resyncPeriod, indexers, nil)
+func NewNodeCPUTopologyInformer(client versioned.Interface, resyncPeriod time.Duration, indexers cache.Indexers) cache.SharedIndexInformer {
+	return NewFilteredNodeCPUTopologyInformer(client, resyncPeriod, indexers, nil)
 }
 
-// NewFilteredNodeCpuTopologyInformer constructs a new informer for NodeCpuTopology type.
+// NewFilteredNodeCPUTopologyInformer constructs a new informer for NodeCPUTopology type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
-func NewFilteredNodeCpuTopologyInformer(client versioned.Interface, resyncPeriod time.Duration, indexers cache.Indexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) cache.SharedIndexInformer {
+func NewFilteredNodeCPUTopologyInformer(client versioned.Interface, resyncPeriod time.Duration, indexers cache.Indexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) cache.SharedIndexInformer {
 	return cache.NewSharedIndexInformer(
 		&cache.ListWatch{
 			ListFunc: func(options v1.ListOptions) (runtime.Object, error) {
 				if tweakListOptions != nil {
 					tweakListOptions(&options)
 				}
-				return client.CslabV1alpha1().NodeCpuTopologies().List(context.TODO(), options)
+				return client.CslabV1alpha1().NodeCPUTopologies().List(context.TODO(), options)
 			},
 			WatchFunc: func(options v1.ListOptions) (watch.Interface, error) {
 				if tweakListOptions != nil {
 					tweakListOptions(&options)
 				}
-				return client.CslabV1alpha1().NodeCpuTopologies().Watch(context.TODO(), options)
+				return client.CslabV1alpha1().NodeCPUTopologies().Watch(context.TODO(), options)
 			},
 		},
-		&cslabecentuagrv1alpha1.NodeCpuTopology{},
+		&cslabecentuagrv1alpha1.NodeCPUTopology{},
 		resyncPeriod,
 		indexers,
 	)
 }
 
-func (f *nodeCpuTopologyInformer) defaultInformer(client versioned.Interface, resyncPeriod time.Duration) cache.SharedIndexInformer {
-	return NewFilteredNodeCpuTopologyInformer(client, resyncPeriod, cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc}, f.tweakListOptions)
+func (f *nodeCPUTopologyInformer) defaultInformer(client versioned.Interface, resyncPeriod time.Duration) cache.SharedIndexInformer {
+	return NewFilteredNodeCPUTopologyInformer(client, resyncPeriod, cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc}, f.tweakListOptions)
 }
 
-func (f *nodeCpuTopologyInformer) Informer() cache.SharedIndexInformer {
-	return f.factory.InformerFor(&cslabecentuagrv1alpha1.NodeCpuTopology{}, f.defaultInformer)
+func (f *nodeCPUTopologyInformer) Informer() cache.SharedIndexInformer {
+	return f.factory.InformerFor(&cslabecentuagrv1alpha1.NodeCPUTopology{}, f.defaultInformer)
 }
 
-func (f *nodeCpuTopologyInformer) Lister() v1alpha1.NodeCpuTopologyLister {
-	return v1alpha1.NewNodeCpuTopologyLister(f.Informer().GetIndexer())
+func (f *nodeCPUTopologyInformer) Lister() v1alpha1.NodeCPUTopologyLister {
+	return v1alpha1.NewNodeCPUTopologyLister(f.Informer().GetIndexer())
 }

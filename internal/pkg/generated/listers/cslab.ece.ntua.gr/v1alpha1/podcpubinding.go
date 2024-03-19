@@ -24,69 +24,69 @@ import (
 	"k8s.io/client-go/tools/cache"
 )
 
-// PodCpuBindingLister helps list PodCpuBindings.
+// PodCPUBindingLister helps list PodCPUBindings.
 // All objects returned here must be treated as read-only.
-type PodCpuBindingLister interface {
-	// List lists all PodCpuBindings in the indexer.
+type PodCPUBindingLister interface {
+	// List lists all PodCPUBindings in the indexer.
 	// Objects returned here must be treated as read-only.
-	List(selector labels.Selector) (ret []*v1alpha1.PodCpuBinding, err error)
-	// PodCpuBindings returns an object that can list and get PodCpuBindings.
-	PodCpuBindings(namespace string) PodCpuBindingNamespaceLister
-	PodCpuBindingListerExpansion
+	List(selector labels.Selector) (ret []*v1alpha1.PodCPUBinding, err error)
+	// PodCPUBindings returns an object that can list and get PodCPUBindings.
+	PodCPUBindings(namespace string) PodCPUBindingNamespaceLister
+	PodCPUBindingListerExpansion
 }
 
-// podCpuBindingLister implements the PodCpuBindingLister interface.
-type podCpuBindingLister struct {
+// podCPUBindingLister implements the PodCPUBindingLister interface.
+type podCPUBindingLister struct {
 	indexer cache.Indexer
 }
 
-// NewPodCpuBindingLister returns a new PodCpuBindingLister.
-func NewPodCpuBindingLister(indexer cache.Indexer) PodCpuBindingLister {
-	return &podCpuBindingLister{indexer: indexer}
+// NewPodCPUBindingLister returns a new PodCPUBindingLister.
+func NewPodCPUBindingLister(indexer cache.Indexer) PodCPUBindingLister {
+	return &podCPUBindingLister{indexer: indexer}
 }
 
-// List lists all PodCpuBindings in the indexer.
-func (s *podCpuBindingLister) List(selector labels.Selector) (ret []*v1alpha1.PodCpuBinding, err error) {
+// List lists all PodCPUBindings in the indexer.
+func (s *podCPUBindingLister) List(selector labels.Selector) (ret []*v1alpha1.PodCPUBinding, err error) {
 	err = cache.ListAll(s.indexer, selector, func(m interface{}) {
-		ret = append(ret, m.(*v1alpha1.PodCpuBinding))
+		ret = append(ret, m.(*v1alpha1.PodCPUBinding))
 	})
 	return ret, err
 }
 
-// PodCpuBindings returns an object that can list and get PodCpuBindings.
-func (s *podCpuBindingLister) PodCpuBindings(namespace string) PodCpuBindingNamespaceLister {
-	return podCpuBindingNamespaceLister{indexer: s.indexer, namespace: namespace}
+// PodCPUBindings returns an object that can list and get PodCPUBindings.
+func (s *podCPUBindingLister) PodCPUBindings(namespace string) PodCPUBindingNamespaceLister {
+	return podCPUBindingNamespaceLister{indexer: s.indexer, namespace: namespace}
 }
 
-// PodCpuBindingNamespaceLister helps list and get PodCpuBindings.
+// PodCPUBindingNamespaceLister helps list and get PodCPUBindings.
 // All objects returned here must be treated as read-only.
-type PodCpuBindingNamespaceLister interface {
-	// List lists all PodCpuBindings in the indexer for a given namespace.
+type PodCPUBindingNamespaceLister interface {
+	// List lists all PodCPUBindings in the indexer for a given namespace.
 	// Objects returned here must be treated as read-only.
-	List(selector labels.Selector) (ret []*v1alpha1.PodCpuBinding, err error)
-	// Get retrieves the PodCpuBinding from the indexer for a given namespace and name.
+	List(selector labels.Selector) (ret []*v1alpha1.PodCPUBinding, err error)
+	// Get retrieves the PodCPUBinding from the indexer for a given namespace and name.
 	// Objects returned here must be treated as read-only.
-	Get(name string) (*v1alpha1.PodCpuBinding, error)
-	PodCpuBindingNamespaceListerExpansion
+	Get(name string) (*v1alpha1.PodCPUBinding, error)
+	PodCPUBindingNamespaceListerExpansion
 }
 
-// podCpuBindingNamespaceLister implements the PodCpuBindingNamespaceLister
+// podCPUBindingNamespaceLister implements the PodCPUBindingNamespaceLister
 // interface.
-type podCpuBindingNamespaceLister struct {
+type podCPUBindingNamespaceLister struct {
 	indexer   cache.Indexer
 	namespace string
 }
 
-// List lists all PodCpuBindings in the indexer for a given namespace.
-func (s podCpuBindingNamespaceLister) List(selector labels.Selector) (ret []*v1alpha1.PodCpuBinding, err error) {
+// List lists all PodCPUBindings in the indexer for a given namespace.
+func (s podCPUBindingNamespaceLister) List(selector labels.Selector) (ret []*v1alpha1.PodCPUBinding, err error) {
 	err = cache.ListAllByNamespace(s.indexer, s.namespace, selector, func(m interface{}) {
-		ret = append(ret, m.(*v1alpha1.PodCpuBinding))
+		ret = append(ret, m.(*v1alpha1.PodCPUBinding))
 	})
 	return ret, err
 }
 
-// Get retrieves the PodCpuBinding from the indexer for a given namespace and name.
-func (s podCpuBindingNamespaceLister) Get(name string) (*v1alpha1.PodCpuBinding, error) {
+// Get retrieves the PodCPUBinding from the indexer for a given namespace and name.
+func (s podCPUBindingNamespaceLister) Get(name string) (*v1alpha1.PodCPUBinding, error) {
 	obj, exists, err := s.indexer.GetByKey(s.namespace + "/" + name)
 	if err != nil {
 		return nil, err
@@ -94,5 +94,5 @@ func (s podCpuBindingNamespaceLister) Get(name string) (*v1alpha1.PodCpuBinding,
 	if !exists {
 		return nil, errors.NewNotFound(v1alpha1.Resource("podcpubinding"), name)
 	}
-	return obj.(*v1alpha1.PodCpuBinding), nil
+	return obj.(*v1alpha1.PodCPUBinding), nil
 }

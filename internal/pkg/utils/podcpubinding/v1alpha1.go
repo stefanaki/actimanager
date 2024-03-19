@@ -5,53 +5,53 @@ import (
 	nct "cslab.ece.ntua.gr/actimanager/internal/pkg/utils/nodecputopology"
 )
 
-// GetExclusiveCpusOfCpuBinding returns the exclusive CPUs
+// GetExclusiveCPUsOfCPUBinding returns the exclusive CPUs
 // for a given CPU binding based on its exclusiveness level
-func GetExclusiveCpusOfCpuBinding(cpuBinding *v1alpha1.PodCpuBinding, topology *v1alpha1.CpuTopology) map[int]struct{} {
-	exclusiveCpus := make(map[int]struct{})
-	for _, cpu := range cpuBinding.Spec.CpuSet {
-		_, coreId, socketId, numaId := nct.GetCpuParentInfo(topology, cpu.CpuId)
+func GetExclusiveCPUsOfCPUBinding(cpuBinding *v1alpha1.PodCPUBinding, topology *v1alpha1.CPUTopology) map[int]struct{} {
+	exclusiveCPUs := make(map[int]struct{})
+	for _, cpu := range cpuBinding.Spec.CPUSet {
+		_, coreID, socketID, numaID := nct.GetCPUParentInfo(topology, cpu.CPUID)
 		switch cpuBinding.Spec.ExclusivenessLevel {
-		case "Cpu":
-			exclusiveCpus[cpu.CpuId] = struct{}{}
+		case "CPU":
+			exclusiveCPUs[cpu.CPUID] = struct{}{}
 		case "Core":
-			for _, c := range nct.GetAllCpusInCore(topology, coreId) {
-				exclusiveCpus[c] = struct{}{}
+			for _, c := range nct.GetAllCPUsInCore(topology, coreID) {
+				exclusiveCPUs[c] = struct{}{}
 			}
 		case "Socket":
-			for _, c := range nct.GetAllCpusInSocket(topology, socketId) {
-				exclusiveCpus[c] = struct{}{}
+			for _, c := range nct.GetAllCPUsInSocket(topology, socketID) {
+				exclusiveCPUs[c] = struct{}{}
 			}
-		case "Numa":
-			for _, c := range nct.GetAllCpusInNuma(topology, numaId) {
-				exclusiveCpus[c] = struct{}{}
+		case "NUMA":
+			for _, c := range nct.GetAllCPUsInNUMA(topology, numaID) {
+				exclusiveCPUs[c] = struct{}{}
 			}
 		default:
 		}
 	}
-	return exclusiveCpus
+	return exclusiveCPUs
 }
 
-func GetCpusOfCpuBinding(cpuBinding *v1alpha1.PodCpuBinding) map[int]struct{} {
+func GetCPUsOfCPUBinding(cpuBinding *v1alpha1.PodCPUBinding) map[int]struct{} {
 	cpus := make(map[int]struct{})
-	for _, cpu := range cpuBinding.Spec.CpuSet {
-		cpus[cpu.CpuId] = struct{}{}
+	for _, cpu := range cpuBinding.Spec.CPUSet {
+		cpus[cpu.CPUID] = struct{}{}
 	}
 	return cpus
 }
 
-func ConvertCpuSliceToIntSlice(cpuSlice []v1alpha1.Cpu) []int {
+func ConvertCPUSliceToIntSlice(cpuSlice []v1alpha1.CPU) []int {
 	intSlice := make([]int, len(cpuSlice))
 	for i, cpu := range cpuSlice {
-		intSlice[i] = cpu.CpuId
+		intSlice[i] = cpu.CPUID
 	}
 	return intSlice
 }
 
-func ConvertIntSliceToCpuSlice(intSlice []int) []v1alpha1.Cpu {
-	cpuSlice := make([]v1alpha1.Cpu, len(intSlice))
-	for i, cpuId := range intSlice {
-		cpuSlice[i] = v1alpha1.Cpu{CpuId: cpuId}
+func ConvertIntSliceToCPUSlice(intSlice []int) []v1alpha1.CPU {
+	cpuSlice := make([]v1alpha1.CPU, len(intSlice))
+	for i, cpuID := range intSlice {
+		cpuSlice[i] = v1alpha1.CPU{CPUID: cpuID}
 	}
 	return cpuSlice
 }

@@ -1,36 +1,36 @@
 apiVersion: cslab.ece.ntua.gr/v1alpha1
-kind: PodCpuBinding
+kind: PodCPUBinding
 metadata:
   name: n1
   namespace: benchmarks
 spec:
-  exclusivenessLevel: Cpu
+  exclusivenessLevel: CPU
   podName: nginx1
   cpuSet:
-    - cpuId: 0
-    - cpuId: 1
+    - cpuID: 0
+    - cpuID: 1
 ---
 apiVersion: cslab.ece.ntua.gr/v1alpha1
-kind: PodCpuBinding
+kind: PodCPUBinding
 metadata:
   name: n2
   namespace: benchmarks
 spec:
-  exclusivenessLevel: Cpu
+  exclusivenessLevel: CPU
   podName: nginx2
   cpuSet:
-    - cpuId: 2
-    - cpuId: 3
+    - cpuID: 2
+    - cpuID: 3
 ---
 apiVersion: cslab.ece.ntua.gr/v1alpha1
-kind: PodCpuBinding
+kind: PodCPUBinding
 metadata:
   name: n3
   namespace: benchmarks
 spec:
-  exclusivenessLevel: Cpu
+  exclusivenessLevel: CPU
   podName: nginx3
   cpuSet:
-    - cpuId: 5
-    - cpuId: 6
+    - cpuID: 5
+    - cpuID: 6
 ---

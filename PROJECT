@@ -14,7 +14,7 @@ resources:
     namespaced: true
   controller: true
   domain: cslab.ece.ntua.gr
-  kind: NodeCpuTopology
+  kind: NodeCPUTopology
   path: cslab.ece.ntua.gr/actimanager/api/v1alpha1
   version: v1alpha1
 - api:
@@ -22,7 +22,7 @@ resources:
     namespaced: true
   controller: true
   domain: cslab.ece.ntua.gr
-  kind: PodCpuBinding
+  kind: PodCPUBinding
   path: cslab.ece.ntua.gr/actimanager/api/v1alpha1
   version: v1alpha1
 - controller: true

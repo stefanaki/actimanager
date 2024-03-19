@@ -17,25 +17,25 @@ limitations under the License.
 
 package v1alpha1
 
-// CpuTopologyApplyConfiguration represents an declarative configuration of the CpuTopology type for use
+// CPUTopologyApplyConfiguration represents an declarative configuration of the CPUTopology type for use
 // with apply.
-type CpuTopologyApplyConfiguration struct {
+type CPUTopologyApplyConfiguration struct {
 	Sockets   map[string]SocketApplyConfiguration   `json:"sockets,omitempty"`
-	NumaNodes map[string]NumaNodeApplyConfiguration `json:"numaNodes,omitempty"`
-	Cpus      []int                                 `json:"cpus,omitempty"`
+	NUMANodes map[string]NUMANodeApplyConfiguration `json:"numaNodes,omitempty"`
+	CPUs      []int                                 `json:"cpus,omitempty"`
 }
 
-// CpuTopologyApplyConfiguration constructs an declarative configuration of the CpuTopology type for use with
+// CPUTopologyApplyConfiguration constructs an declarative configuration of the CPUTopology type for use with
 // apply.
-func CpuTopology() *CpuTopologyApplyConfiguration {
-	return &CpuTopologyApplyConfiguration{}
+func CPUTopology() *CPUTopologyApplyConfiguration {
+	return &CPUTopologyApplyConfiguration{}
 }
 
 // WithSockets puts the entries into the Sockets field in the declarative configuration
 // and returns the receiver, so that objects can be build by chaining "With" function invocations.
 // If called multiple times, the entries provided by each call will be put on the Sockets field,
 // overwriting an existing map entries in Sockets field with the same key.
-func (b *CpuTopologyApplyConfiguration) WithSockets(entries map[string]SocketApplyConfiguration) *CpuTopologyApplyConfiguration {
+func (b *CPUTopologyApplyConfiguration) WithSockets(entries map[string]SocketApplyConfiguration) *CPUTopologyApplyConfiguration {
 	if b.Sockets == nil && len(entries) > 0 {
 		b.Sockets = make(map[string]SocketApplyConfiguration, len(entries))
 	}
@@ -45,26 +45,26 @@ func (b *CpuTopologyApplyConfiguration) WithSockets(entries map[string]SocketApp
 	return b
 }
 
-// WithNumaNodes puts the entries into the NumaNodes field in the declarative configuration
+// WithNUMANodes puts the entries into the NUMANodes field in the declarative configuration
 // and returns the receiver, so that objects can be build by chaining "With" function invocations.
-// If called multiple times, the entries provided by each call will be put on the NumaNodes field,
-// overwriting an existing map entries in NumaNodes field with the same key.
-func (b *CpuTopologyApplyConfiguration) WithNumaNodes(entries map[string]NumaNodeApplyConfiguration) *CpuTopologyApplyConfiguration {
-	if b.NumaNodes == nil && len(entries) > 0 {
-		b.NumaNodes = make(map[string]NumaNodeApplyConfiguration, len(entries))
+// If called multiple times, the entries provided by each call will be put on the NUMANodes field,
+// overwriting an existing map entries in NUMANodes field with the same key.
+func (b *CPUTopologyApplyConfiguration) WithNUMANodes(entries map[string]NUMANodeApplyConfiguration) *CPUTopologyApplyConfiguration {
+	if b.NUMANodes == nil && len(entries) > 0 {
+		b.NUMANodes = make(map[string]NUMANodeApplyConfiguration, len(entries))
 	}
 	for k, v := range entries {
-		b.NumaNodes[k] = v
+		b.NUMANodes[k] = v
 	}
 	return b
 }
 
-// WithCpus adds the given value to the Cpus field in the declarative configuration
+// WithCPUs adds the given value to the CPUs field in the declarative configuration
 // and returns the receiver, so that objects can be build by chaining "With" function invocations.
-// If called multiple times, values provided by each call will be appended to the Cpus field.
-func (b *CpuTopologyApplyConfiguration) WithCpus(values ...int) *CpuTopologyApplyConfiguration {
+// If called multiple times, values provided by each call will be appended to the CPUs field.
+func (b *CPUTopologyApplyConfiguration) WithCPUs(values ...int) *CPUTopologyApplyConfiguration {
 	for i := range values {
-		b.Cpus = append(b.Cpus, values[i])
+		b.CPUs = append(b.CPUs, values[i])
 	}
 	return b
 }

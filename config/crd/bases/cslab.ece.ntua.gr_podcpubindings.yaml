@@ -8,8 +8,8 @@ metadata:
 spec:
   group: cslab.ece.ntua.gr
   names:
-    kind: PodCpuBinding
-    listKind: PodCpuBindingList
+    kind: PodCPUBinding
+    listKind: PodCPUBindingList
     plural: podcpubindings
     shortNames:
     - pcb
@@ -29,7 +29,7 @@ spec:
     name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: PodCpuBinding is the Schema for the podcpubindings API
+        description: PodCPUBinding is the Schema for the podcpubindings API
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation
@@ -44,26 +44,26 @@ spec:
           metadata:
             type: object
           spec:
-            description: PodCpuBindingSpec defines the CPU set on which a pod is bound,
+            description: PodCPUBindingSpec defines the CPU set on which a pod is bound,
               as well as the level of exclusiveness of the resources it needs
             properties:
               cpuSet:
                 items:
-                  description: Cpu is a logical CPU core of the parent core
+                  description: CPU is a logical CPU core of the parent core
                   properties:
-                    cpuId:
+                    cpuID:
                       type: integer
                   required:
-                  - cpuId
+                  - cpuID
                   type: object
                 type: array
               exclusivenessLevel:
                 enum:
                 - None
-                - Cpu
+                - CPU
                 - Core
                 - Socket
-                - Numa
+                - NUMA
                 type: string
               podName:
                 type: string
@@ -73,7 +73,7 @@ spec:
             - podName
             type: object
           status:
-            description: PodCpuBindingStatus defines the observed state of PodCpuBinding
+            description: PodCPUBindingStatus defines the observed state of PodCPUBinding
             properties:
               nodeName:
                 type: string
@@ -82,10 +82,11 @@ spec:
                 - Applied
                 - Pending
                 - PodNotFound
-                - InvalidCpuSet
+                - InvalidCPUSet
                 - Collision
                 - Failed
-                - CpuSetAllocationFailed
+                - CPUSetAllocationFailed
+                - Validated
                 type: string
             required:
             - nodeName

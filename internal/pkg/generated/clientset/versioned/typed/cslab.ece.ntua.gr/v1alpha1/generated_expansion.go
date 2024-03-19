@@ -17,6 +17,6 @@ limitations under the License.
 
 package v1alpha1
 
-type NodeCpuTopologyExpansion interface{}
+type NodeCPUTopologyExpansion interface{}
 
-type PodCpuBindingExpansion interface{}
+type PodCPUBindingExpansion interface{}

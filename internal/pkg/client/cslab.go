@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 )
 
-func NewCslabClient() (*clientset.Clientset, error) {
+func NewCSLabClient() (*clientset.Clientset, error) {
 	home := homedir.HomeDir()
 	kubeconfig := filepath.Join(home, ".kube", "config")
 

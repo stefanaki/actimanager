@@ -32,45 +32,45 @@ import (
 	rest "k8s.io/client-go/rest"
 )
 
-// PodCpuBindingsGetter has a method to return a PodCpuBindingInterface.
+// PodCPUBindingsGetter has a method to return a PodCPUBindingInterface.
 // A group's client should implement this interface.
-type PodCpuBindingsGetter interface {
-	PodCpuBindings(namespace string) PodCpuBindingInterface
+type PodCPUBindingsGetter interface {
+	PodCPUBindings(namespace string) PodCPUBindingInterface
 }
 
-// PodCpuBindingInterface has methods to work with PodCpuBinding resources.
-type PodCpuBindingInterface interface {
-	Create(ctx context.Context, podCpuBinding *v1alpha1.PodCpuBinding, opts v1.CreateOptions) (*v1alpha1.PodCpuBinding, error)
-	Update(ctx context.Context, podCpuBinding *v1alpha1.PodCpuBinding, opts v1.UpdateOptions) (*v1alpha1.PodCpuBinding, error)
-	UpdateStatus(ctx context.Context, podCpuBinding *v1alpha1.PodCpuBinding, opts v1.UpdateOptions) (*v1alpha1.PodCpuBinding, error)
+// PodCPUBindingInterface has methods to work with PodCPUBinding resources.
+type PodCPUBindingInterface interface {
+	Create(ctx context.Context, podCPUBinding *v1alpha1.PodCPUBinding, opts v1.CreateOptions) (*v1alpha1.PodCPUBinding, error)
+	Update(ctx context.Context, podCPUBinding *v1alpha1.PodCPUBinding, opts v1.UpdateOptions) (*v1alpha1.PodCPUBinding, error)
+	UpdateStatus(ctx context.Context, podCPUBinding *v1alpha1.PodCPUBinding, opts v1.UpdateOptions) (*v1alpha1.PodCPUBinding, error)
 	Delete(ctx context.Context, name string, opts v1.DeleteOptions) error
 	DeleteCollection(ctx context.Context, opts v1.DeleteOptions, listOpts v1.ListOptions) error
-	Get(ctx context.Context, name string, opts v1.GetOptions) (*v1alpha1.PodCpuBinding, error)
-	List(ctx context.Context, opts v1.ListOptions) (*v1alpha1.PodCpuBindingList, error)
+	Get(ctx context.Context, name string, opts v1.GetOptions) (*v1alpha1.PodCPUBinding, error)
+	List(ctx context.Context, opts v1.ListOptions) (*v1alpha1.PodCPUBindingList, error)
 	Watch(ctx context.Context, opts v1.ListOptions) (watch.Interface, error)
-	Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *v1alpha1.PodCpuBinding, err error)
-	Apply(ctx context.Context, podCpuBinding *cslabecentuagrv1alpha1.PodCpuBindingApplyConfiguration, opts v1.ApplyOptions) (result *v1alpha1.PodCpuBinding, err error)
-	ApplyStatus(ctx context.Context, podCpuBinding *cslabecentuagrv1alpha1.PodCpuBindingApplyConfiguration, opts v1.ApplyOptions) (result *v1alpha1.PodCpuBinding, err error)
-	PodCpuBindingExpansion
+	Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *v1alpha1.PodCPUBinding, err error)
+	Apply(ctx context.Context, podCPUBinding *cslabecentuagrv1alpha1.PodCPUBindingApplyConfiguration, opts v1.ApplyOptions) (result *v1alpha1.PodCPUBinding, err error)
+	ApplyStatus(ctx context.Context, podCPUBinding *cslabecentuagrv1alpha1.PodCPUBindingApplyConfiguration, opts v1.ApplyOptions) (result *v1alpha1.PodCPUBinding, err error)
+	PodCPUBindingExpansion
 }
 
-// podCpuBindings implements PodCpuBindingInterface
-type podCpuBindings struct {
+// podCPUBindings implements PodCPUBindingInterface
+type podCPUBindings struct {
 	client rest.Interface
 	ns     string
 }
 
-// newPodCpuBindings returns a PodCpuBindings
-func newPodCpuBindings(c *CslabV1alpha1Client, namespace string) *podCpuBindings {
-	return &podCpuBindings{
+// newPodCPUBindings returns a PodCPUBindings
+func newPodCPUBindings(c *CslabV1alpha1Client, namespace string) *podCPUBindings {
+	return &podCPUBindings{
 		client: c.RESTClient(),
 		ns:     namespace,
 	}
 }
 
-// Get takes name of the podCpuBinding, and returns the corresponding podCpuBinding object, and an error if there is any.
-func (c *podCpuBindings) Get(ctx context.Context, name string, options v1.GetOptions) (result *v1alpha1.PodCpuBinding, err error) {
-	result = &v1alpha1.PodCpuBinding{}
+// Get takes name of the podCPUBinding, and returns the corresponding podCPUBinding object, and an error if there is any.
+func (c *podCPUBindings) Get(ctx context.Context, name string, options v1.GetOptions) (result *v1alpha1.PodCPUBinding, err error) {
+	result = &v1alpha1.PodCPUBinding{}
 	err = c.client.Get().
 		Namespace(c.ns).
 		Resource("podcpubindings").
@@ -81,13 +81,13 @@ func (c *podCpuBindings) Get(ctx context.Context, name string, options v1.GetOpt
 	return
 }
 
-// List takes label and field selectors, and returns the list of PodCpuBindings that match those selectors.
-func (c *podCpuBindings) List(ctx context.Context, opts v1.ListOptions) (result *v1alpha1.PodCpuBindingList, err error) {
+// List takes label and field selectors, and returns the list of PodCPUBindings that match those selectors.
+func (c *podCPUBindings) List(ctx context.Context, opts v1.ListOptions) (result *v1alpha1.PodCPUBindingList, err error) {
 	var timeout time.Duration
 	if opts.TimeoutSeconds != nil {
 		timeout = time.Duration(*opts.TimeoutSeconds) * time.Second
 	}
-	result = &v1alpha1.PodCpuBindingList{}
+	result = &v1alpha1.PodCPUBindingList{}
 	err = c.client.Get().
 		Namespace(c.ns).
 		Resource("podcpubindings").
@@ -98,8 +98,8 @@ func (c *podCpuBindings) List(ctx context.Context, opts v1.ListOptions) (result 
 	return
 }
 
-// Watch returns a watch.Interface that watches the requested podCpuBindings.
-func (c *podCpuBindings) Watch(ctx context.Context, opts v1.ListOptions) (watch.Interface, error) {
+// Watch returns a watch.Interface that watches the requested podCPUBindings.
+func (c *podCPUBindings) Watch(ctx context.Context, opts v1.ListOptions) (watch.Interface, error) {
 	var timeout time.Duration
 	if opts.TimeoutSeconds != nil {
 		timeout = time.Duration(*opts.TimeoutSeconds) * time.Second
@@ -113,28 +113,28 @@ func (c *podCpuBindings) Watch(ctx context.Context, opts v1.ListOptions) (watch.
 		Watch(ctx)
 }
 
-// Create takes the representation of a podCpuBinding and creates it.  Returns the server's representation of the podCpuBinding, and an error, if there is any.
-func (c *podCpuBindings) Create(ctx context.Context, podCpuBinding *v1alpha1.PodCpuBinding, opts v1.CreateOptions) (result *v1alpha1.PodCpuBinding, err error) {
-	result = &v1alpha1.PodCpuBinding{}
+// Create takes the representation of a podCPUBinding and creates it.  Returns the server's representation of the podCPUBinding, and an error, if there is any.
+func (c *podCPUBindings) Create(ctx context.Context, podCPUBinding *v1alpha1.PodCPUBinding, opts v1.CreateOptions) (result *v1alpha1.PodCPUBinding, err error) {
+	result = &v1alpha1.PodCPUBinding{}
 	err = c.client.Post().
 		Namespace(c.ns).
 		Resource("podcpubindings").
 		VersionedParams(&opts, scheme.ParameterCodec).
-		Body(podCpuBinding).
+		Body(podCPUBinding).
 		Do(ctx).
 		Into(result)
 	return
 }
 
-// Update takes the representation of a podCpuBinding and updates it. Returns the server's representation of the podCpuBinding, and an error, if there is any.
-func (c *podCpuBindings) Update(ctx context.Context, podCpuBinding *v1alpha1.PodCpuBinding, opts v1.UpdateOptions) (result *v1alpha1.PodCpuBinding, err error) {
-	result = &v1alpha1.PodCpuBinding{}
+// Update takes the representation of a podCPUBinding and updates it. Returns the server's representation of the podCPUBinding, and an error, if there is any.
+func (c *podCPUBindings) Update(ctx context.Context, podCPUBinding *v1alpha1.PodCPUBinding, opts v1.UpdateOptions) (result *v1alpha1.PodCPUBinding, err error) {
+	result = &v1alpha1.PodCPUBinding{}
 	err = c.client.Put().
 		Namespace(c.ns).
 		Resource("podcpubindings").
-		Name(podCpuBinding.Name).
+		Name(podCPUBinding.Name).
 		VersionedParams(&opts, scheme.ParameterCodec).
-		Body(podCpuBinding).
+		Body(podCPUBinding).
 		Do(ctx).
 		Into(result)
 	return
@@ -142,22 +142,22 @@ func (c *podCpuBindings) Update(ctx context.Context, podCpuBinding *v1alpha1.Pod
 
 // UpdateStatus was generated because the type contains a Status member.
 // Add a +genclient:noStatus comment above the type to avoid generating UpdateStatus().
-func (c *podCpuBindings) UpdateStatus(ctx context.Context, podCpuBinding *v1alpha1.PodCpuBinding, opts v1.UpdateOptions) (result *v1alpha1.PodCpuBinding, err error) {
-	result = &v1alpha1.PodCpuBinding{}
+func (c *podCPUBindings) UpdateStatus(ctx context.Context, podCPUBinding *v1alpha1.PodCPUBinding, opts v1.UpdateOptions) (result *v1alpha1.PodCPUBinding, err error) {
+	result = &v1alpha1.PodCPUBinding{}
 	err = c.client.Put().
 		Namespace(c.ns).
 		Resource("podcpubindings").
-		Name(podCpuBinding.Name).
+		Name(podCPUBinding.Name).
 		SubResource("status").
 		VersionedParams(&opts, scheme.ParameterCodec).
-		Body(podCpuBinding).
+		Body(podCPUBinding).
 		Do(ctx).
 		Into(result)
 	return
 }
 
-// Delete takes name of the podCpuBinding and deletes it. Returns an error if one occurs.
-func (c *podCpuBindings) Delete(ctx context.Context, name string, opts v1.DeleteOptions) error {
+// Delete takes name of the podCPUBinding and deletes it. Returns an error if one occurs.
+func (c *podCPUBindings) Delete(ctx context.Context, name string, opts v1.DeleteOptions) error {
 	return c.client.Delete().
 		Namespace(c.ns).
 		Resource("podcpubindings").
@@ -168,7 +168,7 @@ func (c *podCpuBindings) Delete(ctx context.Context, name string, opts v1.Delete
 }
 
 // DeleteCollection deletes a collection of objects.
-func (c *podCpuBindings) DeleteCollection(ctx context.Context, opts v1.DeleteOptions, listOpts v1.ListOptions) error {
+func (c *podCPUBindings) DeleteCollection(ctx context.Context, opts v1.DeleteOptions, listOpts v1.ListOptions) error {
 	var timeout time.Duration
 	if listOpts.TimeoutSeconds != nil {
 		timeout = time.Duration(*listOpts.TimeoutSeconds) * time.Second
@@ -183,9 +183,9 @@ func (c *podCpuBindings) DeleteCollection(ctx context.Context, opts v1.DeleteOpt
 		Error()
 }
 
-// Patch applies the patch and returns the patched podCpuBinding.
-func (c *podCpuBindings) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *v1alpha1.PodCpuBinding, err error) {
-	result = &v1alpha1.PodCpuBinding{}
+// Patch applies the patch and returns the patched podCPUBinding.
+func (c *podCPUBindings) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *v1alpha1.PodCPUBinding, err error) {
+	result = &v1alpha1.PodCPUBinding{}
 	err = c.client.Patch(pt).
 		Namespace(c.ns).
 		Resource("podcpubindings").
@@ -198,21 +198,21 @@ func (c *podCpuBindings) Patch(ctx context.Context, name string, pt types.PatchT
 	return
 }
 
-// Apply takes the given apply declarative configuration, applies it and returns the applied podCpuBinding.
-func (c *podCpuBindings) Apply(ctx context.Context, podCpuBinding *cslabecentuagrv1alpha1.PodCpuBindingApplyConfiguration, opts v1.ApplyOptions) (result *v1alpha1.PodCpuBinding, err error) {
-	if podCpuBinding == nil {
-		return nil, fmt.Errorf("podCpuBinding provided to Apply must not be nil")
+// Apply takes the given apply declarative configuration, applies it and returns the applied podCPUBinding.
+func (c *podCPUBindings) Apply(ctx context.Context, podCPUBinding *cslabecentuagrv1alpha1.PodCPUBindingApplyConfiguration, opts v1.ApplyOptions) (result *v1alpha1.PodCPUBinding, err error) {
+	if podCPUBinding == nil {
+		return nil, fmt.Errorf("podCPUBinding provided to Apply must not be nil")
 	}
 	patchOpts := opts.ToPatchOptions()
-	data, err := json.Marshal(podCpuBinding)
+	data, err := json.Marshal(podCPUBinding)
 	if err != nil {
 		return nil, err
 	}
-	name := podCpuBinding.Name
+	name := podCPUBinding.Name
 	if name == nil {
-		return nil, fmt.Errorf("podCpuBinding.Name must be provided to Apply")
+		return nil, fmt.Errorf("podCPUBinding.Name must be provided to Apply")
 	}
-	result = &v1alpha1.PodCpuBinding{}
+	result = &v1alpha1.PodCPUBinding{}
 	err = c.client.Patch(types.ApplyPatchType).
 		Namespace(c.ns).
 		Resource("podcpubindings").
@@ -226,22 +226,22 @@ func (c *podCpuBindings) Apply(ctx context.Context, podCpuBinding *cslabecentuag
 
 // ApplyStatus was generated because the type contains a Status member.
 // Add a +genclient:noStatus comment above the type to avoid generating ApplyStatus().
-func (c *podCpuBindings) ApplyStatus(ctx context.Context, podCpuBinding *cslabecentuagrv1alpha1.PodCpuBindingApplyConfiguration, opts v1.ApplyOptions) (result *v1alpha1.PodCpuBinding, err error) {
-	if podCpuBinding == nil {
-		return nil, fmt.Errorf("podCpuBinding provided to Apply must not be nil")
+func (c *podCPUBindings) ApplyStatus(ctx context.Context, podCPUBinding *cslabecentuagrv1alpha1.PodCPUBindingApplyConfiguration, opts v1.ApplyOptions) (result *v1alpha1.PodCPUBinding, err error) {
+	if podCPUBinding == nil {
+		return nil, fmt.Errorf("podCPUBinding provided to Apply must not be nil")
 	}
 	patchOpts := opts.ToPatchOptions()
-	data, err := json.Marshal(podCpuBinding)
+	data, err := json.Marshal(podCPUBinding)
 	if err != nil {
 		return nil, err
 	}
 
-	name := podCpuBinding.Name
+	name := podCPUBinding.Name
 	if name == nil {
-		return nil, fmt.Errorf("podCpuBinding.Name must be provided to Apply")
+		return nil, fmt.Errorf("podCPUBinding.Name must be provided to Apply")
 	}
 
-	result = &v1alpha1.PodCpuBinding{}
+	result = &v1alpha1.PodCPUBinding{}
 	err = c.client.Patch(types.ApplyPatchType).
 		Namespace(c.ns).
 		Resource("podcpubindings").

@@ -10,7 +10,7 @@ import (
 )
 
 // getNode retrieves the node with the given nodeName from the Kubernetes cluster.
-func (r *PodCpuBindingReconciler) getNode(ctx context.Context, nodeName string) (*corev1.Node, error) {
+func (r *PodCPUBindingReconciler) getNode(ctx context.Context, nodeName string) (*corev1.Node, error) {
 	node := &corev1.Node{}
 
 	err := r.Get(ctx, client.ObjectKey{
@@ -21,7 +21,7 @@ func (r *PodCpuBindingReconciler) getNode(ctx context.Context, nodeName string) 
 }
 
 // getPod retrieves the pod with the given podNamespacedName from the Kubernetes cluster.
-func (r *PodCpuBindingReconciler) getPod(ctx context.Context, podNamespacedName types.NamespacedName) (*corev1.Pod, error) {
+func (r *PodCPUBindingReconciler) getPod(ctx context.Context, podNamespacedName types.NamespacedName) (*corev1.Pod, error) {
 	pod := &corev1.Pod{}
 
 	err := r.Get(ctx, client.ObjectKey{
@@ -33,7 +33,7 @@ func (r *PodCpuBindingReconciler) getPod(ctx context.Context, podNamespacedName 
 }
 
 // getNodeAddress retrieves the IP address of the node with the given nodeName from the Kubernetes cluster.
-func (r *PodCpuBindingReconciler) getNodeAddress(ctx context.Context, nodeName string) (string, error) {
+func (r *PodCPUBindingReconciler) getNodeAddress(ctx context.Context, nodeName string) (string, error) {
 	node, err := r.getNode(ctx, nodeName)
 	if err != nil {
 		return "", fmt.Errorf("failed to get node by name: %v", err.Error())
