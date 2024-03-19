@@ -30,24 +30,24 @@ func ForKind(kind schema.GroupVersionKind) interface{} {
 	// Group=cslab.ece.ntua.gr, Version=v1alpha1
 	case v1alpha1.SchemeGroupVersion.WithKind("Core"):
 		return &cslabecentuagrv1alpha1.CoreApplyConfiguration{}
-	case v1alpha1.SchemeGroupVersion.WithKind("Cpu"):
-		return &cslabecentuagrv1alpha1.CpuApplyConfiguration{}
-	case v1alpha1.SchemeGroupVersion.WithKind("CpuTopology"):
-		return &cslabecentuagrv1alpha1.CpuTopologyApplyConfiguration{}
-	case v1alpha1.SchemeGroupVersion.WithKind("NodeCpuTopology"):
-		return &cslabecentuagrv1alpha1.NodeCpuTopologyApplyConfiguration{}
-	case v1alpha1.SchemeGroupVersion.WithKind("NodeCpuTopologySpec"):
-		return &cslabecentuagrv1alpha1.NodeCpuTopologySpecApplyConfiguration{}
-	case v1alpha1.SchemeGroupVersion.WithKind("NodeCpuTopologyStatus"):
-		return &cslabecentuagrv1alpha1.NodeCpuTopologyStatusApplyConfiguration{}
-	case v1alpha1.SchemeGroupVersion.WithKind("NumaNode"):
-		return &cslabecentuagrv1alpha1.NumaNodeApplyConfiguration{}
-	case v1alpha1.SchemeGroupVersion.WithKind("PodCpuBinding"):
-		return &cslabecentuagrv1alpha1.PodCpuBindingApplyConfiguration{}
-	case v1alpha1.SchemeGroupVersion.WithKind("PodCpuBindingSpec"):
-		return &cslabecentuagrv1alpha1.PodCpuBindingSpecApplyConfiguration{}
-	case v1alpha1.SchemeGroupVersion.WithKind("PodCpuBindingStatus"):
-		return &cslabecentuagrv1alpha1.PodCpuBindingStatusApplyConfiguration{}
+	case v1alpha1.SchemeGroupVersion.WithKind("CPU"):
+		return &cslabecentuagrv1alpha1.CPUApplyConfiguration{}
+	case v1alpha1.SchemeGroupVersion.WithKind("CPUTopology"):
+		return &cslabecentuagrv1alpha1.CPUTopologyApplyConfiguration{}
+	case v1alpha1.SchemeGroupVersion.WithKind("NodeCPUTopology"):
+		return &cslabecentuagrv1alpha1.NodeCPUTopologyApplyConfiguration{}
+	case v1alpha1.SchemeGroupVersion.WithKind("NodeCPUTopologySpec"):
+		return &cslabecentuagrv1alpha1.NodeCPUTopologySpecApplyConfiguration{}
+	case v1alpha1.SchemeGroupVersion.WithKind("NodeCPUTopologyStatus"):
+		return &cslabecentuagrv1alpha1.NodeCPUTopologyStatusApplyConfiguration{}
+	case v1alpha1.SchemeGroupVersion.WithKind("NUMANode"):
+		return &cslabecentuagrv1alpha1.NUMANodeApplyConfiguration{}
+	case v1alpha1.SchemeGroupVersion.WithKind("PodCPUBinding"):
+		return &cslabecentuagrv1alpha1.PodCPUBindingApplyConfiguration{}
+	case v1alpha1.SchemeGroupVersion.WithKind("PodCPUBindingSpec"):
+		return &cslabecentuagrv1alpha1.PodCPUBindingSpecApplyConfiguration{}
+	case v1alpha1.SchemeGroupVersion.WithKind("PodCPUBindingStatus"):
+		return &cslabecentuagrv1alpha1.PodCPUBindingStatusApplyConfiguration{}
 	case v1alpha1.SchemeGroupVersion.WithKind("Socket"):
 		return &cslabecentuagrv1alpha1.SocketApplyConfiguration{}
 

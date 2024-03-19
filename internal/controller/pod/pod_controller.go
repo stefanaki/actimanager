@@ -38,7 +38,7 @@ var eventFilters = builder.WithPredicates(predicate.Funcs{
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
-// The controller is responsible for cleaning up PodCpuBindings when a Pod is deleted
+// The controller is responsible for cleaning up PodCPUBindings when a Pod is deleted
 func (r *PodReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	logger := log.FromContext(ctx).WithName("pod-watcher")
 
@@ -48,9 +48,9 @@ func (r *PodReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	if controllerutil.ContainsFinalizer(pod, v1alpha1.FinalizerCpuBoundPod) {
+	if controllerutil.ContainsFinalizer(pod, v1alpha1.FinalizerCPUBoundPod) {
 		// Handle deleted pod
-		cpuBindings := &v1alpha1.PodCpuBindingList{}
+		cpuBindings := &v1alpha1.PodCPUBindingList{}
 		if err := r.List(ctx, cpuBindings, &client.ListOptions{
 			FieldSelector: fields.OneTermEqualSelector("spec.podName", req.NamespacedName.Name),
 			Namespace:     pod.Namespace,
@@ -66,7 +66,7 @@ func (r *PodReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 			}
 		}
 
-		controllerutil.RemoveFinalizer(pod, v1alpha1.FinalizerCpuBoundPod)
+		controllerutil.RemoveFinalizer(pod, v1alpha1.FinalizerCPUBoundPod)
 		if err := r.Update(ctx, pod); err != nil {
 			return ctrl.Result{}, err
 		}
@@ -77,8 +77,8 @@ func (r *PodReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *PodReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	if err := mgr.GetFieldIndexer().IndexField(context.Background(), &v1alpha1.PodCpuBinding{}, "spec.podName", func(rawObj client.Object) []string {
-		cpuBinding := rawObj.(*v1alpha1.PodCpuBinding)
+	if err := mgr.GetFieldIndexer().IndexField(context.Background(), &v1alpha1.PodCPUBinding{}, "spec.podName", func(rawObj client.Object) []string {
+		cpuBinding := rawObj.(*v1alpha1.PodCPUBinding)
 		return []string{cpuBinding.Spec.PodName}
 	}); err != nil {
 		return err

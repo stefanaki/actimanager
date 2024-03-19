@@ -4,27 +4,27 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-type NodeCpuTopologyResourceStatus string
+type NodeCPUTopologyResourceStatus string
 
 const (
-	StatusNeedsSync      NodeCpuTopologyResourceStatus = "NeedsSync"
-	StatusNodeNotFound   NodeCpuTopologyResourceStatus = "NodeNotFound"
-	StatusFresh          NodeCpuTopologyResourceStatus = "Fresh"
-	StatusTopologyFailed NodeCpuTopologyResourceStatus = "Failed"
+	StatusNeedsSync      NodeCPUTopologyResourceStatus = "NeedsSync"
+	StatusNodeNotFound   NodeCPUTopologyResourceStatus = "NodeNotFound"
+	StatusFresh          NodeCPUTopologyResourceStatus = "Fresh"
+	StatusTopologyFailed NodeCPUTopologyResourceStatus = "Failed"
 )
 
-// NodeCpuTopologySpec defines the desired state of NodeCpuTopology
-type NodeCpuTopologySpec struct {
+// NodeCPUTopologySpec defines the desired state of NodeCPUTopology
+type NodeCPUTopologySpec struct {
 	NodeName string `json:"nodeName"`
 
 	//+kubebuilder:validation:Optional
-	Topology CpuTopology `json:"topology"`
+	Topology CPUTopology `json:"topology"`
 }
 
-// NodeCpuTopologyStatus defines the observed state of NodeCpuTopology
-type NodeCpuTopologyStatus struct {
+// NodeCPUTopologyStatus defines the observed state of NodeCPUTopology
+type NodeCPUTopologyStatus struct {
 	//+kubebuilder:validation:Required
-	ResourceStatus NodeCpuTopologyResourceStatus `json:"resourceStatus"`
+	ResourceStatus NodeCPUTopologyResourceStatus `json:"resourceStatus"`
 }
 
 // +genclient
@@ -36,57 +36,57 @@ type NodeCpuTopologyStatus struct {
 // +kubebuilder:printcolumn:name="Node",type=string,JSONPath=`.spec.nodeName`
 // +kubebuilder:printcolumn:name="Resource Status",type=string,JSONPath=`.status.resourceStatus`
 
-// NodeCpuTopology is the Schema for the nodecputopologies API
-type NodeCpuTopology struct {
+// NodeCPUTopology is the Schema for the nodecputopologies API
+type NodeCPUTopology struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   NodeCpuTopologySpec   `json:"spec,omitempty"`
-	Status NodeCpuTopologyStatus `json:"status,omitempty"`
+	Spec   NodeCPUTopologySpec   `json:"spec,omitempty"`
+	Status NodeCPUTopologyStatus `json:"status,omitempty"`
 }
 
 //+kubebuilder:object:root=true
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// NodeCpuTopologyList contains a list of NodeCpuTopology
-type NodeCpuTopologyList struct {
+// NodeCPUTopologyList contains a list of NodeCPUTopology
+type NodeCPUTopologyList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []NodeCpuTopology `json:"items"`
+	Items           []NodeCPUTopology `json:"items"`
 }
 
-// CpuTopology represents the hierarchical topology of the CPU of a Kubernetes node
-type CpuTopology struct {
+// CPUTopology represents the hierarchical topology of the CPU of a Kubernetes node
+type CPUTopology struct {
 	//+kubebuilder:validation:Optional
 	Sockets map[string]Socket `json:"sockets"`
 	//+kubebuilder:validation:Optional
-	NumaNodes map[string]NumaNode `json:"numaNodes"`
+	NUMANodes map[string]NUMANode `json:"numaNodes"`
 	//+kubebuilder:validation:Optional
-	Cpus []int `json:"cpus"`
+	CPUs []int `json:"cpus"`
 }
 
 // Socket is a CPU socket of the Kubernetes node
 type Socket struct {
 	Cores map[string]Core `json:"cores"`
-	Cpus  []int           `json:"cpus"`
+	CPUs  []int           `json:"cpus"`
 }
 
-// NumaNode is a NUMA node of the Kubernetes node
-type NumaNode struct {
-	Cpus []int `json:"cpus"`
+// NUMANode is a NUMA node of the Kubernetes node
+type NUMANode struct {
+	CPUs []int `json:"cpus"`
 }
 
 // Core is a physical CPU core of the parent socket
 type Core struct {
-	Cpus []int `json:"cpus"`
+	CPUs []int `json:"cpus"`
 }
 
-// Cpu is a logical CPU core of the parent core
-type Cpu struct {
-	CpuId int `json:"cpuId"`
+// CPU is a logical CPU core of the parent core
+type CPU struct {
+	CPUID int `json:"cpuID"`
 }
 
 func init() {
-	SchemeBuilder.Register(&NodeCpuTopology{}, &NodeCpuTopologyList{})
+	SchemeBuilder.Register(&NodeCPUTopology{}, &NodeCPUTopologyList{})
 }

@@ -95,22 +95,22 @@ func main() {
 		os.Exit(1)
 	}
 
-	nodeCpuTopologyReconciler := &nodecputopology.NodeCpuTopologyReconciler{
+	nodeCPUTopologyReconciler := &nodecputopology.NodeCPUTopologyReconciler{
 		Client:   mgr.GetClient(),
 		Scheme:   mgr.GetScheme(),
 		Recorder: mgr.GetEventRecorderFor("nodecputopology-controller"),
 	}
 
-	if err = nodeCpuTopologyReconciler.SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "NodeCpuTopology")
+	if err = nodeCPUTopologyReconciler.SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "NodeCPUTopology")
 		os.Exit(1)
 	}
-	if err = (&podcpubinding.PodCpuBindingReconciler{
+	if err = (&podcpubinding.PodCPUBindingReconciler{
 		Client:   mgr.GetClient(),
 		Scheme:   mgr.GetScheme(),
 		Recorder: mgr.GetEventRecorderFor("podcpubinding-controller"),
 	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "PodCpuBinding")
+		setupLog.Error(err, "unable to create controller", "controller", "PodCPUBinding")
 		os.Exit(1)
 	}
 	if err = (&pod.PodReconciler{
@@ -123,8 +123,8 @@ func main() {
 
 	//+kubebuilder:scaffold:builder
 
-	if err := mgr.Add(manager.RunnableFunc(nodeCpuTopologyReconciler.CreateInitialNodeCpuTopologies)); err != nil {
-		setupLog.Error(err, "unable to add runnable function", "controller", "NodeCpuTopology")
+	if err := mgr.Add(manager.RunnableFunc(nodeCPUTopologyReconciler.CreateInitialNodeCPUTopologies)); err != nil {
+		setupLog.Error(err, "unable to add runnable function", "controller", "NodeCPUTopology")
 		os.Exit(1)
 	}
 

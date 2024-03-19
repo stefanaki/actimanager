@@ -23,10 +23,10 @@ import (
 
 // Interface provides access to all the informers in this group version.
 type Interface interface {
-	// NodeCpuTopologies returns a NodeCpuTopologyInformer.
-	NodeCpuTopologies() NodeCpuTopologyInformer
-	// PodCpuBindings returns a PodCpuBindingInformer.
-	PodCpuBindings() PodCpuBindingInformer
+	// NodeCPUTopologies returns a NodeCPUTopologyInformer.
+	NodeCPUTopologies() NodeCPUTopologyInformer
+	// PodCPUBindings returns a PodCPUBindingInformer.
+	PodCPUBindings() PodCPUBindingInformer
 }
 
 type version struct {
@@ -40,12 +40,12 @@ func New(f internalinterfaces.SharedInformerFactory, namespace string, tweakList
 	return &version{factory: f, namespace: namespace, tweakListOptions: tweakListOptions}
 }
 
-// NodeCpuTopologies returns a NodeCpuTopologyInformer.
-func (v *version) NodeCpuTopologies() NodeCpuTopologyInformer {
-	return &nodeCpuTopologyInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
+// NodeCPUTopologies returns a NodeCPUTopologyInformer.
+func (v *version) NodeCPUTopologies() NodeCPUTopologyInformer {
+	return &nodeCPUTopologyInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
 }
 
-// PodCpuBindings returns a PodCpuBindingInformer.
-func (v *version) PodCpuBindings() PodCpuBindingInformer {
-	return &podCpuBindingInformer{factory: v.factory, namespace: v.namespace, tweakListOptions: v.tweakListOptions}
+// PodCPUBindings returns a PodCPUBindingInformer.
+func (v *version) PodCPUBindings() PodCPUBindingInformer {
+	return &podCPUBindingInformer{factory: v.factory, namespace: v.namespace, tweakListOptions: v.tweakListOptions}
 }

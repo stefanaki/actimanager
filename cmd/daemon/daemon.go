@@ -46,7 +46,7 @@ func (s *DaemonServer) Start() error {
 	s.grpcServer = grpc.NewServer()
 
 	// Register servers below
-	cpupinning.RegisterCpuPinningServer(s.grpcServer, *s.cpuPinningServer)
+	cpupinning.RegisterCPUPinningServer(s.grpcServer, *s.cpuPinningServer)
 	topology.RegisterTopologyServer(s.grpcServer, *s.topologyServer)
 	healthv1.RegisterHealthServer(s.grpcServer, health.NewServer())
 

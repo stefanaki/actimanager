@@ -7,8 +7,8 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 )
 
-// PodCpuBindingFinalizer removes the CPU binding that was applied on the Pod
-func (r *PodCpuBindingReconciler) PodCpuBindingFinalizer(ctx context.Context, cpuBinding *v1alpha1.PodCpuBinding, logger logr.Logger) error {
+// PodCPUBindingFinalizer removes the CPU binding that was applied on the Pod
+func (r *PodCPUBindingReconciler) PodCPUBindingFinalizer(ctx context.Context, cpuBinding *v1alpha1.PodCPUBinding, logger logr.Logger) error {
 	pod, err := r.getPod(ctx, types.NamespacedName{
 		Namespace: cpuBinding.Namespace,
 		Name:      cpuBinding.Spec.PodName,
@@ -18,7 +18,7 @@ func (r *PodCpuBindingReconciler) PodCpuBindingFinalizer(ctx context.Context, cp
 		return nil
 	}
 	// Remove CPU pinning and delete CR
-	err = r.removeCpuPinning(ctx, pod)
+	err = r.removeCPUPinning(ctx, pod)
 	if err != nil {
 		logger.Info("error removing CPU pinning", "error", err.Error())
 	}

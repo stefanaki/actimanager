@@ -7,11 +7,11 @@ Fine-grained resource management for Kubernetes Pods.
 This repository is a framework for fine-grained orchestration of Kubernetes Pods. It utilizes the Operator Pattern, CRD's, Scheduling Framework plugins and other extension points of Kubernetes to provide a solution for fine-grained resource allocation. It consists of the following components:
 
 - **Custom Resource Definitions (CRD's)**
-    - `NodeCpuTopology`: The CPU and NUMA topology of a node.
-    - `PodCpuBinding`: The allocated CPU resources of a Pod.
+    - `NodeCPUTopology`: The CPU and NUMA topology of a node.
+    - `PodCPUBinding`: The allocated CPU resources of a Pod.
       ```yaml
       apiVersion: cslab.ece.ntua.gr/v1alpha1
-      kind: PodCpuBinding
+      kind: PodCPUBinding
       metadata:
         name: benchpod-1-binding
         namespace: benchmarks
@@ -19,8 +19,8 @@ This repository is a framework for fine-grained orchestration of Kubernetes Pods
         exclusivenessLevel: Core
         podName: benchpod-3
         cpuSet:
-          - cpuId: 10
-          - cpuId: 12
+          - cpuID: 10
+          - cpuID: 12
       ```
 - **Controller - Manager**
     - Watches for changes in the CRD's and takes action accordingly.
@@ -29,7 +29,7 @@ This repository is a framework for fine-grained orchestration of Kubernetes Pods
   - Implements multiple scheduling policies for different use cases.
 - **Daemon**
     - A gRPC server that runs on each node as a DaemonSet.
-    - Exposes `Topology` and `CpuPinning` services to interact with each node.
+    - Exposes `Topology` and `CPUPinning` services to interact with each node.
     - Reconciles the resources of the Pods inside each host.
 - **Utility Libraries**:
     - Code-generated clientset, informers, listers for CRD's

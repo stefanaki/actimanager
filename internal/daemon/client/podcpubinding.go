@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-type PodCpuBindingClient struct {
+type PodCPUBindingClient struct {
 	client          clientset.Clientset
 	informer        cache.SharedIndexInformer
 	informerFactory externalversions.SharedInformerFactory
@@ -19,13 +19,13 @@ type PodCpuBindingClient struct {
 	logger          logr.Logger
 }
 
-func NewPodCpuBindingClient(cslabClient clientset.Clientset, logger logr.Logger) (*PodCpuBindingClient, error) {
-	client := &PodCpuBindingClient{}
+func NewPodCPUBindingClient(cslabClient clientset.Clientset, logger logr.Logger) (*PodCPUBindingClient, error) {
+	client := &PodCPUBindingClient{}
 	informerFactory := externalversions.NewSharedInformerFactory(&cslabClient, 30*time.Second)
-	informer := informerFactory.Cslab().V1alpha1().PodCpuBindings().Informer()
+	informer := informerFactory.Cslab().V1alpha1().PodCPUBindings().Informer()
 	err := informer.AddIndexers(cache.Indexers{
 		"nodeName": func(obj interface{}) ([]string, error) {
-			pcb, ok := obj.(*v1alpha1.PodCpuBinding)
+			pcb, ok := obj.(*v1alpha1.PodCPUBinding)
 			if !ok {
 				return []string{}, fmt.Errorf("failed to use podcpubinding index")
 			}
@@ -42,10 +42,10 @@ func NewPodCpuBindingClient(cslabClient clientset.Clientset, logger logr.Logger)
 	return client, nil
 }
 
-func (c *PodCpuBindingClient) Start(stopCh *chan struct{}) error {
+func (c *PodCPUBindingClient) Start(stopCh *chan struct{}) error {
 	c.stopCh = stopCh
 	c.informerFactory.Start(*stopCh)
-	c.logger.Info("Starting PodCpuBinding informer")
+	c.logger.Info("Starting PodCPUBinding informer")
 	c.logger.Info("Waiting for cache to sync")
 	if ok := cache.WaitForCacheSync(*stopCh, c.informer.HasSynced); !ok {
 		return errors.New("failed to sync cache")
@@ -53,19 +53,19 @@ func (c *PodCpuBindingClient) Start(stopCh *chan struct{}) error {
 	return nil
 }
 
-func (c *PodCpuBindingClient) Stop() {
-	c.logger.Info("Stopping PodCpuBinding informer")
+func (c *PodCPUBindingClient) Stop() {
+	c.logger.Info("Stopping PodCPUBinding informer")
 	*c.stopCh <- struct{}{}
 }
 
-func (c *PodCpuBindingClient) PodCpuBindingsForNode(nodeName string) ([]v1alpha1.PodCpuBinding, error) {
+func (c *PodCPUBindingClient) PodCPUBindingsForNode(nodeName string) ([]v1alpha1.PodCPUBinding, error) {
 	b, err := c.informer.GetIndexer().ByIndex("nodeName", nodeName)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get podcpubinding for node %s: %v", nodeName, err)
 	}
-	bindings := make([]v1alpha1.PodCpuBinding, 0)
+	bindings := make([]v1alpha1.PodCPUBinding, 0)
 	for _, obj := range b {
-		binding, ok := obj.(*v1alpha1.PodCpuBinding)
+		binding, ok := obj.(*v1alpha1.PodCPUBinding)
 		if !ok {
 			return nil, fmt.Errorf("failed to cast podcpubinding for node %s", nodeName)
 		}

@@ -27,8 +27,8 @@ import (
 
 type CslabV1alpha1Interface interface {
 	RESTClient() rest.Interface
-	NodeCpuTopologiesGetter
-	PodCpuBindingsGetter
+	NodeCPUTopologiesGetter
+	PodCPUBindingsGetter
 }
 
 // CslabV1alpha1Client is used to interact with features provided by the cslab.ece.ntua.gr group.
@@ -36,12 +36,12 @@ type CslabV1alpha1Client struct {
 	restClient rest.Interface
 }
 
-func (c *CslabV1alpha1Client) NodeCpuTopologies() NodeCpuTopologyInterface {
-	return newNodeCpuTopologies(c)
+func (c *CslabV1alpha1Client) NodeCPUTopologies() NodeCPUTopologyInterface {
+	return newNodeCPUTopologies(c)
 }
 
-func (c *CslabV1alpha1Client) PodCpuBindings(namespace string) PodCpuBindingInterface {
-	return newPodCpuBindings(c, namespace)
+func (c *CslabV1alpha1Client) PodCPUBindings(namespace string) PodCPUBindingInterface {
+	return newPodCPUBindings(c, namespace)
 }
 
 // NewForConfig creates a new CslabV1alpha1Client for the given config.

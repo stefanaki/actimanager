@@ -53,9 +53,9 @@ func (f *sharedInformerFactory) ForResource(resource schema.GroupVersionResource
 	switch resource {
 	// Group=cslab.ece.ntua.gr, Version=v1alpha1
 	case v1alpha1.SchemeGroupVersion.WithResource("nodecputopologies"):
-		return &genericInformer{resource: resource.GroupResource(), informer: f.Cslab().V1alpha1().NodeCpuTopologies().Informer()}, nil
+		return &genericInformer{resource: resource.GroupResource(), informer: f.Cslab().V1alpha1().NodeCPUTopologies().Informer()}, nil
 	case v1alpha1.SchemeGroupVersion.WithResource("podcpubindings"):
-		return &genericInformer{resource: resource.GroupResource(), informer: f.Cslab().V1alpha1().PodCpuBindings().Informer()}, nil
+		return &genericInformer{resource: resource.GroupResource(), informer: f.Cslab().V1alpha1().PodCPUBindings().Informer()}, nil
 
 	}
 

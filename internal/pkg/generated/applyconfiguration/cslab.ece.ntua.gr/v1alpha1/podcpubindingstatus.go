@@ -21,23 +21,23 @@ import (
 	v1alpha1 "cslab.ece.ntua.gr/actimanager/api/cslab.ece.ntua.gr/v1alpha1"
 )
 
-// PodCpuBindingStatusApplyConfiguration represents an declarative configuration of the PodCpuBindingStatus type for use
+// PodCPUBindingStatusApplyConfiguration represents an declarative configuration of the PodCPUBindingStatus type for use
 // with apply.
-type PodCpuBindingStatusApplyConfiguration struct {
-	ResourceStatus *v1alpha1.PodCpuBindingResourceStatus `json:"resourceStatus,omitempty"`
+type PodCPUBindingStatusApplyConfiguration struct {
+	ResourceStatus *v1alpha1.PodCPUBindingResourceStatus `json:"resourceStatus,omitempty"`
 	NodeName       *string                               `json:"nodeName,omitempty"`
 }
 
-// PodCpuBindingStatusApplyConfiguration constructs an declarative configuration of the PodCpuBindingStatus type for use with
+// PodCPUBindingStatusApplyConfiguration constructs an declarative configuration of the PodCPUBindingStatus type for use with
 // apply.
-func PodCpuBindingStatus() *PodCpuBindingStatusApplyConfiguration {
-	return &PodCpuBindingStatusApplyConfiguration{}
+func PodCPUBindingStatus() *PodCPUBindingStatusApplyConfiguration {
+	return &PodCPUBindingStatusApplyConfiguration{}
 }
 
 // WithResourceStatus sets the ResourceStatus field in the declarative configuration to the given value
 // and returns the receiver, so that objects can be built by chaining "With" function invocations.
 // If called multiple times, the ResourceStatus field is set to the value of the last call.
-func (b *PodCpuBindingStatusApplyConfiguration) WithResourceStatus(value v1alpha1.PodCpuBindingResourceStatus) *PodCpuBindingStatusApplyConfiguration {
+func (b *PodCPUBindingStatusApplyConfiguration) WithResourceStatus(value v1alpha1.PodCPUBindingResourceStatus) *PodCPUBindingStatusApplyConfiguration {
 	b.ResourceStatus = &value
 	return b
 }
@@ -45,7 +45,7 @@ func (b *PodCpuBindingStatusApplyConfiguration) WithResourceStatus(value v1alpha
 // WithNodeName sets the NodeName field in the declarative configuration to the given value
 // and returns the receiver, so that objects can be built by chaining "With" function invocations.
 // If called multiple times, the NodeName field is set to the value of the last call.
-func (b *PodCpuBindingStatusApplyConfiguration) WithNodeName(value string) *PodCpuBindingStatusApplyConfiguration {
+func (b *PodCPUBindingStatusApplyConfiguration) WithNodeName(value string) *PodCPUBindingStatusApplyConfiguration {
 	b.NodeName = &value
 	return b
 }

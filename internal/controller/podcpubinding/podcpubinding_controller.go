@@ -24,8 +24,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 )
 
-// PodCpuBindingReconciler reconciles a PodCpuBinding object
-type PodCpuBindingReconciler struct {
+// PodCPUBindingReconciler reconciles a PodCPUBinding object
+type PodCPUBindingReconciler struct {
 	client.Client
 	Scheme   *runtime.Scheme
 	Recorder record.EventRecorder
@@ -33,8 +33,8 @@ type PodCpuBindingReconciler struct {
 
 var eventFilters = builder.WithPredicates(predicate.Funcs{
 	UpdateFunc: func(e event.UpdateEvent) bool {
-		oldObj := e.ObjectOld.(*v1alpha1.PodCpuBinding)
-		newObj := e.ObjectNew.(*v1alpha1.PodCpuBinding)
+		oldObj := e.ObjectOld.(*v1alpha1.PodCPUBinding)
+		newObj := e.ObjectNew.(*v1alpha1.PodCPUBinding)
 
 		specChanged := !reflect.DeepEqual(oldObj.Spec, newObj.Spec)
 		statusBindingPending := newObj.Status.ResourceStatus == v1alpha1.StatusBindingPending
@@ -54,11 +54,11 @@ var eventFilters = builder.WithPredicates(predicate.Funcs{
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
-func (r *PodCpuBindingReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+func (r *PodCPUBindingReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	logger := log.FromContext(ctx).WithName("pcb-controller")
 
-	// Get PodCpuBinding CR
-	cpuBinding := &v1alpha1.PodCpuBinding{}
+	// Get PodCPUBinding CR
+	cpuBinding := &v1alpha1.PodCPUBinding{}
 
 	// Handle delete
 	err := r.Get(ctx, req.NamespacedName, cpuBinding)
@@ -68,8 +68,8 @@ func (r *PodCpuBindingReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 
 	// If CR is not deleted, add the finalizer
 	if cpuBinding.ObjectMeta.DeletionTimestamp.IsZero() {
-		if !controllerutil.ContainsFinalizer(cpuBinding, v1alpha1.FinalizerPodCpuBinding) {
-			controllerutil.AddFinalizer(cpuBinding, v1alpha1.FinalizerPodCpuBinding)
+		if !controllerutil.ContainsFinalizer(cpuBinding, v1alpha1.FinalizerPodCPUBinding) {
+			controllerutil.AddFinalizer(cpuBinding, v1alpha1.FinalizerPodCPUBinding)
 			if err := r.Update(ctx, cpuBinding); err != nil {
 				return ctrl.Result{}, fmt.Errorf("failed to add finalizer: %v", err.Error())
 			}
@@ -77,11 +77,11 @@ func (r *PodCpuBindingReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 	} else {
 		// If CR is deleted and contains the finalizer,
 		// execute the finalizer that removes the CPU pinning
-		if controllerutil.ContainsFinalizer(cpuBinding, v1alpha1.FinalizerPodCpuBinding) {
-			if err := r.PodCpuBindingFinalizer(ctx, cpuBinding, logger); err != nil {
+		if controllerutil.ContainsFinalizer(cpuBinding, v1alpha1.FinalizerPodCPUBinding) {
+			if err := r.PodCPUBindingFinalizer(ctx, cpuBinding, logger); err != nil {
 				return ctrl.Result{}, err
 			}
-			controllerutil.RemoveFinalizer(cpuBinding, v1alpha1.FinalizerPodCpuBinding)
+			controllerutil.RemoveFinalizer(cpuBinding, v1alpha1.FinalizerPodCPUBinding)
 			if err := r.Update(ctx, cpuBinding); err != nil {
 				return ctrl.Result{}, err
 			}
@@ -98,19 +98,19 @@ func (r *PodCpuBindingReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		if err != nil {
 			return ctrl.Result{}, fmt.Errorf("error getting pod: %v", err.Error())
 		}
-		if err := r.removeCpuPinning(ctx, pod); err != nil {
+		if err := r.removeCPUPinning(ctx, pod); err != nil {
 			return ctrl.Result{}, fmt.Errorf("error removing cpu pinning: %v", err.Error())
 		}
-		r.Recorder.Eventf(cpuBinding, corev1.EventTypeNormal, "CpuPinningRemoved", "CPU pinning removed from pod %s", cpuBinding.Spec.PodName)
+		r.Recorder.Eventf(cpuBinding, corev1.EventTypeNormal, "CPUPinningRemoved", "CPU pinning removed from pod %s", cpuBinding.Spec.PodName)
 	}
 
 	// Initialize CR
 	if cpuBinding.Status.ResourceStatus == "" ||
-		cpuBinding.Status.ResourceStatus == v1alpha1.StatusInvalidCpuSet ||
+		cpuBinding.Status.ResourceStatus == v1alpha1.StatusInvalidCPUSet ||
 		cpuBinding.Status.ResourceStatus == v1alpha1.StatusPodNotFound ||
 		cpuBinding.Status.ResourceStatus == v1alpha1.StatusNodeTopologyNotFound ||
 		cpuBinding.Status.ResourceStatus == v1alpha1.StatusFailed ||
-		cpuBinding.Status.ResourceStatus == v1alpha1.StatusCpuSetAllocationFailed {
+		cpuBinding.Status.ResourceStatus == v1alpha1.StatusCPUSetAllocationFailed {
 
 		cpuBinding.Status.ResourceStatus = v1alpha1.StatusBindingPending
 		if err := r.Status().Update(ctx, cpuBinding); err != nil {
@@ -122,7 +122,7 @@ func (r *PodCpuBindingReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 
 	// Validate Resource
 	pod := &corev1.Pod{}
-	topology := &v1alpha1.NodeCpuTopology{}
+	topology := &v1alpha1.NodeCPUTopology{}
 	ok, status, message, err := r.validateResource(ctx, cpuBinding, topology, pod)
 	if !ok {
 		if err != nil {
@@ -157,9 +157,9 @@ func (r *PodCpuBindingReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 
 	// Handle reconcilation
 	// Apply CPU pinning
-	cpuSet := pcbutils.ConvertCpuSliceToIntSlice(cpuBinding.Spec.CpuSet)
-	memSet := nctutils.GetNumaNodesOfCpuSet(cpuSet, topology.Spec.Topology)
-	err = r.applyCpuPinning(ctx, cpuSet, memSet, pod)
+	cpuSet := pcbutils.ConvertCPUSliceToIntSlice(cpuBinding.Spec.CPUSet)
+	memSet := nctutils.GetNUMANodesOfCPUSet(cpuSet, topology.Spec.Topology)
+	err = r.applyCPUPinning(ctx, cpuSet, memSet, pod)
 	if err != nil {
 		r.Recorder.Eventf(cpuBinding, corev1.EventTypeWarning, string(v1alpha1.StatusFailed), "Failed to apply CPU pinning to pod %s: %v", cpuBinding.Spec.PodName, err)
 		cpuBinding.Status.ResourceStatus = v1alpha1.StatusFailed
@@ -172,7 +172,7 @@ func (r *PodCpuBindingReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 	}
 
 	r.Recorder.Eventf(cpuBinding, corev1.EventTypeNormal, string(v1alpha1.StatusApplied), "CPUSet %v, MemSet %v applied to pod %s/%s", cpuSet, memSet, pod.Namespace, pod.Name)
-	controllerutil.AddFinalizer(pod, v1alpha1.FinalizerCpuBoundPod)
+	controllerutil.AddFinalizer(pod, v1alpha1.FinalizerCPUBoundPod)
 	if err := r.Update(ctx, pod); err != nil {
 		return ctrl.Result{}, fmt.Errorf("failed to add finalizer to pod: %v", err.Error())
 	}
@@ -181,30 +181,30 @@ func (r *PodCpuBindingReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 }
 
 // SetupWithManager sets up the controller with the Manager.
-func (r *PodCpuBindingReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	if err := mgr.GetFieldIndexer().IndexField(context.Background(), &v1alpha1.NodeCpuTopology{}, "spec.nodeName", func(rawObj client.Object) []string {
-		topology := rawObj.(*v1alpha1.NodeCpuTopology)
+func (r *PodCPUBindingReconciler) SetupWithManager(mgr ctrl.Manager) error {
+	if err := mgr.GetFieldIndexer().IndexField(context.Background(), &v1alpha1.NodeCPUTopology{}, "spec.nodeName", func(rawObj client.Object) []string {
+		topology := rawObj.(*v1alpha1.NodeCPUTopology)
 		return []string{topology.Spec.NodeName}
 	}); err != nil {
 		return err
 	}
 
-	if err := mgr.GetFieldIndexer().IndexField(context.Background(), &v1alpha1.PodCpuBinding{}, "status.nodeName", func(rawObj client.Object) []string {
-		podCpuBinding := rawObj.(*v1alpha1.PodCpuBinding)
-		return []string{podCpuBinding.Status.NodeName}
+	if err := mgr.GetFieldIndexer().IndexField(context.Background(), &v1alpha1.PodCPUBinding{}, "status.nodeName", func(rawObj client.Object) []string {
+		podCPUBinding := rawObj.(*v1alpha1.PodCPUBinding)
+		return []string{podCPUBinding.Status.NodeName}
 	}); err != nil {
 		return err
 	}
 
-	if err := mgr.GetFieldIndexer().IndexField(context.Background(), &v1alpha1.PodCpuBinding{}, "status.resourceStatus", func(rawObj client.Object) []string {
-		podCpuBinding := rawObj.(*v1alpha1.PodCpuBinding)
-		return []string{string(podCpuBinding.Status.ResourceStatus)}
+	if err := mgr.GetFieldIndexer().IndexField(context.Background(), &v1alpha1.PodCPUBinding{}, "status.resourceStatus", func(rawObj client.Object) []string {
+		podCPUBinding := rawObj.(*v1alpha1.PodCPUBinding)
+		return []string{string(podCPUBinding.Status.ResourceStatus)}
 	}); err != nil {
 		return err
 	}
 
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&v1alpha1.PodCpuBinding{}, eventFilters).
+		For(&v1alpha1.PodCPUBinding{}, eventFilters).
 		WithOptions(controller.Options{MaxConcurrentReconciles: 1}).
 		Complete(r)
 }

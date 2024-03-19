@@ -16,8 +16,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 )
 
-// NodeCpuTopologyReconciler reconciles a NodeCpuTopology object
-type NodeCpuTopologyReconciler struct {
+// NodeCPUTopologyReconciler reconciles a NodeCPUTopology object
+type NodeCPUTopologyReconciler struct {
 	client.Client
 	Scheme   *runtime.Scheme
 	Recorder record.EventRecorder
@@ -25,8 +25,8 @@ type NodeCpuTopologyReconciler struct {
 
 var eventFilters = builder.WithPredicates(predicate.Funcs{
 	UpdateFunc: func(e event.UpdateEvent) bool {
-		oldObj := e.ObjectOld.(*v1alpha1.NodeCpuTopology)
-		newObj := e.ObjectNew.(*v1alpha1.NodeCpuTopology)
+		oldObj := e.ObjectOld.(*v1alpha1.NodeCPUTopology)
+		newObj := e.ObjectNew.(*v1alpha1.NodeCPUTopology)
 
 		nodeNameChanged := oldObj.Spec.NodeName != newObj.Spec.NodeName
 		statusNeedsSync := newObj.Status.ResourceStatus == v1alpha1.StatusNeedsSync
@@ -45,11 +45,11 @@ var eventFilters = builder.WithPredicates(predicate.Funcs{
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
-func (r *NodeCpuTopologyReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+func (r *NodeCPUTopologyReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	// logger := log.FromContext(ctx).WithName("nct-controller")
 
-	// Get NodeCpuTopology CR
-	topology := &v1alpha1.NodeCpuTopology{}
+	// Get NodeCPUTopology CR
+	topology := &v1alpha1.NodeCPUTopology{}
 
 	// Handle delete
 	err := r.Get(ctx, req.NamespacedName, topology)
@@ -98,13 +98,13 @@ func (r *NodeCpuTopologyReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 		return ctrl.Result{}, err
 	}
 
-	r.Recorder.Eventf(topology, corev1.EventTypeNormal, string(v1alpha1.StatusFresh), "Topology is up to date, CPUs: %v", topology.Spec.Topology.Cpus)
+	r.Recorder.Eventf(topology, corev1.EventTypeNormal, string(v1alpha1.StatusFresh), "Topology is up to date, CPUs: %v", topology.Spec.Topology.CPUs)
 	return ctrl.Result{}, nil
 }
 
 // SetupWithManager sets up the controller with the Manager.
-func (r *NodeCpuTopologyReconciler) SetupWithManager(mgr ctrl.Manager) error {
+func (r *NodeCPUTopologyReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&v1alpha1.NodeCpuTopology{}, eventFilters).
+		For(&v1alpha1.NodeCPUTopology{}, eventFilters).
 		Complete(r)
 }

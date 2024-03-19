@@ -10,7 +10,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 )
 
-func (r *NodeCpuTopologyReconciler) getNodeAddress(ctx context.Context, node *corev1.Node) (string, error) {
+func (r *NodeCPUTopologyReconciler) getNodeAddress(ctx context.Context, node *corev1.Node) (string, error) {
 	nodeAddress := ""
 	for _, address := range node.Status.Addresses {
 		if address.Type == corev1.NodeInternalIP {
@@ -24,7 +24,7 @@ func (r *NodeCpuTopologyReconciler) getNodeAddress(ctx context.Context, node *co
 	return nodeAddress, nil
 }
 
-func (r *NodeCpuTopologyReconciler) getTopology(ctx context.Context, node *corev1.Node) (*pbtopo.TopologyResponse, error) {
+func (r *NodeCPUTopologyReconciler) getTopology(ctx context.Context, node *corev1.Node) (*pbtopo.TopologyResponse, error) {
 	nodeAddress, err := r.getNodeAddress(ctx, node)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get IP address of node: %v", err)

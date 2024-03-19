@@ -9,12 +9,12 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// CreateInitialNodeCpuTopologies creates initial NodeCpuTopology resources for each cluster node.
+// CreateInitialNodeCPUTopologies creates initial NodeCPUTopology resources for each cluster node.
 // It lists the cluster nodes and existing topologies, and creates a new topology for each node that doesn't have one.
 // The new topology is created with the name "<node-name>-cputopology".
-func (r *NodeCpuTopologyReconciler) CreateInitialNodeCpuTopologies(ctx context.Context) error {
+func (r *NodeCPUTopologyReconciler) CreateInitialNodeCPUTopologies(ctx context.Context) error {
 	nodes := &v1.NodeList{}
-	topologies := &v1alpha1.NodeCpuTopologyList{}
+	topologies := &v1alpha1.NodeCPUTopologyList{}
 	if err := r.List(ctx, nodes); err != nil {
 		return fmt.Errorf("error listing cluster nodes: %v", err.Error())
 	}
@@ -35,9 +35,9 @@ func (r *NodeCpuTopologyReconciler) CreateInitialNodeCpuTopologies(ctx context.C
 		if skip {
 			continue
 		}
-		newTopology := &v1alpha1.NodeCpuTopology{
+		newTopology := &v1alpha1.NodeCPUTopology{
 			ObjectMeta: metav1.ObjectMeta{Name: n.Name + "-cputopology"},
-			Spec: v1alpha1.NodeCpuTopologySpec{
+			Spec: v1alpha1.NodeCPUTopologySpec{
 				NodeName: n.Name,
 			},
 		}

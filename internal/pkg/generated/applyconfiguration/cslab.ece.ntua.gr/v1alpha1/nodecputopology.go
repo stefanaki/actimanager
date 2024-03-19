@@ -23,21 +23,21 @@ import (
 	v1 "k8s.io/client-go/applyconfigurations/meta/v1"
 )
 
-// NodeCpuTopologyApplyConfiguration represents an declarative configuration of the NodeCpuTopology type for use
+// NodeCPUTopologyApplyConfiguration represents an declarative configuration of the NodeCPUTopology type for use
 // with apply.
-type NodeCpuTopologyApplyConfiguration struct {
+type NodeCPUTopologyApplyConfiguration struct {
 	v1.TypeMetaApplyConfiguration    `json:",inline"`
 	*v1.ObjectMetaApplyConfiguration `json:"metadata,omitempty"`
-	Spec                             *NodeCpuTopologySpecApplyConfiguration   `json:"spec,omitempty"`
-	Status                           *NodeCpuTopologyStatusApplyConfiguration `json:"status,omitempty"`
+	Spec                             *NodeCPUTopologySpecApplyConfiguration   `json:"spec,omitempty"`
+	Status                           *NodeCPUTopologyStatusApplyConfiguration `json:"status,omitempty"`
 }
 
-// NodeCpuTopology constructs an declarative configuration of the NodeCpuTopology type for use with
+// NodeCPUTopology constructs an declarative configuration of the NodeCPUTopology type for use with
 // apply.
-func NodeCpuTopology(name string) *NodeCpuTopologyApplyConfiguration {
-	b := &NodeCpuTopologyApplyConfiguration{}
+func NodeCPUTopology(name string) *NodeCPUTopologyApplyConfiguration {
+	b := &NodeCPUTopologyApplyConfiguration{}
 	b.WithName(name)
-	b.WithKind("NodeCpuTopology")
+	b.WithKind("NodeCPUTopology")
 	b.WithAPIVersion("cslab.ece.ntua.gr/v1alpha1")
 	return b
 }
@@ -45,7 +45,7 @@ func NodeCpuTopology(name string) *NodeCpuTopologyApplyConfiguration {
 // WithKind sets the Kind field in the declarative configuration to the given value
 // and returns the receiver, so that objects can be built by chaining "With" function invocations.
 // If called multiple times, the Kind field is set to the value of the last call.
-func (b *NodeCpuTopologyApplyConfiguration) WithKind(value string) *NodeCpuTopologyApplyConfiguration {
+func (b *NodeCPUTopologyApplyConfiguration) WithKind(value string) *NodeCPUTopologyApplyConfiguration {
 	b.Kind = &value
 	return b
 }
@@ -53,7 +53,7 @@ func (b *NodeCpuTopologyApplyConfiguration) WithKind(value string) *NodeCpuTopol
 // WithAPIVersion sets the APIVersion field in the declarative configuration to the given value
 // and returns the receiver, so that objects can be built by chaining "With" function invocations.
 // If called multiple times, the APIVersion field is set to the value of the last call.
-func (b *NodeCpuTopologyApplyConfiguration) WithAPIVersion(value string) *NodeCpuTopologyApplyConfiguration {
+func (b *NodeCPUTopologyApplyConfiguration) WithAPIVersion(value string) *NodeCPUTopologyApplyConfiguration {
 	b.APIVersion = &value
 	return b
 }
@@ -61,7 +61,7 @@ func (b *NodeCpuTopologyApplyConfiguration) WithAPIVersion(value string) *NodeCp
 // WithName sets the Name field in the declarative configuration to the given value
 // and returns the receiver, so that objects can be built by chaining "With" function invocations.
 // If called multiple times, the Name field is set to the value of the last call.
-func (b *NodeCpuTopologyApplyConfiguration) WithName(value string) *NodeCpuTopologyApplyConfiguration {
+func (b *NodeCPUTopologyApplyConfiguration) WithName(value string) *NodeCPUTopologyApplyConfiguration {
 	b.ensureObjectMetaApplyConfigurationExists()
 	b.Name = &value
 	return b
@@ -70,7 +70,7 @@ func (b *NodeCpuTopologyApplyConfiguration) WithName(value string) *NodeCpuTopol
 // WithGenerateName sets the GenerateName field in the declarative configuration to the given value
 // and returns the receiver, so that objects can be built by chaining "With" function invocations.
 // If called multiple times, the GenerateName field is set to the value of the last call.
-func (b *NodeCpuTopologyApplyConfiguration) WithGenerateName(value string) *NodeCpuTopologyApplyConfiguration {
+func (b *NodeCPUTopologyApplyConfiguration) WithGenerateName(value string) *NodeCPUTopologyApplyConfiguration {
 	b.ensureObjectMetaApplyConfigurationExists()
 	b.GenerateName = &value
 	return b
@@ -79,7 +79,7 @@ func (b *NodeCpuTopologyApplyConfiguration) WithGenerateName(value string) *Node
 // WithNamespace sets the Namespace field in the declarative configuration to the given value
 // and returns the receiver, so that objects can be built by chaining "With" function invocations.
 // If called multiple times, the Namespace field is set to the value of the last call.
-func (b *NodeCpuTopologyApplyConfiguration) WithNamespace(value string) *NodeCpuTopologyApplyConfiguration {
+func (b *NodeCPUTopologyApplyConfiguration) WithNamespace(value string) *NodeCPUTopologyApplyConfiguration {
 	b.ensureObjectMetaApplyConfigurationExists()
 	b.Namespace = &value
 	return b
@@ -88,7 +88,7 @@ func (b *NodeCpuTopologyApplyConfiguration) WithNamespace(value string) *NodeCpu
 // WithUID sets the UID field in the declarative configuration to the given value
 // and returns the receiver, so that objects can be built by chaining "With" function invocations.
 // If called multiple times, the UID field is set to the value of the last call.
-func (b *NodeCpuTopologyApplyConfiguration) WithUID(value types.UID) *NodeCpuTopologyApplyConfiguration {
+func (b *NodeCPUTopologyApplyConfiguration) WithUID(value types.UID) *NodeCPUTopologyApplyConfiguration {
 	b.ensureObjectMetaApplyConfigurationExists()
 	b.UID = &value
 	return b
@@ -97,7 +97,7 @@ func (b *NodeCpuTopologyApplyConfiguration) WithUID(value types.UID) *NodeCpuTop
 // WithResourceVersion sets the ResourceVersion field in the declarative configuration to the given value
 // and returns the receiver, so that objects can be built by chaining "With" function invocations.
 // If called multiple times, the ResourceVersion field is set to the value of the last call.
-func (b *NodeCpuTopologyApplyConfiguration) WithResourceVersion(value string) *NodeCpuTopologyApplyConfiguration {
+func (b *NodeCPUTopologyApplyConfiguration) WithResourceVersion(value string) *NodeCPUTopologyApplyConfiguration {
 	b.ensureObjectMetaApplyConfigurationExists()
 	b.ResourceVersion = &value
 	return b
@@ -106,7 +106,7 @@ func (b *NodeCpuTopologyApplyConfiguration) WithResourceVersion(value string) *N
 // WithGeneration sets the Generation field in the declarative configuration to the given value
 // and returns the receiver, so that objects can be built by chaining "With" function invocations.
 // If called multiple times, the Generation field is set to the value of the last call.
-func (b *NodeCpuTopologyApplyConfiguration) WithGeneration(value int64) *NodeCpuTopologyApplyConfiguration {
+func (b *NodeCPUTopologyApplyConfiguration) WithGeneration(value int64) *NodeCPUTopologyApplyConfiguration {
 	b.ensureObjectMetaApplyConfigurationExists()
 	b.Generation = &value
 	return b
@@ -115,7 +115,7 @@ func (b *NodeCpuTopologyApplyConfiguration) WithGeneration(value int64) *NodeCpu
 // WithCreationTimestamp sets the CreationTimestamp field in the declarative configuration to the given value
 // and returns the receiver, so that objects can be built by chaining "With" function invocations.
 // If called multiple times, the CreationTimestamp field is set to the value of the last call.
-func (b *NodeCpuTopologyApplyConfiguration) WithCreationTimestamp(value metav1.Time) *NodeCpuTopologyApplyConfiguration {
+func (b *NodeCPUTopologyApplyConfiguration) WithCreationTimestamp(value metav1.Time) *NodeCPUTopologyApplyConfiguration {
 	b.ensureObjectMetaApplyConfigurationExists()
 	b.CreationTimestamp = &value
 	return b
@@ -124,7 +124,7 @@ func (b *NodeCpuTopologyApplyConfiguration) WithCreationTimestamp(value metav1.T
 // WithDeletionTimestamp sets the DeletionTimestamp field in the declarative configuration to the given value
 // and returns the receiver, so that objects can be built by chaining "With" function invocations.
 // If called multiple times, the DeletionTimestamp field is set to the value of the last call.
-func (b *NodeCpuTopologyApplyConfiguration) WithDeletionTimestamp(value metav1.Time) *NodeCpuTopologyApplyConfiguration {
+func (b *NodeCPUTopologyApplyConfiguration) WithDeletionTimestamp(value metav1.Time) *NodeCPUTopologyApplyConfiguration {
 	b.ensureObjectMetaApplyConfigurationExists()
 	b.DeletionTimestamp = &value
 	return b
@@ -133,7 +133,7 @@ func (b *NodeCpuTopologyApplyConfiguration) WithDeletionTimestamp(value metav1.T
 // WithDeletionGracePeriodSeconds sets the DeletionGracePeriodSeconds field in the declarative configuration to the given value
 // and returns the receiver, so that objects can be built by chaining "With" function invocations.
 // If called multiple times, the DeletionGracePeriodSeconds field is set to the value of the last call.
-func (b *NodeCpuTopologyApplyConfiguration) WithDeletionGracePeriodSeconds(value int64) *NodeCpuTopologyApplyConfiguration {
+func (b *NodeCPUTopologyApplyConfiguration) WithDeletionGracePeriodSeconds(value int64) *NodeCPUTopologyApplyConfiguration {
 	b.ensureObjectMetaApplyConfigurationExists()
 	b.DeletionGracePeriodSeconds = &value
 	return b
@@ -143,7 +143,7 @@ func (b *NodeCpuTopologyApplyConfiguration) WithDeletionGracePeriodSeconds(value
 // and returns the receiver, so that objects can be build by chaining "With" function invocations.
 // If called multiple times, the entries provided by each call will be put on the Labels field,
 // overwriting an existing map entries in Labels field with the same key.
-func (b *NodeCpuTopologyApplyConfiguration) WithLabels(entries map[string]string) *NodeCpuTopologyApplyConfiguration {
+func (b *NodeCPUTopologyApplyConfiguration) WithLabels(entries map[string]string) *NodeCPUTopologyApplyConfiguration {
 	b.ensureObjectMetaApplyConfigurationExists()
 	if b.Labels == nil && len(entries) > 0 {
 		b.Labels = make(map[string]string, len(entries))
@@ -158,7 +158,7 @@ func (b *NodeCpuTopologyApplyConfiguration) WithLabels(entries map[string]string
 // and returns the receiver, so that objects can be build by chaining "With" function invocations.
 // If called multiple times, the entries provided by each call will be put on the Annotations field,
 // overwriting an existing map entries in Annotations field with the same key.
-func (b *NodeCpuTopologyApplyConfiguration) WithAnnotations(entries map[string]string) *NodeCpuTopologyApplyConfiguration {
+func (b *NodeCPUTopologyApplyConfiguration) WithAnnotations(entries map[string]string) *NodeCPUTopologyApplyConfiguration {
 	b.ensureObjectMetaApplyConfigurationExists()
 	if b.Annotations == nil && len(entries) > 0 {
 		b.Annotations = make(map[string]string, len(entries))
@@ -172,7 +172,7 @@ func (b *NodeCpuTopologyApplyConfiguration) WithAnnotations(entries map[string]s
 // WithOwnerReferences adds the given value to the OwnerReferences field in the declarative configuration
 // and returns the receiver, so that objects can be build by chaining "With" function invocations.
 // If called multiple times, values provided by each call will be appended to the OwnerReferences field.
-func (b *NodeCpuTopologyApplyConfiguration) WithOwnerReferences(values ...*v1.OwnerReferenceApplyConfiguration) *NodeCpuTopologyApplyConfiguration {
+func (b *NodeCPUTopologyApplyConfiguration) WithOwnerReferences(values ...*v1.OwnerReferenceApplyConfiguration) *NodeCPUTopologyApplyConfiguration {
 	b.ensureObjectMetaApplyConfigurationExists()
 	for i := range values {
 		if values[i] == nil {
@@ -186,7 +186,7 @@ func (b *NodeCpuTopologyApplyConfiguration) WithOwnerReferences(values ...*v1.Ow
 // WithFinalizers adds the given value to the Finalizers field in the declarative configuration
 // and returns the receiver, so that objects can be build by chaining "With" function invocations.
 // If called multiple times, values provided by each call will be appended to the Finalizers field.
-func (b *NodeCpuTopologyApplyConfiguration) WithFinalizers(values ...string) *NodeCpuTopologyApplyConfiguration {
+func (b *NodeCPUTopologyApplyConfiguration) WithFinalizers(values ...string) *NodeCPUTopologyApplyConfiguration {
 	b.ensureObjectMetaApplyConfigurationExists()
 	for i := range values {
 		b.Finalizers = append(b.Finalizers, values[i])
@@ -194,7 +194,7 @@ func (b *NodeCpuTopologyApplyConfiguration) WithFinalizers(values ...string) *No
 	return b
 }
 
-func (b *NodeCpuTopologyApplyConfiguration) ensureObjectMetaApplyConfigurationExists() {
+func (b *NodeCPUTopologyApplyConfiguration) ensureObjectMetaApplyConfigurationExists() {
 	if b.ObjectMetaApplyConfiguration == nil {
 		b.ObjectMetaApplyConfiguration = &v1.ObjectMetaApplyConfiguration{}
 	}
@@ -203,7 +203,7 @@ func (b *NodeCpuTopologyApplyConfiguration) ensureObjectMetaApplyConfigurationEx
 // WithSpec sets the Spec field in the declarative configuration to the given value
 // and returns the receiver, so that objects can be built by chaining "With" function invocations.
 // If called multiple times, the Spec field is set to the value of the last call.
-func (b *NodeCpuTopologyApplyConfiguration) WithSpec(value *NodeCpuTopologySpecApplyConfiguration) *NodeCpuTopologyApplyConfiguration {
+func (b *NodeCPUTopologyApplyConfiguration) WithSpec(value *NodeCPUTopologySpecApplyConfiguration) *NodeCPUTopologyApplyConfiguration {
 	b.Spec = value
 	return b
 }
@@ -211,7 +211,7 @@ func (b *NodeCpuTopologyApplyConfiguration) WithSpec(value *NodeCpuTopologySpecA
 // WithStatus sets the Status field in the declarative configuration to the given value
 // and returns the receiver, so that objects can be built by chaining "With" function invocations.
 // If called multiple times, the Status field is set to the value of the last call.
-func (b *NodeCpuTopologyApplyConfiguration) WithStatus(value *NodeCpuTopologyStatusApplyConfiguration) *NodeCpuTopologyApplyConfiguration {
+func (b *NodeCPUTopologyApplyConfiguration) WithStatus(value *NodeCPUTopologyStatusApplyConfiguration) *NodeCPUTopologyApplyConfiguration {
 	b.Status = value
 	return b
 }

@@ -33,19 +33,19 @@ func ParseContainerResources(containerName string, pod *v1.Pod) *ResourceInfo {
 	resources := &ResourceInfo{}
 	for _, container := range pod.Spec.Containers {
 		if container.Name == containerName {
-			requestCpus := container.Resources.Requests.Cpu()
-			limitCpus := container.Resources.Limits.Cpu()
+			requestCPUs := container.Resources.Requests.Cpu()
+			limitCPUs := container.Resources.Limits.Cpu()
 			requestMemory := container.Resources.Requests.Memory()
 			limitMemory := container.Resources.Limits.Memory()
-			if requestCpus == nil {
-				requestCpus = resource.NewMilliQuantity(0, resource.DecimalSI)
+			if requestCPUs == nil {
+				requestCPUs = resource.NewMilliQuantity(0, resource.DecimalSI)
 			}
-			if limitCpus == nil {
-				limitCpus = resource.NewMilliQuantity(0, resource.DecimalSI)
+			if limitCPUs == nil {
+				limitCPUs = resource.NewMilliQuantity(0, resource.DecimalSI)
 			}
 			resources = &ResourceInfo{
-				RequestedCpus:   int32(requestCpus.MilliValue()),
-				LimitCpus:       int32(limitCpus.MilliValue()),
+				RequestedCPUs:   int32(requestCPUs.MilliValue()),
+				LimitCPUs:       int32(limitCPUs.MilliValue()),
 				RequestedMemory: requestMemory.String(),
 				LimitMemory:     limitMemory.String(),
 			}

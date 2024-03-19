@@ -31,59 +31,59 @@ import (
 	cache "k8s.io/client-go/tools/cache"
 )
 
-// PodCpuBindingInformer provides access to a shared informer and lister for
-// PodCpuBindings.
-type PodCpuBindingInformer interface {
+// PodCPUBindingInformer provides access to a shared informer and lister for
+// PodCPUBindings.
+type PodCPUBindingInformer interface {
 	Informer() cache.SharedIndexInformer
-	Lister() v1alpha1.PodCpuBindingLister
+	Lister() v1alpha1.PodCPUBindingLister
 }
 
-type podCpuBindingInformer struct {
+type podCPUBindingInformer struct {
 	factory          internalinterfaces.SharedInformerFactory
 	tweakListOptions internalinterfaces.TweakListOptionsFunc
 	namespace        string
 }
 
-// NewPodCpuBindingInformer constructs a new informer for PodCpuBinding type.
+// NewPodCPUBindingInformer constructs a new informer for PodCPUBinding type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
-func NewPodCpuBindingInformer(client versioned.Interface, namespace string, resyncPeriod time.Duration, indexers cache.Indexers) cache.SharedIndexInformer {
-	return NewFilteredPodCpuBindingInformer(client, namespace, resyncPeriod, indexers, nil)
+func NewPodCPUBindingInformer(client versioned.Interface, namespace string, resyncPeriod time.Duration, indexers cache.Indexers) cache.SharedIndexInformer {
+	return NewFilteredPodCPUBindingInformer(client, namespace, resyncPeriod, indexers, nil)
 }
 
-// NewFilteredPodCpuBindingInformer constructs a new informer for PodCpuBinding type.
+// NewFilteredPodCPUBindingInformer constructs a new informer for PodCPUBinding type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
-func NewFilteredPodCpuBindingInformer(client versioned.Interface, namespace string, resyncPeriod time.Duration, indexers cache.Indexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) cache.SharedIndexInformer {
+func NewFilteredPodCPUBindingInformer(client versioned.Interface, namespace string, resyncPeriod time.Duration, indexers cache.Indexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) cache.SharedIndexInformer {
 	return cache.NewSharedIndexInformer(
 		&cache.ListWatch{
 			ListFunc: func(options v1.ListOptions) (runtime.Object, error) {
 				if tweakListOptions != nil {
 					tweakListOptions(&options)
 				}
-				return client.CslabV1alpha1().PodCpuBindings(namespace).List(context.TODO(), options)
+				return client.CslabV1alpha1().PodCPUBindings(namespace).List(context.TODO(), options)
 			},
 			WatchFunc: func(options v1.ListOptions) (watch.Interface, error) {
 				if tweakListOptions != nil {
 					tweakListOptions(&options)
 				}
-				return client.CslabV1alpha1().PodCpuBindings(namespace).Watch(context.TODO(), options)
+				return client.CslabV1alpha1().PodCPUBindings(namespace).Watch(context.TODO(), options)
 			},
 		},
-		&cslabecentuagrv1alpha1.PodCpuBinding{},
+		&cslabecentuagrv1alpha1.PodCPUBinding{},
 		resyncPeriod,
 		indexers,
 	)
 }
 
-func (f *podCpuBindingInformer) defaultInformer(client versioned.Interface, resyncPeriod time.Duration) cache.SharedIndexInformer {
-	return NewFilteredPodCpuBindingInformer(client, f.namespace, resyncPeriod, cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc}, f.tweakListOptions)
+func (f *podCPUBindingInformer) defaultInformer(client versioned.Interface, resyncPeriod time.Duration) cache.SharedIndexInformer {
+	return NewFilteredPodCPUBindingInformer(client, f.namespace, resyncPeriod, cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc}, f.tweakListOptions)
 }
 
-func (f *podCpuBindingInformer) Informer() cache.SharedIndexInformer {
-	return f.factory.InformerFor(&cslabecentuagrv1alpha1.PodCpuBinding{}, f.defaultInformer)
+func (f *podCPUBindingInformer) Informer() cache.SharedIndexInformer {
+	return f.factory.InformerFor(&cslabecentuagrv1alpha1.PodCPUBinding{}, f.defaultInformer)
 }
 
-func (f *podCpuBindingInformer) Lister() v1alpha1.PodCpuBindingLister {
-	return v1alpha1.NewPodCpuBindingLister(f.Informer().GetIndexer())
+func (f *podCPUBindingInformer) Lister() v1alpha1.PodCPUBindingLister {
+	return v1alpha1.NewPodCPUBindingLister(f.Informer().GetIndexer())
 }

@@ -17,22 +17,22 @@ limitations under the License.
 
 package v1alpha1
 
-// CpuApplyConfiguration represents an declarative configuration of the Cpu type for use
+// CPUApplyConfiguration represents an declarative configuration of the CPU type for use
 // with apply.
-type CpuApplyConfiguration struct {
-	CpuId *int `json:"cpuId,omitempty"`
+type CPUApplyConfiguration struct {
+	CPUID *int `json:"cpuID,omitempty"`
 }
 
-// CpuApplyConfiguration constructs an declarative configuration of the Cpu type for use with
+// CPUApplyConfiguration constructs an declarative configuration of the CPU type for use with
 // apply.
-func Cpu() *CpuApplyConfiguration {
-	return &CpuApplyConfiguration{}
+func CPU() *CPUApplyConfiguration {
+	return &CPUApplyConfiguration{}
 }
 
-// WithCpuId sets the CpuId field in the declarative configuration to the given value
+// WithCPUID sets the CPUID field in the declarative configuration to the given value
 // and returns the receiver, so that objects can be built by chaining "With" function invocations.
-// If called multiple times, the CpuId field is set to the value of the last call.
-func (b *CpuApplyConfiguration) WithCpuId(value int) *CpuApplyConfiguration {
-	b.CpuId = &value
+// If called multiple times, the CPUID field is set to the value of the last call.
+func (b *CPUApplyConfiguration) WithCPUID(value int) *CPUApplyConfiguration {
+	b.CPUID = &value
 	return b
 }

@@ -4,42 +4,42 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-type PodCpuBindingResourceStatus string
+type PodCPUBindingResourceStatus string
 
 const (
-	StatusBindingPending         PodCpuBindingResourceStatus = "Pending"
-	StatusInvalidCpuSet          PodCpuBindingResourceStatus = "InvalidCpuSet"
-	StatusPodNotFound            PodCpuBindingResourceStatus = "PodNotFound"
-	StatusNodeTopologyNotFound   PodCpuBindingResourceStatus = "NodeTopologyNotFound"
-	StatusApplied                PodCpuBindingResourceStatus = "Applied"
-	StatusFailed                 PodCpuBindingResourceStatus = "Failed"
-	StatusCpuSetAllocationFailed PodCpuBindingResourceStatus = "CpuSetAllocationFailed"
-	StatusValidated              PodCpuBindingResourceStatus = "Validated"
+	StatusBindingPending         PodCPUBindingResourceStatus = "Pending"
+	StatusInvalidCPUSet          PodCPUBindingResourceStatus = "InvalidCPUSet"
+	StatusPodNotFound            PodCPUBindingResourceStatus = "PodNotFound"
+	StatusNodeTopologyNotFound   PodCPUBindingResourceStatus = "NodeTopologyNotFound"
+	StatusApplied                PodCPUBindingResourceStatus = "Applied"
+	StatusFailed                 PodCPUBindingResourceStatus = "Failed"
+	StatusCPUSetAllocationFailed PodCPUBindingResourceStatus = "CPUSetAllocationFailed"
+	StatusValidated              PodCPUBindingResourceStatus = "Validated"
 )
 
-var FinalizerPodCpuBinding = GroupVersion.Group + "/pod-cpu-binding-finalizer"
-var FinalizerCpuBoundPod = GroupVersion.Group + "/cpu-bound-pod"
+var FinalizerPodCPUBinding = GroupVersion.Group + "/pod-cpu-binding-finalizer"
+var FinalizerCPUBoundPod = GroupVersion.Group + "/cpu-bound-pod"
 
 var AnnotationExclusivenessLevel = GroupVersion.Group + "/exclusiveness-level"
 
-// PodCpuBindingSpec defines the CPU set on which a pod is bound,
+// PodCPUBindingSpec defines the CPU set on which a pod is bound,
 // as well as the level of exclusiveness of the resources it needs
-type PodCpuBindingSpec struct {
+type PodCPUBindingSpec struct {
 	// +kubebuilder:validation:Required
 	PodName string `json:"podName"`
 
 	// +kubebuilder:validation:Required
-	CpuSet []Cpu `json:"cpuSet"`
+	CPUSet []CPU `json:"cpuSet"`
 
-	// +kubebuilder:validation:Enum=None;Cpu;Core;Socket;Numa
-	// +kubebuilder:default:Cpu
+	// +kubebuilder:validation:Enum=None;CPU;Core;Socket;NUMA
+	// +kubebuilder:default:CPU
 	ExclusivenessLevel string `json:"exclusivenessLevel"`
 }
 
-// PodCpuBindingStatus defines the observed state of PodCpuBinding
-type PodCpuBindingStatus struct {
-	// +kubebuilder:validation:Enum=Applied;Pending;PodNotFound;InvalidCpuSet;Collision;Failed;CpuSetAllocationFailed;Validated
-	ResourceStatus PodCpuBindingResourceStatus `json:"resourceStatus"`
+// PodCPUBindingStatus defines the observed state of PodCPUBinding
+type PodCPUBindingStatus struct {
+	// +kubebuilder:validation:Enum=Applied;Pending;PodNotFound;InvalidCPUSet;Collision;Failed;CPUSetAllocationFailed;Validated
+	ResourceStatus PodCPUBindingResourceStatus `json:"resourceStatus"`
 	NodeName       string                      `json:"nodeName"`
 }
 
@@ -52,26 +52,26 @@ type PodCpuBindingStatus struct {
 // +kubebuilder:printcolumn:name="Exclusiveness Level",type=string,JSONPath=`.spec.exclusivenessLevel`
 // +kubebuilder:printcolumn:name="Resource Status",type=string,JSONPath=`.status.resourceStatus`
 
-// PodCpuBinding is the Schema for the podcpubindings API
-type PodCpuBinding struct {
+// PodCPUBinding is the Schema for the podcpubindings API
+type PodCPUBinding struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   PodCpuBindingSpec   `json:"spec"`
-	Status PodCpuBindingStatus `json:"status,omitempty"`
+	Spec   PodCPUBindingSpec   `json:"spec"`
+	Status PodCPUBindingStatus `json:"status,omitempty"`
 }
 
 //+kubebuilder:object:root=true
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// PodCpuBindingList contains a list of PodCpuBinding
-type PodCpuBindingList struct {
+// PodCPUBindingList contains a list of PodCPUBinding
+type PodCPUBindingList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []PodCpuBinding `json:"items"`
+	Items           []PodCPUBinding `json:"items"`
 }
 
 func init() {
-	SchemeBuilder.Register(&PodCpuBinding{}, &PodCpuBindingList{})
+	SchemeBuilder.Register(&PodCPUBinding{}, &PodCPUBindingList{})
 }

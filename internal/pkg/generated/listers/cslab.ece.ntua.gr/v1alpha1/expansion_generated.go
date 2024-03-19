@@ -17,14 +17,14 @@ limitations under the License.
 
 package v1alpha1
 
-// NodeCpuTopologyListerExpansion allows custom methods to be added to
-// NodeCpuTopologyLister.
-type NodeCpuTopologyListerExpansion interface{}
+// NodeCPUTopologyListerExpansion allows custom methods to be added to
+// NodeCPUTopologyLister.
+type NodeCPUTopologyListerExpansion interface{}
 
-// PodCpuBindingListerExpansion allows custom methods to be added to
-// PodCpuBindingLister.
-type PodCpuBindingListerExpansion interface{}
+// PodCPUBindingListerExpansion allows custom methods to be added to
+// PodCPUBindingLister.
+type PodCPUBindingListerExpansion interface{}
 
-// PodCpuBindingNamespaceListerExpansion allows custom methods to be added to
-// PodCpuBindingNamespaceLister.
-type PodCpuBindingNamespaceListerExpansion interface{}
+// PodCPUBindingNamespaceListerExpansion allows custom methods to be added to
+// PodCPUBindingNamespaceLister.
+type PodCPUBindingNamespaceListerExpansion interface{}

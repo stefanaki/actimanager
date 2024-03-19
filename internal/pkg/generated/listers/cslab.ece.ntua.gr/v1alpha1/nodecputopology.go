@@ -24,38 +24,38 @@ import (
 	"k8s.io/client-go/tools/cache"
 )
 
-// NodeCpuTopologyLister helps list NodeCpuTopologies.
+// NodeCPUTopologyLister helps list NodeCPUTopologies.
 // All objects returned here must be treated as read-only.
-type NodeCpuTopologyLister interface {
-	// List lists all NodeCpuTopologies in the indexer.
+type NodeCPUTopologyLister interface {
+	// List lists all NodeCPUTopologies in the indexer.
 	// Objects returned here must be treated as read-only.
-	List(selector labels.Selector) (ret []*v1alpha1.NodeCpuTopology, err error)
-	// Get retrieves the NodeCpuTopology from the index for a given name.
+	List(selector labels.Selector) (ret []*v1alpha1.NodeCPUTopology, err error)
+	// Get retrieves the NodeCPUTopology from the index for a given name.
 	// Objects returned here must be treated as read-only.
-	Get(name string) (*v1alpha1.NodeCpuTopology, error)
-	NodeCpuTopologyListerExpansion
+	Get(name string) (*v1alpha1.NodeCPUTopology, error)
+	NodeCPUTopologyListerExpansion
 }
 
-// nodeCpuTopologyLister implements the NodeCpuTopologyLister interface.
-type nodeCpuTopologyLister struct {
+// nodeCPUTopologyLister implements the NodeCPUTopologyLister interface.
+type nodeCPUTopologyLister struct {
 	indexer cache.Indexer
 }
 
-// NewNodeCpuTopologyLister returns a new NodeCpuTopologyLister.
-func NewNodeCpuTopologyLister(indexer cache.Indexer) NodeCpuTopologyLister {
-	return &nodeCpuTopologyLister{indexer: indexer}
+// NewNodeCPUTopologyLister returns a new NodeCPUTopologyLister.
+func NewNodeCPUTopologyLister(indexer cache.Indexer) NodeCPUTopologyLister {
+	return &nodeCPUTopologyLister{indexer: indexer}
 }
 
-// List lists all NodeCpuTopologies in the indexer.
-func (s *nodeCpuTopologyLister) List(selector labels.Selector) (ret []*v1alpha1.NodeCpuTopology, err error) {
+// List lists all NodeCPUTopologies in the indexer.
+func (s *nodeCPUTopologyLister) List(selector labels.Selector) (ret []*v1alpha1.NodeCPUTopology, err error) {
 	err = cache.ListAll(s.indexer, selector, func(m interface{}) {
-		ret = append(ret, m.(*v1alpha1.NodeCpuTopology))
+		ret = append(ret, m.(*v1alpha1.NodeCPUTopology))
 	})
 	return ret, err
 }
 
-// Get retrieves the NodeCpuTopology from the index for a given name.
-func (s *nodeCpuTopologyLister) Get(name string) (*v1alpha1.NodeCpuTopology, error) {
+// Get retrieves the NodeCPUTopology from the index for a given name.
+func (s *nodeCPUTopologyLister) Get(name string) (*v1alpha1.NodeCPUTopology, error) {
 	obj, exists, err := s.indexer.GetByKey(name)
 	if err != nil {
 		return nil, err
@@ -63,5 +63,5 @@ func (s *nodeCpuTopologyLister) Get(name string) (*v1alpha1.NodeCpuTopology, err
 	if !exists {
 		return nil, errors.NewNotFound(v1alpha1.Resource("nodecputopology"), name)
 	}
-	return obj.(*v1alpha1.NodeCpuTopology), nil
+	return obj.(*v1alpha1.NodeCPUTopology), nil
 }

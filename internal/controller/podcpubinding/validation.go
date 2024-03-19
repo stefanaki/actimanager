@@ -14,7 +14,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-func (r *PodCpuBindingReconciler) validateResource(ctx context.Context, cpuBinding *v1alpha1.PodCpuBinding, topology *v1alpha1.NodeCpuTopology, pod *corev1.Pod) (bool, v1alpha1.PodCpuBindingResourceStatus, string, error) {
+func (r *PodCPUBindingReconciler) validateResource(ctx context.Context, cpuBinding *v1alpha1.PodCPUBinding, topology *v1alpha1.NodeCPUTopology, pod *corev1.Pod) (bool, v1alpha1.PodCPUBindingResourceStatus, string, error) {
 	// Validate pod name
 	ok, status, message, err := r.validatePodName(ctx, cpuBinding, pod)
 	if !ok {
@@ -34,7 +34,7 @@ func (r *PodCpuBindingReconciler) validateResource(ctx context.Context, cpuBindi
 }
 
 // validatePodName checks if the specified pod exists in the namespace
-func (r *PodCpuBindingReconciler) validatePodName(ctx context.Context, cpuBinding *v1alpha1.PodCpuBinding, pod *corev1.Pod) (bool, v1alpha1.PodCpuBindingResourceStatus, string, error) {
+func (r *PodCPUBindingReconciler) validatePodName(ctx context.Context, cpuBinding *v1alpha1.PodCPUBinding, pod *corev1.Pod) (bool, v1alpha1.PodCPUBindingResourceStatus, string, error) {
 	err := r.Get(ctx, client.ObjectKey{Name: cpuBinding.Spec.PodName, Namespace: cpuBinding.ObjectMeta.Namespace}, pod)
 	if errors.IsNotFound(err) {
 		return false, v1alpha1.StatusPodNotFound, fmt.Sprintf("pod %s/%s not found", cpuBinding.Namespace, cpuBinding.Spec.PodName), nil
@@ -47,10 +47,10 @@ func (r *PodCpuBindingReconciler) validatePodName(ctx context.Context, cpuBindin
 
 // validateTopology checks if the node topology for the specified pod's
 // node is available and if the specified CPU set is valid
-func (r *PodCpuBindingReconciler) validateTopology(ctx context.Context, cpuBinding *v1alpha1.PodCpuBinding,
-	topology *v1alpha1.NodeCpuTopology, pod *corev1.Pod) (bool, v1alpha1.PodCpuBindingResourceStatus, string, error) {
-	// Get NodeCpuTopology of node
-	topologies := &v1alpha1.NodeCpuTopologyList{}
+func (r *PodCPUBindingReconciler) validateTopology(ctx context.Context, cpuBinding *v1alpha1.PodCPUBinding,
+	topology *v1alpha1.NodeCPUTopology, pod *corev1.Pod) (bool, v1alpha1.PodCPUBindingResourceStatus, string, error) {
+	// Get NodeCPUTopology of node
+	topologies := &v1alpha1.NodeCPUTopologyList{}
 	err := r.List(ctx,
 		topologies,
 		client.MatchingFields{"spec.nodeName": pod.Spec.NodeName})
@@ -63,10 +63,10 @@ func (r *PodCpuBindingReconciler) validateTopology(ctx context.Context, cpuBindi
 	}
 	*topology = topologies.Items[0]
 	// Check if specified cpuset is available in the node topology
-	if !nct.IsCpuSetInTopology(&topology.Spec.Topology, cpuBinding.Spec.CpuSet) {
+	if !nct.IsCPUSetInTopology(&topology.Spec.Topology, cpuBinding.Spec.CPUSet) {
 		return false,
-			v1alpha1.StatusInvalidCpuSet,
-			fmt.Sprintf("CPUs %v do not exist in node %v", pcbutils.ConvertCpuSliceToIntSlice(cpuBinding.Spec.CpuSet),
+			v1alpha1.StatusInvalidCPUSet,
+			fmt.Sprintf("CPUs %v do not exist in node %v", pcbutils.ConvertCPUSliceToIntSlice(cpuBinding.Spec.CPUSet),
 				topology.Name),
 			nil
 	}
@@ -75,49 +75,49 @@ func (r *PodCpuBindingReconciler) validateTopology(ctx context.Context, cpuBindi
 
 // validateExclusivenessLevel checks if the specified CPU binding has
 // an exclusive CPU set based on the specified exclusiveness level
-func (r *PodCpuBindingReconciler) validateExclusivenessLevel(ctx context.Context,
-	cpuBinding *v1alpha1.PodCpuBinding, topology *v1alpha1.NodeCpuTopology,
-	namespacedName types.NamespacedName, nodeName string) (bool, v1alpha1.PodCpuBindingResourceStatus, string, error) {
-	unfeasibleCpus := make(map[int]struct{})
-	podCpuBindingList := &v1alpha1.PodCpuBindingList{}
-	err := r.List(ctx, podCpuBindingList,
+func (r *PodCPUBindingReconciler) validateExclusivenessLevel(ctx context.Context,
+	cpuBinding *v1alpha1.PodCPUBinding, topology *v1alpha1.NodeCPUTopology,
+	namespacedName types.NamespacedName, nodeName string) (bool, v1alpha1.PodCPUBindingResourceStatus, string, error) {
+	unfeasibleCPUs := make(map[int]struct{})
+	podCPUBindingList := &v1alpha1.PodCPUBindingList{}
+	err := r.List(ctx, podCPUBindingList,
 		client.MatchingFields{"status.nodeName": nodeName},
 		client.MatchingFields{"status.resourceStatus": string(v1alpha1.StatusApplied)})
 
 	if err != nil {
-		return false, "", "", fmt.Errorf("failed to list PodCpuBindings: %v", err.Error())
+		return false, "", "", fmt.Errorf("failed to list PodCPUBindings: %v", err.Error())
 	}
-	for _, pcb := range podCpuBindingList.Items {
+	for _, pcb := range podCPUBindingList.Items {
 		if (pcb.Namespace == namespacedName.Namespace && pcb.Name == namespacedName.Name) ||
 			pcb.Status.ResourceStatus != v1alpha1.StatusApplied || pcb.Status.NodeName != nodeName {
 			continue
 		}
-		exclusiveCpus := pcbutils.GetExclusiveCpusOfCpuBinding(&pcb, &topology.Spec.Topology)
-		for c := range exclusiveCpus {
-			unfeasibleCpus[c] = struct{}{}
+		exclusiveCPUs := pcbutils.GetExclusiveCPUsOfCPUBinding(&pcb, &topology.Spec.Topology)
+		for c := range exclusiveCPUs {
+			unfeasibleCPUs[c] = struct{}{}
 		}
 	}
-	isUnfeasible, cpus := hasUnfeasibleCpus(cpuBinding, topology, unfeasibleCpus)
+	isUnfeasible, cpus := hasUnfeasibleCPUs(cpuBinding, topology, unfeasibleCPUs)
 	if isUnfeasible {
 		return false,
-			v1alpha1.StatusCpuSetAllocationFailed,
+			v1alpha1.StatusCPUSetAllocationFailed,
 			fmt.Sprintf("CPUs %v are already allocated to another pod", cpus),
 			nil
 	}
 	return true, "", "", nil
 }
 
-// hasUnfeasibleCpus checks if there are unfeasible CPUs for a given CPU binding
-func hasUnfeasibleCpus(cpuBinding *v1alpha1.PodCpuBinding, topology *v1alpha1.NodeCpuTopology, unfeasibleCpus map[int]struct{}) (bool, []int) {
-	var requestedCpus map[int]struct{}
+// hasUnfeasibleCPUs checks if there are unfeasible CPUs for a given CPU binding
+func hasUnfeasibleCPUs(cpuBinding *v1alpha1.PodCPUBinding, topology *v1alpha1.NodeCPUTopology, unfeasibleCPUs map[int]struct{}) (bool, []int) {
+	var requestedCPUs map[int]struct{}
 	if cpuBinding.Spec.ExclusivenessLevel == "None" {
-		requestedCpus = pcbutils.GetCpusOfCpuBinding(cpuBinding)
+		requestedCPUs = pcbutils.GetCPUsOfCPUBinding(cpuBinding)
 	} else {
-		requestedCpus = pcbutils.GetExclusiveCpusOfCpuBinding(cpuBinding, &topology.Spec.Topology)
+		requestedCPUs = pcbutils.GetExclusiveCPUsOfCPUBinding(cpuBinding, &topology.Spec.Topology)
 	}
 	cpus := make(map[int]struct{})
-	for cpu := range requestedCpus {
-		if _, exists := unfeasibleCpus[cpu]; exists {
+	for cpu := range requestedCPUs {
+		if _, exists := unfeasibleCPUs[cpu]; exists {
 			cpus[cpu] = struct{}{}
 		}
 	}

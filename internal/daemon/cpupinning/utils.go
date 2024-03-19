@@ -18,12 +18,12 @@ const (
 
 // QosFromResources returns QoS class based on resource requests and limits of a pod.
 func QosFromResources(resources ResourceInfo) QoS {
-	limitCpu := resources.LimitCpus
-	requestCpu := resources.RequestedCpus
+	limitCPU := resources.LimitCPUs
+	requestCPU := resources.RequestedCPUs
 	limitMemory := resources.LimitMemory
 	requestMemory := resources.RequestedMemory
-	if (limitCpu > 0 || requestCpu > 0) || (limitMemory != "0" || requestMemory != "0") {
-		if limitCpu > 0 && requestCpu > 0 && limitCpu == requestCpu &&
+	if (limitCPU > 0 || requestCPU > 0) || (limitMemory != "0" || requestMemory != "0") {
+		if limitCPU > 0 && requestCPU > 0 && limitCPU == requestCPU &&
 			limitMemory != "0" && requestMemory != "0" && limitMemory == requestMemory {
 			return Guaranteed
 		}

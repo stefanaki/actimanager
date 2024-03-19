@@ -31,29 +31,29 @@ import (
 	testing "k8s.io/client-go/testing"
 )
 
-// FakeNodeCpuTopologies implements NodeCpuTopologyInterface
-type FakeNodeCpuTopologies struct {
+// FakeNodeCPUTopologies implements NodeCPUTopologyInterface
+type FakeNodeCPUTopologies struct {
 	Fake *FakeCslabV1alpha1
 }
 
 var nodecputopologiesResource = v1alpha1.SchemeGroupVersion.WithResource("nodecputopologies")
 
-var nodecputopologiesKind = v1alpha1.SchemeGroupVersion.WithKind("NodeCpuTopology")
+var nodecputopologiesKind = v1alpha1.SchemeGroupVersion.WithKind("NodeCPUTopology")
 
-// Get takes name of the nodeCpuTopology, and returns the corresponding nodeCpuTopology object, and an error if there is any.
-func (c *FakeNodeCpuTopologies) Get(ctx context.Context, name string, options v1.GetOptions) (result *v1alpha1.NodeCpuTopology, err error) {
+// Get takes name of the nodeCPUTopology, and returns the corresponding nodeCPUTopology object, and an error if there is any.
+func (c *FakeNodeCPUTopologies) Get(ctx context.Context, name string, options v1.GetOptions) (result *v1alpha1.NodeCPUTopology, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewRootGetAction(nodecputopologiesResource, name), &v1alpha1.NodeCpuTopology{})
+		Invokes(testing.NewRootGetAction(nodecputopologiesResource, name), &v1alpha1.NodeCPUTopology{})
 	if obj == nil {
 		return nil, err
 	}
-	return obj.(*v1alpha1.NodeCpuTopology), err
+	return obj.(*v1alpha1.NodeCPUTopology), err
 }
 
-// List takes label and field selectors, and returns the list of NodeCpuTopologies that match those selectors.
-func (c *FakeNodeCpuTopologies) List(ctx context.Context, opts v1.ListOptions) (result *v1alpha1.NodeCpuTopologyList, err error) {
+// List takes label and field selectors, and returns the list of NodeCPUTopologies that match those selectors.
+func (c *FakeNodeCPUTopologies) List(ctx context.Context, opts v1.ListOptions) (result *v1alpha1.NodeCPUTopologyList, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewRootListAction(nodecputopologiesResource, nodecputopologiesKind, opts), &v1alpha1.NodeCpuTopologyList{})
+		Invokes(testing.NewRootListAction(nodecputopologiesResource, nodecputopologiesKind, opts), &v1alpha1.NodeCPUTopologyList{})
 	if obj == nil {
 		return nil, err
 	}
@@ -62,8 +62,8 @@ func (c *FakeNodeCpuTopologies) List(ctx context.Context, opts v1.ListOptions) (
 	if label == nil {
 		label = labels.Everything()
 	}
-	list := &v1alpha1.NodeCpuTopologyList{ListMeta: obj.(*v1alpha1.NodeCpuTopologyList).ListMeta}
-	for _, item := range obj.(*v1alpha1.NodeCpuTopologyList).Items {
+	list := &v1alpha1.NodeCPUTopologyList{ListMeta: obj.(*v1alpha1.NodeCPUTopologyList).ListMeta}
+	for _, item := range obj.(*v1alpha1.NodeCPUTopologyList).Items {
 		if label.Matches(labels.Set(item.Labels)) {
 			list.Items = append(list.Items, item)
 		}
@@ -71,107 +71,107 @@ func (c *FakeNodeCpuTopologies) List(ctx context.Context, opts v1.ListOptions) (
 	return list, err
 }
 
-// Watch returns a watch.Interface that watches the requested nodeCpuTopologies.
-func (c *FakeNodeCpuTopologies) Watch(ctx context.Context, opts v1.ListOptions) (watch.Interface, error) {
+// Watch returns a watch.Interface that watches the requested nodeCPUTopologies.
+func (c *FakeNodeCPUTopologies) Watch(ctx context.Context, opts v1.ListOptions) (watch.Interface, error) {
 	return c.Fake.
 		InvokesWatch(testing.NewRootWatchAction(nodecputopologiesResource, opts))
 }
 
-// Create takes the representation of a nodeCpuTopology and creates it.  Returns the server's representation of the nodeCpuTopology, and an error, if there is any.
-func (c *FakeNodeCpuTopologies) Create(ctx context.Context, nodeCpuTopology *v1alpha1.NodeCpuTopology, opts v1.CreateOptions) (result *v1alpha1.NodeCpuTopology, err error) {
+// Create takes the representation of a nodeCPUTopology and creates it.  Returns the server's representation of the nodeCPUTopology, and an error, if there is any.
+func (c *FakeNodeCPUTopologies) Create(ctx context.Context, nodeCPUTopology *v1alpha1.NodeCPUTopology, opts v1.CreateOptions) (result *v1alpha1.NodeCPUTopology, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewRootCreateAction(nodecputopologiesResource, nodeCpuTopology), &v1alpha1.NodeCpuTopology{})
+		Invokes(testing.NewRootCreateAction(nodecputopologiesResource, nodeCPUTopology), &v1alpha1.NodeCPUTopology{})
 	if obj == nil {
 		return nil, err
 	}
-	return obj.(*v1alpha1.NodeCpuTopology), err
+	return obj.(*v1alpha1.NodeCPUTopology), err
 }
 
-// Update takes the representation of a nodeCpuTopology and updates it. Returns the server's representation of the nodeCpuTopology, and an error, if there is any.
-func (c *FakeNodeCpuTopologies) Update(ctx context.Context, nodeCpuTopology *v1alpha1.NodeCpuTopology, opts v1.UpdateOptions) (result *v1alpha1.NodeCpuTopology, err error) {
+// Update takes the representation of a nodeCPUTopology and updates it. Returns the server's representation of the nodeCPUTopology, and an error, if there is any.
+func (c *FakeNodeCPUTopologies) Update(ctx context.Context, nodeCPUTopology *v1alpha1.NodeCPUTopology, opts v1.UpdateOptions) (result *v1alpha1.NodeCPUTopology, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewRootUpdateAction(nodecputopologiesResource, nodeCpuTopology), &v1alpha1.NodeCpuTopology{})
+		Invokes(testing.NewRootUpdateAction(nodecputopologiesResource, nodeCPUTopology), &v1alpha1.NodeCPUTopology{})
 	if obj == nil {
 		return nil, err
 	}
-	return obj.(*v1alpha1.NodeCpuTopology), err
+	return obj.(*v1alpha1.NodeCPUTopology), err
 }
 
 // UpdateStatus was generated because the type contains a Status member.
 // Add a +genclient:noStatus comment above the type to avoid generating UpdateStatus().
-func (c *FakeNodeCpuTopologies) UpdateStatus(ctx context.Context, nodeCpuTopology *v1alpha1.NodeCpuTopology, opts v1.UpdateOptions) (*v1alpha1.NodeCpuTopology, error) {
+func (c *FakeNodeCPUTopologies) UpdateStatus(ctx context.Context, nodeCPUTopology *v1alpha1.NodeCPUTopology, opts v1.UpdateOptions) (*v1alpha1.NodeCPUTopology, error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewRootUpdateSubresourceAction(nodecputopologiesResource, "status", nodeCpuTopology), &v1alpha1.NodeCpuTopology{})
+		Invokes(testing.NewRootUpdateSubresourceAction(nodecputopologiesResource, "status", nodeCPUTopology), &v1alpha1.NodeCPUTopology{})
 	if obj == nil {
 		return nil, err
 	}
-	return obj.(*v1alpha1.NodeCpuTopology), err
+	return obj.(*v1alpha1.NodeCPUTopology), err
 }
 
-// Delete takes name of the nodeCpuTopology and deletes it. Returns an error if one occurs.
-func (c *FakeNodeCpuTopologies) Delete(ctx context.Context, name string, opts v1.DeleteOptions) error {
+// Delete takes name of the nodeCPUTopology and deletes it. Returns an error if one occurs.
+func (c *FakeNodeCPUTopologies) Delete(ctx context.Context, name string, opts v1.DeleteOptions) error {
 	_, err := c.Fake.
-		Invokes(testing.NewRootDeleteActionWithOptions(nodecputopologiesResource, name, opts), &v1alpha1.NodeCpuTopology{})
+		Invokes(testing.NewRootDeleteActionWithOptions(nodecputopologiesResource, name, opts), &v1alpha1.NodeCPUTopology{})
 	return err
 }
 
 // DeleteCollection deletes a collection of objects.
-func (c *FakeNodeCpuTopologies) DeleteCollection(ctx context.Context, opts v1.DeleteOptions, listOpts v1.ListOptions) error {
+func (c *FakeNodeCPUTopologies) DeleteCollection(ctx context.Context, opts v1.DeleteOptions, listOpts v1.ListOptions) error {
 	action := testing.NewRootDeleteCollectionAction(nodecputopologiesResource, listOpts)
 
-	_, err := c.Fake.Invokes(action, &v1alpha1.NodeCpuTopologyList{})
+	_, err := c.Fake.Invokes(action, &v1alpha1.NodeCPUTopologyList{})
 	return err
 }
 
-// Patch applies the patch and returns the patched nodeCpuTopology.
-func (c *FakeNodeCpuTopologies) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *v1alpha1.NodeCpuTopology, err error) {
+// Patch applies the patch and returns the patched nodeCPUTopology.
+func (c *FakeNodeCPUTopologies) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *v1alpha1.NodeCPUTopology, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewRootPatchSubresourceAction(nodecputopologiesResource, name, pt, data, subresources...), &v1alpha1.NodeCpuTopology{})
+		Invokes(testing.NewRootPatchSubresourceAction(nodecputopologiesResource, name, pt, data, subresources...), &v1alpha1.NodeCPUTopology{})
 	if obj == nil {
 		return nil, err
 	}
-	return obj.(*v1alpha1.NodeCpuTopology), err
+	return obj.(*v1alpha1.NodeCPUTopology), err
 }
 
-// Apply takes the given apply declarative configuration, applies it and returns the applied nodeCpuTopology.
-func (c *FakeNodeCpuTopologies) Apply(ctx context.Context, nodeCpuTopology *cslabecentuagrv1alpha1.NodeCpuTopologyApplyConfiguration, opts v1.ApplyOptions) (result *v1alpha1.NodeCpuTopology, err error) {
-	if nodeCpuTopology == nil {
-		return nil, fmt.Errorf("nodeCpuTopology provided to Apply must not be nil")
+// Apply takes the given apply declarative configuration, applies it and returns the applied nodeCPUTopology.
+func (c *FakeNodeCPUTopologies) Apply(ctx context.Context, nodeCPUTopology *cslabecentuagrv1alpha1.NodeCPUTopologyApplyConfiguration, opts v1.ApplyOptions) (result *v1alpha1.NodeCPUTopology, err error) {
+	if nodeCPUTopology == nil {
+		return nil, fmt.Errorf("nodeCPUTopology provided to Apply must not be nil")
 	}
-	data, err := json.Marshal(nodeCpuTopology)
+	data, err := json.Marshal(nodeCPUTopology)
 	if err != nil {
 		return nil, err
 	}
-	name := nodeCpuTopology.Name
+	name := nodeCPUTopology.Name
 	if name == nil {
-		return nil, fmt.Errorf("nodeCpuTopology.Name must be provided to Apply")
+		return nil, fmt.Errorf("nodeCPUTopology.Name must be provided to Apply")
 	}
 	obj, err := c.Fake.
-		Invokes(testing.NewRootPatchSubresourceAction(nodecputopologiesResource, *name, types.ApplyPatchType, data), &v1alpha1.NodeCpuTopology{})
+		Invokes(testing.NewRootPatchSubresourceAction(nodecputopologiesResource, *name, types.ApplyPatchType, data), &v1alpha1.NodeCPUTopology{})
 	if obj == nil {
 		return nil, err
 	}
-	return obj.(*v1alpha1.NodeCpuTopology), err
+	return obj.(*v1alpha1.NodeCPUTopology), err
 }
 
 // ApplyStatus was generated because the type contains a Status member.
 // Add a +genclient:noStatus comment above the type to avoid generating ApplyStatus().
-func (c *FakeNodeCpuTopologies) ApplyStatus(ctx context.Context, nodeCpuTopology *cslabecentuagrv1alpha1.NodeCpuTopologyApplyConfiguration, opts v1.ApplyOptions) (result *v1alpha1.NodeCpuTopology, err error) {
-	if nodeCpuTopology == nil {
-		return nil, fmt.Errorf("nodeCpuTopology provided to Apply must not be nil")
+func (c *FakeNodeCPUTopologies) ApplyStatus(ctx context.Context, nodeCPUTopology *cslabecentuagrv1alpha1.NodeCPUTopologyApplyConfiguration, opts v1.ApplyOptions) (result *v1alpha1.NodeCPUTopology, err error) {
+	if nodeCPUTopology == nil {
+		return nil, fmt.Errorf("nodeCPUTopology provided to Apply must not be nil")
 	}
-	data, err := json.Marshal(nodeCpuTopology)
+	data, err := json.Marshal(nodeCPUTopology)
 	if err != nil {
 		return nil, err
 	}
-	name := nodeCpuTopology.Name
+	name := nodeCPUTopology.Name
 	if name == nil {
-		return nil, fmt.Errorf("nodeCpuTopology.Name must be provided to Apply")
+		return nil, fmt.Errorf("nodeCPUTopology.Name must be provided to Apply")
 	}
 	obj, err := c.Fake.
-		Invokes(testing.NewRootPatchSubresourceAction(nodecputopologiesResource, *name, types.ApplyPatchType, data, "status"), &v1alpha1.NodeCpuTopology{})
+		Invokes(testing.NewRootPatchSubresourceAction(nodecputopologiesResource, *name, types.ApplyPatchType, data, "status"), &v1alpha1.NodeCPUTopology{})
 	if obj == nil {
 		return nil, err
 	}
-	return obj.(*v1alpha1.NodeCpuTopology), err
+	return obj.(*v1alpha1.NodeCPUTopology), err
 }

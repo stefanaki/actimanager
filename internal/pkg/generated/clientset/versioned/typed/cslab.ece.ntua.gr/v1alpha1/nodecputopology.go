@@ -32,43 +32,43 @@ import (
 	rest "k8s.io/client-go/rest"
 )
 
-// NodeCpuTopologiesGetter has a method to return a NodeCpuTopologyInterface.
+// NodeCPUTopologiesGetter has a method to return a NodeCPUTopologyInterface.
 // A group's client should implement this interface.
-type NodeCpuTopologiesGetter interface {
-	NodeCpuTopologies() NodeCpuTopologyInterface
+type NodeCPUTopologiesGetter interface {
+	NodeCPUTopologies() NodeCPUTopologyInterface
 }
 
-// NodeCpuTopologyInterface has methods to work with NodeCpuTopology resources.
-type NodeCpuTopologyInterface interface {
-	Create(ctx context.Context, nodeCpuTopology *v1alpha1.NodeCpuTopology, opts v1.CreateOptions) (*v1alpha1.NodeCpuTopology, error)
-	Update(ctx context.Context, nodeCpuTopology *v1alpha1.NodeCpuTopology, opts v1.UpdateOptions) (*v1alpha1.NodeCpuTopology, error)
-	UpdateStatus(ctx context.Context, nodeCpuTopology *v1alpha1.NodeCpuTopology, opts v1.UpdateOptions) (*v1alpha1.NodeCpuTopology, error)
+// NodeCPUTopologyInterface has methods to work with NodeCPUTopology resources.
+type NodeCPUTopologyInterface interface {
+	Create(ctx context.Context, nodeCPUTopology *v1alpha1.NodeCPUTopology, opts v1.CreateOptions) (*v1alpha1.NodeCPUTopology, error)
+	Update(ctx context.Context, nodeCPUTopology *v1alpha1.NodeCPUTopology, opts v1.UpdateOptions) (*v1alpha1.NodeCPUTopology, error)
+	UpdateStatus(ctx context.Context, nodeCPUTopology *v1alpha1.NodeCPUTopology, opts v1.UpdateOptions) (*v1alpha1.NodeCPUTopology, error)
 	Delete(ctx context.Context, name string, opts v1.DeleteOptions) error
 	DeleteCollection(ctx context.Context, opts v1.DeleteOptions, listOpts v1.ListOptions) error
-	Get(ctx context.Context, name string, opts v1.GetOptions) (*v1alpha1.NodeCpuTopology, error)
-	List(ctx context.Context, opts v1.ListOptions) (*v1alpha1.NodeCpuTopologyList, error)
+	Get(ctx context.Context, name string, opts v1.GetOptions) (*v1alpha1.NodeCPUTopology, error)
+	List(ctx context.Context, opts v1.ListOptions) (*v1alpha1.NodeCPUTopologyList, error)
 	Watch(ctx context.Context, opts v1.ListOptions) (watch.Interface, error)
-	Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *v1alpha1.NodeCpuTopology, err error)
-	Apply(ctx context.Context, nodeCpuTopology *cslabecentuagrv1alpha1.NodeCpuTopologyApplyConfiguration, opts v1.ApplyOptions) (result *v1alpha1.NodeCpuTopology, err error)
-	ApplyStatus(ctx context.Context, nodeCpuTopology *cslabecentuagrv1alpha1.NodeCpuTopologyApplyConfiguration, opts v1.ApplyOptions) (result *v1alpha1.NodeCpuTopology, err error)
-	NodeCpuTopologyExpansion
+	Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *v1alpha1.NodeCPUTopology, err error)
+	Apply(ctx context.Context, nodeCPUTopology *cslabecentuagrv1alpha1.NodeCPUTopologyApplyConfiguration, opts v1.ApplyOptions) (result *v1alpha1.NodeCPUTopology, err error)
+	ApplyStatus(ctx context.Context, nodeCPUTopology *cslabecentuagrv1alpha1.NodeCPUTopologyApplyConfiguration, opts v1.ApplyOptions) (result *v1alpha1.NodeCPUTopology, err error)
+	NodeCPUTopologyExpansion
 }
 
-// nodeCpuTopologies implements NodeCpuTopologyInterface
-type nodeCpuTopologies struct {
+// nodeCPUTopologies implements NodeCPUTopologyInterface
+type nodeCPUTopologies struct {
 	client rest.Interface
 }
 
-// newNodeCpuTopologies returns a NodeCpuTopologies
-func newNodeCpuTopologies(c *CslabV1alpha1Client) *nodeCpuTopologies {
-	return &nodeCpuTopologies{
+// newNodeCPUTopologies returns a NodeCPUTopologies
+func newNodeCPUTopologies(c *CslabV1alpha1Client) *nodeCPUTopologies {
+	return &nodeCPUTopologies{
 		client: c.RESTClient(),
 	}
 }
 
-// Get takes name of the nodeCpuTopology, and returns the corresponding nodeCpuTopology object, and an error if there is any.
-func (c *nodeCpuTopologies) Get(ctx context.Context, name string, options v1.GetOptions) (result *v1alpha1.NodeCpuTopology, err error) {
-	result = &v1alpha1.NodeCpuTopology{}
+// Get takes name of the nodeCPUTopology, and returns the corresponding nodeCPUTopology object, and an error if there is any.
+func (c *nodeCPUTopologies) Get(ctx context.Context, name string, options v1.GetOptions) (result *v1alpha1.NodeCPUTopology, err error) {
+	result = &v1alpha1.NodeCPUTopology{}
 	err = c.client.Get().
 		Resource("nodecputopologies").
 		Name(name).
@@ -78,13 +78,13 @@ func (c *nodeCpuTopologies) Get(ctx context.Context, name string, options v1.Get
 	return
 }
 
-// List takes label and field selectors, and returns the list of NodeCpuTopologies that match those selectors.
-func (c *nodeCpuTopologies) List(ctx context.Context, opts v1.ListOptions) (result *v1alpha1.NodeCpuTopologyList, err error) {
+// List takes label and field selectors, and returns the list of NodeCPUTopologies that match those selectors.
+func (c *nodeCPUTopologies) List(ctx context.Context, opts v1.ListOptions) (result *v1alpha1.NodeCPUTopologyList, err error) {
 	var timeout time.Duration
 	if opts.TimeoutSeconds != nil {
 		timeout = time.Duration(*opts.TimeoutSeconds) * time.Second
 	}
-	result = &v1alpha1.NodeCpuTopologyList{}
+	result = &v1alpha1.NodeCPUTopologyList{}
 	err = c.client.Get().
 		Resource("nodecputopologies").
 		VersionedParams(&opts, scheme.ParameterCodec).
@@ -94,8 +94,8 @@ func (c *nodeCpuTopologies) List(ctx context.Context, opts v1.ListOptions) (resu
 	return
 }
 
-// Watch returns a watch.Interface that watches the requested nodeCpuTopologies.
-func (c *nodeCpuTopologies) Watch(ctx context.Context, opts v1.ListOptions) (watch.Interface, error) {
+// Watch returns a watch.Interface that watches the requested nodeCPUTopologies.
+func (c *nodeCPUTopologies) Watch(ctx context.Context, opts v1.ListOptions) (watch.Interface, error) {
 	var timeout time.Duration
 	if opts.TimeoutSeconds != nil {
 		timeout = time.Duration(*opts.TimeoutSeconds) * time.Second
@@ -108,26 +108,26 @@ func (c *nodeCpuTopologies) Watch(ctx context.Context, opts v1.ListOptions) (wat
 		Watch(ctx)
 }
 
-// Create takes the representation of a nodeCpuTopology and creates it.  Returns the server's representation of the nodeCpuTopology, and an error, if there is any.
-func (c *nodeCpuTopologies) Create(ctx context.Context, nodeCpuTopology *v1alpha1.NodeCpuTopology, opts v1.CreateOptions) (result *v1alpha1.NodeCpuTopology, err error) {
-	result = &v1alpha1.NodeCpuTopology{}
+// Create takes the representation of a nodeCPUTopology and creates it.  Returns the server's representation of the nodeCPUTopology, and an error, if there is any.
+func (c *nodeCPUTopologies) Create(ctx context.Context, nodeCPUTopology *v1alpha1.NodeCPUTopology, opts v1.CreateOptions) (result *v1alpha1.NodeCPUTopology, err error) {
+	result = &v1alpha1.NodeCPUTopology{}
 	err = c.client.Post().
 		Resource("nodecputopologies").
 		VersionedParams(&opts, scheme.ParameterCodec).
-		Body(nodeCpuTopology).
+		Body(nodeCPUTopology).
 		Do(ctx).
 		Into(result)
 	return
 }
 
-// Update takes the representation of a nodeCpuTopology and updates it. Returns the server's representation of the nodeCpuTopology, and an error, if there is any.
-func (c *nodeCpuTopologies) Update(ctx context.Context, nodeCpuTopology *v1alpha1.NodeCpuTopology, opts v1.UpdateOptions) (result *v1alpha1.NodeCpuTopology, err error) {
-	result = &v1alpha1.NodeCpuTopology{}
+// Update takes the representation of a nodeCPUTopology and updates it. Returns the server's representation of the nodeCPUTopology, and an error, if there is any.
+func (c *nodeCPUTopologies) Update(ctx context.Context, nodeCPUTopology *v1alpha1.NodeCPUTopology, opts v1.UpdateOptions) (result *v1alpha1.NodeCPUTopology, err error) {
+	result = &v1alpha1.NodeCPUTopology{}
 	err = c.client.Put().
 		Resource("nodecputopologies").
-		Name(nodeCpuTopology.Name).
+		Name(nodeCPUTopology.Name).
 		VersionedParams(&opts, scheme.ParameterCodec).
-		Body(nodeCpuTopology).
+		Body(nodeCPUTopology).
 		Do(ctx).
 		Into(result)
 	return
@@ -135,21 +135,21 @@ func (c *nodeCpuTopologies) Update(ctx context.Context, nodeCpuTopology *v1alpha
 
 // UpdateStatus was generated because the type contains a Status member.
 // Add a +genclient:noStatus comment above the type to avoid generating UpdateStatus().
-func (c *nodeCpuTopologies) UpdateStatus(ctx context.Context, nodeCpuTopology *v1alpha1.NodeCpuTopology, opts v1.UpdateOptions) (result *v1alpha1.NodeCpuTopology, err error) {
-	result = &v1alpha1.NodeCpuTopology{}
+func (c *nodeCPUTopologies) UpdateStatus(ctx context.Context, nodeCPUTopology *v1alpha1.NodeCPUTopology, opts v1.UpdateOptions) (result *v1alpha1.NodeCPUTopology, err error) {
+	result = &v1alpha1.NodeCPUTopology{}
 	err = c.client.Put().
 		Resource("nodecputopologies").
-		Name(nodeCpuTopology.Name).
+		Name(nodeCPUTopology.Name).
 		SubResource("status").
 		VersionedParams(&opts, scheme.ParameterCodec).
-		Body(nodeCpuTopology).
+		Body(nodeCPUTopology).
 		Do(ctx).
 		Into(result)
 	return
 }
 
-// Delete takes name of the nodeCpuTopology and deletes it. Returns an error if one occurs.
-func (c *nodeCpuTopologies) Delete(ctx context.Context, name string, opts v1.DeleteOptions) error {
+// Delete takes name of the nodeCPUTopology and deletes it. Returns an error if one occurs.
+func (c *nodeCPUTopologies) Delete(ctx context.Context, name string, opts v1.DeleteOptions) error {
 	return c.client.Delete().
 		Resource("nodecputopologies").
 		Name(name).
@@ -159,7 +159,7 @@ func (c *nodeCpuTopologies) Delete(ctx context.Context, name string, opts v1.Del
 }
 
 // DeleteCollection deletes a collection of objects.
-func (c *nodeCpuTopologies) DeleteCollection(ctx context.Context, opts v1.DeleteOptions, listOpts v1.ListOptions) error {
+func (c *nodeCPUTopologies) DeleteCollection(ctx context.Context, opts v1.DeleteOptions, listOpts v1.ListOptions) error {
 	var timeout time.Duration
 	if listOpts.TimeoutSeconds != nil {
 		timeout = time.Duration(*listOpts.TimeoutSeconds) * time.Second
@@ -173,9 +173,9 @@ func (c *nodeCpuTopologies) DeleteCollection(ctx context.Context, opts v1.Delete
 		Error()
 }
 
-// Patch applies the patch and returns the patched nodeCpuTopology.
-func (c *nodeCpuTopologies) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *v1alpha1.NodeCpuTopology, err error) {
-	result = &v1alpha1.NodeCpuTopology{}
+// Patch applies the patch and returns the patched nodeCPUTopology.
+func (c *nodeCPUTopologies) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *v1alpha1.NodeCPUTopology, err error) {
+	result = &v1alpha1.NodeCPUTopology{}
 	err = c.client.Patch(pt).
 		Resource("nodecputopologies").
 		Name(name).
@@ -187,21 +187,21 @@ func (c *nodeCpuTopologies) Patch(ctx context.Context, name string, pt types.Pat
 	return
 }
 
-// Apply takes the given apply declarative configuration, applies it and returns the applied nodeCpuTopology.
-func (c *nodeCpuTopologies) Apply(ctx context.Context, nodeCpuTopology *cslabecentuagrv1alpha1.NodeCpuTopologyApplyConfiguration, opts v1.ApplyOptions) (result *v1alpha1.NodeCpuTopology, err error) {
-	if nodeCpuTopology == nil {
-		return nil, fmt.Errorf("nodeCpuTopology provided to Apply must not be nil")
+// Apply takes the given apply declarative configuration, applies it and returns the applied nodeCPUTopology.
+func (c *nodeCPUTopologies) Apply(ctx context.Context, nodeCPUTopology *cslabecentuagrv1alpha1.NodeCPUTopologyApplyConfiguration, opts v1.ApplyOptions) (result *v1alpha1.NodeCPUTopology, err error) {
+	if nodeCPUTopology == nil {
+		return nil, fmt.Errorf("nodeCPUTopology provided to Apply must not be nil")
 	}
 	patchOpts := opts.ToPatchOptions()
-	data, err := json.Marshal(nodeCpuTopology)
+	data, err := json.Marshal(nodeCPUTopology)
 	if err != nil {
 		return nil, err
 	}
-	name := nodeCpuTopology.Name
+	name := nodeCPUTopology.Name
 	if name == nil {
-		return nil, fmt.Errorf("nodeCpuTopology.Name must be provided to Apply")
+		return nil, fmt.Errorf("nodeCPUTopology.Name must be provided to Apply")
 	}
-	result = &v1alpha1.NodeCpuTopology{}
+	result = &v1alpha1.NodeCPUTopology{}
 	err = c.client.Patch(types.ApplyPatchType).
 		Resource("nodecputopologies").
 		Name(*name).
@@ -214,22 +214,22 @@ func (c *nodeCpuTopologies) Apply(ctx context.Context, nodeCpuTopology *cslabece
 
 // ApplyStatus was generated because the type contains a Status member.
 // Add a +genclient:noStatus comment above the type to avoid generating ApplyStatus().
-func (c *nodeCpuTopologies) ApplyStatus(ctx context.Context, nodeCpuTopology *cslabecentuagrv1alpha1.NodeCpuTopologyApplyConfiguration, opts v1.ApplyOptions) (result *v1alpha1.NodeCpuTopology, err error) {
-	if nodeCpuTopology == nil {
-		return nil, fmt.Errorf("nodeCpuTopology provided to Apply must not be nil")
+func (c *nodeCPUTopologies) ApplyStatus(ctx context.Context, nodeCPUTopology *cslabecentuagrv1alpha1.NodeCPUTopologyApplyConfiguration, opts v1.ApplyOptions) (result *v1alpha1.NodeCPUTopology, err error) {
+	if nodeCPUTopology == nil {
+		return nil, fmt.Errorf("nodeCPUTopology provided to Apply must not be nil")
 	}
 	patchOpts := opts.ToPatchOptions()
-	data, err := json.Marshal(nodeCpuTopology)
+	data, err := json.Marshal(nodeCPUTopology)
 	if err != nil {
 		return nil, err
 	}
 
-	name := nodeCpuTopology.Name
+	name := nodeCPUTopology.Name
 	if name == nil {
-		return nil, fmt.Errorf("nodeCpuTopology.Name must be provided to Apply")
+		return nil, fmt.Errorf("nodeCPUTopology.Name must be provided to Apply")
 	}
 
-	result = &v1alpha1.NodeCpuTopology{}
+	result = &v1alpha1.NodeCPUTopology{}
 	err = c.client.Patch(types.ApplyPatchType).
 		Resource("nodecputopologies").
 		Name(*name).

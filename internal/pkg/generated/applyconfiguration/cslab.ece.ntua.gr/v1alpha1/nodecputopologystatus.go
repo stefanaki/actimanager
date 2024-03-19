@@ -21,22 +21,22 @@ import (
 	v1alpha1 "cslab.ece.ntua.gr/actimanager/api/cslab.ece.ntua.gr/v1alpha1"
 )
 
-// NodeCpuTopologyStatusApplyConfiguration represents an declarative configuration of the NodeCpuTopologyStatus type for use
+// NodeCPUTopologyStatusApplyConfiguration represents an declarative configuration of the NodeCPUTopologyStatus type for use
 // with apply.
-type NodeCpuTopologyStatusApplyConfiguration struct {
-	ResourceStatus *v1alpha1.NodeCpuTopologyResourceStatus `json:"resourceStatus,omitempty"`
+type NodeCPUTopologyStatusApplyConfiguration struct {
+	ResourceStatus *v1alpha1.NodeCPUTopologyResourceStatus `json:"resourceStatus,omitempty"`
 }
 
-// NodeCpuTopologyStatusApplyConfiguration constructs an declarative configuration of the NodeCpuTopologyStatus type for use with
+// NodeCPUTopologyStatusApplyConfiguration constructs an declarative configuration of the NodeCPUTopologyStatus type for use with
 // apply.
-func NodeCpuTopologyStatus() *NodeCpuTopologyStatusApplyConfiguration {
-	return &NodeCpuTopologyStatusApplyConfiguration{}
+func NodeCPUTopologyStatus() *NodeCPUTopologyStatusApplyConfiguration {
+	return &NodeCPUTopologyStatusApplyConfiguration{}
 }
 
 // WithResourceStatus sets the ResourceStatus field in the declarative configuration to the given value
 // and returns the receiver, so that objects can be built by chaining "With" function invocations.
 // If called multiple times, the ResourceStatus field is set to the value of the last call.
-func (b *NodeCpuTopologyStatusApplyConfiguration) WithResourceStatus(value v1alpha1.NodeCpuTopologyResourceStatus) *NodeCpuTopologyStatusApplyConfiguration {
+func (b *NodeCPUTopologyStatusApplyConfiguration) WithResourceStatus(value v1alpha1.NodeCPUTopologyResourceStatus) *NodeCPUTopologyStatusApplyConfiguration {
 	b.ResourceStatus = &value
 	return b
 }

@@ -12,34 +12,34 @@ import (
 	"strings"
 )
 
-type CpuPinningController struct {
+type CPUPinningController struct {
 	cgroupsController   cgroupsctrl.CgroupsController
 	containerRuntime    ContainerRuntime
-	podCpuBindingClient *client.PodCpuBindingClient
+	podCPUBindingClient *client.PodCPUBindingClient
 	podClient           *client.PodClient
-	cpuTopology         v1alpha1.CpuTopology
+	cpuTopology         v1alpha1.CPUTopology
 	nodeName            string
 	logger              logr.Logger
 }
 
-// NewCpuPinningController returns a reference to a new CpuPinningController instance
-func NewCpuPinningController(containerRuntime ContainerRuntime,
+// NewCPUPinningController returns a reference to a new CPUPinningController instance
+func NewCPUPinningController(containerRuntime ContainerRuntime,
 	cgroupsDriver cgroupsctrl.CgroupsDriver, cgroupsPath string,
-	podCpuBindingClient *client.PodCpuBindingClient,
+	podCPUBindingClient *client.PodCPUBindingClient,
 	podClient *client.PodClient,
-	cpuTopology v1alpha1.CpuTopology,
+	cpuTopology v1alpha1.CPUTopology,
 	nodeName string,
-	logger logr.Logger) (*CpuPinningController, error) {
+	logger logr.Logger) (*CPUPinningController, error) {
 
 	cgroupsController, err := cgroupsctrl.NewCgroupsController(cgroupsDriver, cgroupsPath, logger)
 	if err != nil {
 		return nil, fmt.Errorf("could create cgroups controller: %v", err)
 	}
 
-	c := CpuPinningController{
+	c := CPUPinningController{
 		containerRuntime:    containerRuntime,
 		cgroupsController:   cgroupsController,
-		podCpuBindingClient: podCpuBindingClient,
+		podCPUBindingClient: podCPUBindingClient,
 		podClient:           podClient,
 		cpuTopology:         cpuTopology,
 		nodeName:            nodeName,
@@ -49,21 +49,21 @@ func NewCpuPinningController(containerRuntime ContainerRuntime,
 	return &c, nil
 }
 
-// UpdateCpuSet updates the cpu set of a given child process.
-func (c CpuPinningController) UpdateCpuSet(container ContainerInfo, cSet string, memSet string, quota *int64, shares, period *uint64) error {
+// UpdateCPUSet updates the cpu set of a given child process.
+func (c CPUPinningController) UpdateCPUSet(container ContainerInfo, cSet string, memSet string, quota *int64, shares, period *uint64) error {
 	runtimeURLPrefix := [2]string{"docker://", "containerd://"}
 	if c.containerRuntime == Kind || c.containerRuntime != Kind &&
 		strings.Contains(container.CID, runtimeURLPrefix[c.containerRuntime]) {
 		slice := SliceName(container, c.containerRuntime, c.cgroupsController.CgroupsDriver)
 		// c.logger.V(2).Info("allocating cgroup", "cgroupPath", c.cgroupsController.CgroupsPath, "slicePath", slice, "cpuSet", cSet, "memSet", memSet)
-		return c.cgroupsController.UpdateCpuSet(slice, cSet, memSet, quota, shares, period)
+		return c.cgroupsController.UpdateCPUSet(slice, cSet, memSet, quota, shares, period)
 	}
 
 	return nil
 }
 
 // Apply updates the CPU set of the container, reconciling with the CPU bindings of other pods.
-func (c CpuPinningController) Apply(pod *cpupinning.Pod, cpuSet string, memSet string) error {
+func (c CPUPinningController) Apply(pod *cpupinning.Pod, cpuSet string, memSet string) error {
 	if err := c.reconcilePodsWithSharedResources(pod, false); err != nil {
 		return fmt.Errorf("failed to reconcile pods with shared resources: %v", err)
 	}
@@ -73,16 +73,16 @@ func (c CpuPinningController) Apply(pod *cpupinning.Pod, cpuSet string, memSet s
 			PID:  pod.Id,
 			Name: container.Name,
 			Resources: ResourceInfo{
-				RequestedCpus:   int64(container.Resources.RequestedCpus),
-				LimitCpus:       int64(container.Resources.LimitCpus),
+				RequestedCPUs:   int64(container.Resources.RequestedCPUs),
+				LimitCPUs:       int64(container.Resources.LimitCPUs),
 				RequestedMemory: container.Resources.RequestedMemory,
 				LimitMemory:     container.Resources.LimitMemory,
 			},
 		}
-		quota := MilliCPUToQuota(info.Resources.LimitCpus, QuotaPeriod)
-		shares := MilliCPUToShares(info.Resources.LimitCpus)
+		quota := MilliCPUToQuota(info.Resources.LimitCPUs, QuotaPeriod)
+		shares := MilliCPUToShares(info.Resources.LimitCPUs)
 		period := uint64(QuotaPeriod)
-		if err := c.UpdateCpuSet(info, cpuSet, memSet, &quota, &shares, &period); err != nil {
+		if err := c.UpdateCPUSet(info, cpuSet, memSet, &quota, &shares, &period); err != nil {
 			return fmt.Errorf("failed to update cpu set for container %s in pod %s/%s: %v", container.Name, pod.Namespace, pod.Name, err)
 		}
 		c.logger.Info("CPUSet updated", "pod", fmt.Sprintf("%s/%s", pod.Namespace, pod.Name), "container", container.Name, "cpuSet", cpuSet, "memSet", memSet, "quota", quota, "shares", shares, "period", period)
@@ -91,7 +91,7 @@ func (c CpuPinningController) Apply(pod *cpupinning.Pod, cpuSet string, memSet s
 }
 
 // Remove updates the CPU set of the container to all the available CPUs.
-func (c CpuPinningController) Remove(pod *cpupinning.Pod) error {
+func (c CPUPinningController) Remove(pod *cpupinning.Pod) error {
 	err := c.reconcilePodsWithSharedResources(pod, true)
 	if err != nil {
 		return fmt.Errorf("failed to reconcile pods with shared resources: %v", err)
@@ -99,9 +99,9 @@ func (c CpuPinningController) Remove(pod *cpupinning.Pod) error {
 	return nil
 }
 
-func (c CpuPinningController) reconcilePodsWithSharedResources(pod *cpupinning.Pod, rm bool) error {
-	sharedCpus := c.cpuTopology.DeepCopy().Cpus
-	cpuBindings, err := c.podCpuBindingClient.PodCpuBindingsForNode(c.nodeName)
+func (c CPUPinningController) reconcilePodsWithSharedResources(pod *cpupinning.Pod, rm bool) error {
+	sharedCPUs := c.cpuTopology.DeepCopy().CPUs
+	cpuBindings, err := c.podCPUBindingClient.PodCPUBindingsForNode(c.nodeName)
 	if err != nil {
 		return fmt.Errorf("failed to get pod cpu bindings: %v", err)
 	}
@@ -116,16 +116,16 @@ func (c CpuPinningController) reconcilePodsWithSharedResources(pod *cpupinning.P
 		if rm && pod.Namespace == binding.Namespace && pod.Name == binding.Spec.PodName {
 			continue
 		}
-		for cpu := range pcbutils.GetExclusiveCpusOfCpuBinding(&binding, &c.cpuTopology) {
-			for i, sharedCpu := range sharedCpus {
-				if sharedCpu == cpu {
-					sharedCpus = append(sharedCpus[:i], sharedCpus[i+1:]...)
+		for cpu := range pcbutils.GetExclusiveCPUsOfCPUBinding(&binding, &c.cpuTopology) {
+			for i, sharedCPU := range sharedCPUs {
+				if sharedCPU == cpu {
+					sharedCPUs = append(sharedCPUs[:i], sharedCPUs[i+1:]...)
 					break
 				}
 			}
 		}
 	}
-	c.logger.Info("--- shared cpus ---", "cpus", sharedCpus)
+	c.logger.Info("--- shared cpus ---", "cpus", sharedCPUs)
 	pods, err := c.podClient.PodsForNode(c.nodeName)
 	if err != nil {
 		return fmt.Errorf("failed to get pods for node: %v", err)
@@ -137,24 +137,24 @@ func (c CpuPinningController) reconcilePodsWithSharedResources(pod *cpupinning.P
 				if !container.Ready {
 					continue
 				}
-				cpus := ConvertIntSliceToString(sharedCpus)
-				mems := ConvertIntSliceToString(nctutils.GetNumaNodesOfCpuSet(sharedCpus, c.cpuTopology))
+				cpus := ConvertIntSliceToString(sharedCPUs)
+				mems := ConvertIntSliceToString(nctutils.GetNUMANodesOfCPUSet(sharedCPUs, c.cpuTopology))
 				resources := cpupinning.ParseContainerResources(container.Name, &pod)
 				info := ContainerInfo{
 					CID:  container.ContainerID,
 					PID:  string(pod.ObjectMeta.UID),
 					Name: container.Name,
 					Resources: ResourceInfo{
-						RequestedCpus:   int64(resources.RequestedCpus),
-						LimitCpus:       int64(resources.LimitCpus),
+						RequestedCPUs:   int64(resources.RequestedCPUs),
+						LimitCPUs:       int64(resources.LimitCPUs),
 						RequestedMemory: resources.RequestedMemory,
 						LimitMemory:     resources.LimitMemory,
 					},
 				}
-				quota := MilliCPUToQuota(info.Resources.LimitCpus, QuotaPeriod)
-				shares := MilliCPUToShares(info.Resources.LimitCpus)
+				quota := MilliCPUToQuota(info.Resources.LimitCPUs, QuotaPeriod)
+				shares := MilliCPUToShares(info.Resources.LimitCPUs)
 				period := uint64(QuotaPeriod)
-				err := c.UpdateCpuSet(info, cpus, mems, &quota, &shares, &period)
+				err := c.UpdateCPUSet(info, cpus, mems, &quota, &shares, &period)
 				c.logger.Info("CPUSet updated", "pod", fmt.Sprintf("%s/%s", pod.Namespace, pod.Name), "container", container.Name, "cpuSet", cpus, "memSet", mems, "quota", quota, "shares", shares, "period", period)
 				if err != nil {
 					return fmt.Errorf("failed to update cpu set: %v", err)

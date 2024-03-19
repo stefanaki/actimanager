@@ -27,12 +27,12 @@ type FakeCslabV1alpha1 struct {
 	*testing.Fake
 }
 
-func (c *FakeCslabV1alpha1) NodeCpuTopologies() v1alpha1.NodeCpuTopologyInterface {
-	return &FakeNodeCpuTopologies{c}
+func (c *FakeCslabV1alpha1) NodeCPUTopologies() v1alpha1.NodeCPUTopologyInterface {
+	return &FakeNodeCPUTopologies{c}
 }
 
-func (c *FakeCslabV1alpha1) PodCpuBindings(namespace string) v1alpha1.PodCpuBindingInterface {
-	return &FakePodCpuBindings{c, namespace}
+func (c *FakeCslabV1alpha1) PodCPUBindings(namespace string) v1alpha1.PodCPUBindingInterface {
+	return &FakePodCPUBindings{c, namespace}
 }
 
 // RESTClient returns a RESTClient that is used to communicate

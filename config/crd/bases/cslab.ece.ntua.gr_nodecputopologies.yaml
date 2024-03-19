@@ -8,8 +8,8 @@ metadata:
 spec:
   group: cslab.ece.ntua.gr
   names:
-    kind: NodeCpuTopology
-    listKind: NodeCpuTopologyList
+    kind: NodeCPUTopology
+    listKind: NodeCPUTopologyList
     plural: nodecputopologies
     shortNames:
     - nct
@@ -26,7 +26,7 @@ spec:
     name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: NodeCpuTopology is the Schema for the nodecputopologies API
+        description: NodeCPUTopology is the Schema for the nodecputopologies API
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation
@@ -41,12 +41,12 @@ spec:
           metadata:
             type: object
           spec:
-            description: NodeCpuTopologySpec defines the desired state of NodeCpuTopology
+            description: NodeCPUTopologySpec defines the desired state of NodeCPUTopology
             properties:
               nodeName:
                 type: string
               topology:
-                description: CpuTopology represents the hierarchical topology of the
+                description: CPUTopology represents the hierarchical topology of the
                   CPU of a Kubernetes node
                 properties:
                   cpus:
@@ -55,7 +55,7 @@ spec:
                     type: array
                   numaNodes:
                     additionalProperties:
-                      description: NumaNode is a NUMA node of the Kubernetes node
+                      description: NUMANode is a NUMA node of the Kubernetes node
                       properties:
                         cpus:
                           items:
@@ -96,7 +96,7 @@ spec:
             - nodeName
             type: object
           status:
-            description: NodeCpuTopologyStatus defines the observed state of NodeCpuTopology
+            description: NodeCPUTopologyStatus defines the observed state of NodeCPUTopology
             properties:
               resourceStatus:
                 type: string

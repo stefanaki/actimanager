@@ -1,8 +1,8 @@
 package cpupinning
 
 type ResourceInfo struct {
-	RequestedCpus   int64
-	LimitCpus       int64
+	RequestedCPUs   int64
+	LimitCPUs       int64
 	RequestedMemory string
 	LimitMemory     string
 }

@@ -17,37 +17,37 @@ limitations under the License.
 
 package v1alpha1
 
-// PodCpuBindingSpecApplyConfiguration represents an declarative configuration of the PodCpuBindingSpec type for use
+// PodCPUBindingSpecApplyConfiguration represents an declarative configuration of the PodCPUBindingSpec type for use
 // with apply.
-type PodCpuBindingSpecApplyConfiguration struct {
+type PodCPUBindingSpecApplyConfiguration struct {
 	PodName            *string                 `json:"podName,omitempty"`
-	CpuSet             []CpuApplyConfiguration `json:"cpuSet,omitempty"`
+	CPUSet             []CPUApplyConfiguration `json:"cpuSet,omitempty"`
 	ExclusivenessLevel *string                 `json:"exclusivenessLevel,omitempty"`
 }
 
-// PodCpuBindingSpecApplyConfiguration constructs an declarative configuration of the PodCpuBindingSpec type for use with
+// PodCPUBindingSpecApplyConfiguration constructs an declarative configuration of the PodCPUBindingSpec type for use with
 // apply.
-func PodCpuBindingSpec() *PodCpuBindingSpecApplyConfiguration {
-	return &PodCpuBindingSpecApplyConfiguration{}
+func PodCPUBindingSpec() *PodCPUBindingSpecApplyConfiguration {
+	return &PodCPUBindingSpecApplyConfiguration{}
 }
 
 // WithPodName sets the PodName field in the declarative configuration to the given value
 // and returns the receiver, so that objects can be built by chaining "With" function invocations.
 // If called multiple times, the PodName field is set to the value of the last call.
-func (b *PodCpuBindingSpecApplyConfiguration) WithPodName(value string) *PodCpuBindingSpecApplyConfiguration {
+func (b *PodCPUBindingSpecApplyConfiguration) WithPodName(value string) *PodCPUBindingSpecApplyConfiguration {
 	b.PodName = &value
 	return b
 }
 
-// WithCpuSet adds the given value to the CpuSet field in the declarative configuration
+// WithCPUSet adds the given value to the CPUSet field in the declarative configuration
 // and returns the receiver, so that objects can be build by chaining "With" function invocations.
-// If called multiple times, values provided by each call will be appended to the CpuSet field.
-func (b *PodCpuBindingSpecApplyConfiguration) WithCpuSet(values ...*CpuApplyConfiguration) *PodCpuBindingSpecApplyConfiguration {
+// If called multiple times, values provided by each call will be appended to the CPUSet field.
+func (b *PodCPUBindingSpecApplyConfiguration) WithCPUSet(values ...*CPUApplyConfiguration) *PodCPUBindingSpecApplyConfiguration {
 	for i := range values {
 		if values[i] == nil {
-			panic("nil value passed to WithCpuSet")
+			panic("nil value passed to WithCPUSet")
 		}
-		b.CpuSet = append(b.CpuSet, *values[i])
+		b.CPUSet = append(b.CPUSet, *values[i])
 	}
 	return b
 }
@@ -55,7 +55,7 @@ func (b *PodCpuBindingSpecApplyConfiguration) WithCpuSet(values ...*CpuApplyConf
 // WithExclusivenessLevel sets the ExclusivenessLevel field in the declarative configuration to the given value
 // and returns the receiver, so that objects can be built by chaining "With" function invocations.
 // If called multiple times, the ExclusivenessLevel field is set to the value of the last call.
-func (b *PodCpuBindingSpecApplyConfiguration) WithExclusivenessLevel(value string) *PodCpuBindingSpecApplyConfiguration {
+func (b *PodCPUBindingSpecApplyConfiguration) WithExclusivenessLevel(value string) *PodCPUBindingSpecApplyConfiguration {
 	b.ExclusivenessLevel = &value
 	return b
 }

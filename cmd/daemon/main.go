@@ -42,20 +42,20 @@ func main() {
 	var err error
 	stopChannel := make(chan struct{})
 	coreClient, err := clients.NewClient()
-	cslabClient, err := clients.NewCslabClient()
-	podCpuBindingClient, err := client.NewPodCpuBindingClient(*cslabClient, logger)
+	cslabClient, err := clients.NewCSLabClient()
+	podCPUBindingClient, err := client.NewPodCPUBindingClient(*cslabClient, logger)
 	podClient, err := client.NewPodClient(*coreClient, logger)
 	if err != nil {
 		logger.Error(err, "cannot create clients")
 		os.Exit(1)
 	}
-	err = podCpuBindingClient.Start(&stopChannel)
+	err = podCPUBindingClient.Start(&stopChannel)
 	err = podClient.Start(&stopChannel)
 	if err != nil {
 		logger.Error(err, "cannot start the clients")
 		os.Exit(1)
 	}
-	cpuTopology, err := getCpuTopology()
+	cpuTopology, err := getCPUTopology()
 	if err != nil {
 		logger.Error(err, "cannot get cpu topology")
 		os.Exit(1)
@@ -63,11 +63,11 @@ func main() {
 	logger.Info("cpu topology", "topology", cpuTopology)
 	containerRuntime := cpupinning.ParseRuntime(*runtime)
 	cgroupsDriver := cpupinning.ParseCgroupsDriver(*driver)
-	cpuPinningController, err := cpupinning.NewCpuPinningController(
+	cpuPinningController, err := cpupinning.NewCPUPinningController(
 		containerRuntime,
 		cgroupsDriver,
 		*cgroupsPath,
-		podCpuBindingClient,
+		podCPUBindingClient,
 		podClient,
 		*cpuTopology,
 		*nodeName,
@@ -77,7 +77,7 @@ func main() {
 		logger.Error(err, "cannot create cpu pinnning controller")
 		os.Exit(1)
 	}
-	cpuPinningServer := cpupinning.NewCpuPinningServer(cpuPinningController)
+	cpuPinningServer := cpupinning.NewCPUPinningServer(cpuPinningController)
 	topologyServer := topology.NewTopologyServer()
 	daemonServer := NewDaemonServer(":8089", cpuPinningServer, topologyServer, logger)
 
@@ -93,7 +93,7 @@ func main() {
 	<-signalCh
 	logger.Info("Received signal, shutting down")
 	daemonServer.Stop()
-	podCpuBindingClient.Stop()
+	podCPUBindingClient.Stop()
 	podClient.Stop()
 }
 
@@ -104,7 +104,7 @@ func createLogger() logr.Logger {
 	return textlogger.NewLogger(config)
 }
 
-func getCpuTopology() (*v1alpha1.CpuTopology, error) {
+func getCPUTopology() (*v1alpha1.CPUTopology, error) {
 	output, err := exec.Command(topology.LscpuCommand, topology.LscpuArgs...).CombinedOutput()
 	t, err := topology.ParseTopology(string(output))
 	if err != nil {
