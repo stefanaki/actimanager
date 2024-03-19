@@ -63,25 +63,23 @@ type CpuTopology struct {
 	//+kubebuilder:validation:Optional
 	NumaNodes map[string]NumaNode `json:"numaNodes"`
 	//+kubebuilder:validation:Optional
-	ListCpus []int `json:"listCpus"`
+	Cpus []int `json:"cpus"`
 }
 
 // Socket is a CPU socket of the Kubernetes node
 type Socket struct {
-	Cores    map[string]Core `json:"cores"`
-	ListCpus []int           `json:"listCpus"`
+	Cores map[string]Core `json:"cores"`
+	Cpus  []int           `json:"cpus"`
 }
 
 // NumaNode is a NUMA node of the Kubernetes node
 type NumaNode struct {
-	Cpus     map[string]Cpu `json:"cpus"`
-	ListCpus []int          `json:"listCpus"`
+	Cpus []int `json:"cpus"`
 }
 
 // Core is a physical CPU core of the parent socket
 type Core struct {
-	Cpus     map[string]Cpu `json:"cpus"`
-	ListCpus []int          `json:"listCpus"`
+	Cpus []int `json:"cpus"`
 }
 
 // Cpu is a logical CPU core of the parent core

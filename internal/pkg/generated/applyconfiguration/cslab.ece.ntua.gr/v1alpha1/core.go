@@ -20,8 +20,7 @@ package v1alpha1
 // CoreApplyConfiguration represents an declarative configuration of the Core type for use
 // with apply.
 type CoreApplyConfiguration struct {
-	Cpus     map[string]CpuApplyConfiguration `json:"cpus,omitempty"`
-	ListCpus []int                            `json:"listCpus,omitempty"`
+	Cpus []int `json:"cpus,omitempty"`
 }
 
 // CoreApplyConfiguration constructs an declarative configuration of the Core type for use with
@@ -30,26 +29,12 @@ func Core() *CoreApplyConfiguration {
 	return &CoreApplyConfiguration{}
 }
 
-// WithCpus puts the entries into the Cpus field in the declarative configuration
+// WithCpus adds the given value to the Cpus field in the declarative configuration
 // and returns the receiver, so that objects can be build by chaining "With" function invocations.
-// If called multiple times, the entries provided by each call will be put on the Cpus field,
-// overwriting an existing map entries in Cpus field with the same key.
-func (b *CoreApplyConfiguration) WithCpus(entries map[string]CpuApplyConfiguration) *CoreApplyConfiguration {
-	if b.Cpus == nil && len(entries) > 0 {
-		b.Cpus = make(map[string]CpuApplyConfiguration, len(entries))
-	}
-	for k, v := range entries {
-		b.Cpus[k] = v
-	}
-	return b
-}
-
-// WithListCpus adds the given value to the ListCpus field in the declarative configuration
-// and returns the receiver, so that objects can be build by chaining "With" function invocations.
-// If called multiple times, values provided by each call will be appended to the ListCpus field.
-func (b *CoreApplyConfiguration) WithListCpus(values ...int) *CoreApplyConfiguration {
+// If called multiple times, values provided by each call will be appended to the Cpus field.
+func (b *CoreApplyConfiguration) WithCpus(values ...int) *CoreApplyConfiguration {
 	for i := range values {
-		b.ListCpus = append(b.ListCpus, values[i])
+		b.Cpus = append(b.Cpus, values[i])
 	}
 	return b
 }

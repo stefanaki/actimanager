@@ -38,9 +38,10 @@ var eventFilters = builder.WithPredicates(predicate.Funcs{
 
 		specChanged := !reflect.DeepEqual(oldObj.Spec, newObj.Spec)
 		statusBindingPending := newObj.Status.ResourceStatus == v1alpha1.StatusBindingPending
+		statusValidated := newObj.Status.ResourceStatus == v1alpha1.StatusValidated
 		isDeleted := !newObj.DeletionTimestamp.IsZero()
 
-		return specChanged || statusBindingPending || isDeleted
+		return specChanged || statusBindingPending || statusValidated || isDeleted
 	},
 })
 
@@ -137,6 +138,16 @@ func (r *PodCpuBindingReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		}
 	}
 
+	if cpuBinding.Status.ResourceStatus == v1alpha1.StatusBindingPending {
+		cpuBinding.Status.ResourceStatus = v1alpha1.StatusValidated
+		cpuBinding.Status.NodeName = pod.Spec.NodeName
+		if err := r.Status().Update(ctx, cpuBinding); err != nil {
+			return ctrl.Result{}, fmt.Errorf("error updating status: %v", err.Error())
+		}
+		r.Recorder.Eventf(cpuBinding, corev1.EventTypeNormal, string(v1alpha1.StatusValidated), "CPU binding for pod %s/%s is validated", cpuBinding.Namespace, cpuBinding.Spec.PodName)
+		return ctrl.Result{}, nil
+	}
+
 	// Check if all containers are ready
 	for _, containerStatus := range pod.Status.ContainerStatuses {
 		if !containerStatus.Ready {
@@ -194,6 +205,6 @@ func (r *PodCpuBindingReconciler) SetupWithManager(mgr ctrl.Manager) error {
 
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&v1alpha1.PodCpuBinding{}, eventFilters).
-		WithOptions(controller.Options{MaxConcurrentReconciles: 3}).
+		WithOptions(controller.Options{MaxConcurrentReconciles: 1}).
 		Complete(r)
 }

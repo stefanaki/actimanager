@@ -14,6 +14,7 @@ const (
 	StatusApplied                PodCpuBindingResourceStatus = "Applied"
 	StatusFailed                 PodCpuBindingResourceStatus = "Failed"
 	StatusCpuSetAllocationFailed PodCpuBindingResourceStatus = "CpuSetAllocationFailed"
+	StatusValidated              PodCpuBindingResourceStatus = "Validated"
 )
 
 var FinalizerPodCpuBinding = GroupVersion.Group + "/pod-cpu-binding-finalizer"
@@ -37,7 +38,7 @@ type PodCpuBindingSpec struct {
 
 // PodCpuBindingStatus defines the observed state of PodCpuBinding
 type PodCpuBindingStatus struct {
-	// +kubebuilder:validation:Enum=Applied;Pending;PodNotFound;InvalidCpuSet;Collision;Failed;CpuSetAllocationFailed
+	// +kubebuilder:validation:Enum=Applied;Pending;PodNotFound;InvalidCpuSet;Collision;Failed;CpuSetAllocationFailed;Validated
 	ResourceStatus PodCpuBindingResourceStatus `json:"resourceStatus"`
 	NodeName       string                      `json:"nodeName"`
 }

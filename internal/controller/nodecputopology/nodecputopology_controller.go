@@ -98,7 +98,7 @@ func (r *NodeCpuTopologyReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 		return ctrl.Result{}, err
 	}
 
-	r.Recorder.Eventf(topology, corev1.EventTypeNormal, string(v1alpha1.StatusFresh), "Topology is up to date, CPUs: %v", topology.Spec.Topology.ListCpus)
+	r.Recorder.Eventf(topology, corev1.EventTypeNormal, string(v1alpha1.StatusFresh), "Topology is up to date, CPUs: %v", topology.Spec.Topology.Cpus)
 	return ctrl.Result{}, nil
 }
 

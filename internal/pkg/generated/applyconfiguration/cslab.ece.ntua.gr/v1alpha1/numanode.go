@@ -20,8 +20,7 @@ package v1alpha1
 // NumaNodeApplyConfiguration represents an declarative configuration of the NumaNode type for use
 // with apply.
 type NumaNodeApplyConfiguration struct {
-	Cpus     map[string]CpuApplyConfiguration `json:"cpus,omitempty"`
-	ListCpus []int                            `json:"listCpus,omitempty"`
+	Cpus []int `json:"cpus,omitempty"`
 }
 
 // NumaNodeApplyConfiguration constructs an declarative configuration of the NumaNode type for use with
@@ -30,26 +29,12 @@ func NumaNode() *NumaNodeApplyConfiguration {
 	return &NumaNodeApplyConfiguration{}
 }
 
-// WithCpus puts the entries into the Cpus field in the declarative configuration
+// WithCpus adds the given value to the Cpus field in the declarative configuration
 // and returns the receiver, so that objects can be build by chaining "With" function invocations.
-// If called multiple times, the entries provided by each call will be put on the Cpus field,
-// overwriting an existing map entries in Cpus field with the same key.
-func (b *NumaNodeApplyConfiguration) WithCpus(entries map[string]CpuApplyConfiguration) *NumaNodeApplyConfiguration {
-	if b.Cpus == nil && len(entries) > 0 {
-		b.Cpus = make(map[string]CpuApplyConfiguration, len(entries))
-	}
-	for k, v := range entries {
-		b.Cpus[k] = v
-	}
-	return b
-}
-
-// WithListCpus adds the given value to the ListCpus field in the declarative configuration
-// and returns the receiver, so that objects can be build by chaining "With" function invocations.
-// If called multiple times, values provided by each call will be appended to the ListCpus field.
-func (b *NumaNodeApplyConfiguration) WithListCpus(values ...int) *NumaNodeApplyConfiguration {
+// If called multiple times, values provided by each call will be appended to the Cpus field.
+func (b *NumaNodeApplyConfiguration) WithCpus(values ...int) *NumaNodeApplyConfiguration {
 	for i := range values {
-		b.ListCpus = append(b.ListCpus, values[i])
+		b.Cpus = append(b.Cpus, values[i])
 	}
 	return b
 }

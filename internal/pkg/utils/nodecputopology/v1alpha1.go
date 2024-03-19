@@ -14,7 +14,7 @@ func IsCpuSetInTopology(topology *v1alpha1.CpuTopology, cpuSet []v1alpha1.Cpu) b
 		for _, core := range socket.Cores {
 			for _, cpu := range core.Cpus {
 				for _, inputCpu := range cpuSet {
-					if cpu.CpuId == inputCpu.CpuId {
+					if cpu == inputCpu.CpuId {
 						remaining--
 						break
 					}
@@ -32,16 +32,16 @@ func GetCpuParentInfo(topology *v1alpha1.CpuTopology, targetCpuId int) (string, 
 	numaId := "-1"
 	for numaNodeId, numaNode := range topology.NumaNodes {
 		for _, cpu := range numaNode.Cpus {
-			if cpu.CpuId == targetCpuId {
+			if cpu == targetCpuId {
 				numaId = numaNodeId
 			}
 		}
 	}
 	for socketId, socket := range topology.Sockets {
 		for coreId, core := range socket.Cores {
-			for cid, cpu := range core.Cpus {
-				if cpu.CpuId == targetCpuId {
-					return cid, coreId, socketId, numaId
+			for _, cpu := range core.Cpus {
+				if cpu == targetCpuId {
+					return strconv.Itoa(cpu), coreId, socketId, numaId
 				}
 			}
 		}
@@ -54,7 +54,7 @@ func GetAllCpusInCore(topology *v1alpha1.CpuTopology, targetCoreId string) []int
 	for _, socket := range topology.Sockets {
 		for coreId, core := range socket.Cores {
 			if coreId == targetCoreId {
-				return core.ListCpus
+				return core.Cpus
 			}
 		}
 	}
@@ -65,7 +65,7 @@ func GetAllCpusInCore(topology *v1alpha1.CpuTopology, targetCoreId string) []int
 func GetAllCpusInSocket(topology *v1alpha1.CpuTopology, targetSocketId string) []int {
 	for socketId, socket := range topology.Sockets {
 		if socketId == targetSocketId {
-			return socket.ListCpus
+			return socket.Cpus
 		}
 	}
 	return []int{}
@@ -75,7 +75,7 @@ func GetAllCpusInSocket(topology *v1alpha1.CpuTopology, targetSocketId string) [
 func GetAllCpusInNuma(topology *v1alpha1.CpuTopology, targetNumaId string) []int {
 	for numaNodeId, numaNode := range topology.NumaNodes {
 		if numaNodeId == targetNumaId {
-			return numaNode.ListCpus
+			return numaNode.Cpus
 		}
 	}
 	return []int{}
@@ -87,7 +87,7 @@ func GetNumaNodesOfCpuSet(cpus []int, topology v1alpha1.CpuTopology) []int {
 	for numaNodeId, numaNode := range topology.NumaNodes {
 		for _, cpuInNuma := range numaNode.Cpus {
 			for _, cpu := range cpus {
-				if cpuInNuma.CpuId == cpu {
+				if cpuInNuma == cpu {
 					id, _ := strconv.Atoi(numaNodeId)
 					numaNodes[id] = struct{}{}
 					break
@@ -101,33 +101,31 @@ func GetNumaNodesOfCpuSet(cpus []int, topology v1alpha1.CpuTopology) []int {
 }
 
 func GetTotalCpusCount(topology v1alpha1.CpuTopology) int {
-	return len(topology.ListCpus)
+	return len(topology.Cpus)
 }
 
 func DeleteCpuFromTopology(topology *v1alpha1.CpuTopology, cpuId int) {
 	for _, socket := range topology.Sockets {
 		for _, core := range socket.Cores {
-			for i, cpu := range core.ListCpus {
+			for i, cpu := range core.Cpus {
 				if cpu == cpuId {
-					delete(core.Cpus, strconv.Itoa(cpuId))
-					core.ListCpus = append(core.ListCpus[:i], core.ListCpus[i+1:]...)
+					core.Cpus = append(core.Cpus[:i], core.Cpus[i+1:]...)
 					break
 				}
 			}
 		}
 	}
 	for _, numaNode := range topology.NumaNodes {
-		for i, cpu := range numaNode.ListCpus {
+		for i, cpu := range numaNode.Cpus {
 			if cpu == cpuId {
-				delete(numaNode.Cpus, strconv.Itoa(cpuId))
-				numaNode.ListCpus = append(numaNode.ListCpus[:i], numaNode.ListCpus[i+1:]...)
+				numaNode.Cpus = append(numaNode.Cpus[:i], numaNode.Cpus[i+1:]...)
 				break
 			}
 		}
 	}
-	for i, cpu := range topology.ListCpus {
+	for i, cpu := range topology.Cpus {
 		if cpu == cpuId {
-			topology.ListCpus = append(topology.ListCpus[:i], topology.ListCpus[i+1:]...)
+			topology.Cpus = append(topology.Cpus[:i], topology.Cpus[i+1:]...)
 			break
 		}
 	}
@@ -136,7 +134,7 @@ func DeleteCpuFromTopology(topology *v1alpha1.CpuTopology, cpuId int) {
 func GetAvailableResources(exclusivenessLevel string, feasibleCpus v1alpha1.CpuTopology, topology v1alpha1.CpuTopology) []int {
 	switch exclusivenessLevel {
 	case "Cpu":
-		return feasibleCpus.ListCpus
+		return feasibleCpus.Cpus
 	case "Core":
 		cores := make([]int, 0)
 		for socketId, socket := range feasibleCpus.Sockets {
