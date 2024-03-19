@@ -49,7 +49,7 @@ spec:
                 description: CpuTopology represents the hierarchical topology of the
                   CPU of a Kubernetes node
                 properties:
-                  listCpus:
+                  cpus:
                     items:
                       type: integer
                     type: array
@@ -58,22 +58,11 @@ spec:
                       description: NumaNode is a NUMA node of the Kubernetes node
                       properties:
                         cpus:
-                          additionalProperties:
-                            description: Cpu is a logical CPU core of the parent core
-                            properties:
-                              cpuId:
-                                type: integer
-                            required:
-                            - cpuId
-                            type: object
-                          type: object
-                        listCpus:
                           items:
                             type: integer
                           type: array
                       required:
                       - cpus
-                      - listCpus
                       type: object
                     type: object
                   sockets:
@@ -86,32 +75,20 @@ spec:
                               socket
                             properties:
                               cpus:
-                                additionalProperties:
-                                  description: Cpu is a logical CPU core of the parent
-                                    core
-                                  properties:
-                                    cpuId:
-                                      type: integer
-                                  required:
-                                  - cpuId
-                                  type: object
-                                type: object
-                              listCpus:
                                 items:
                                   type: integer
                                 type: array
                             required:
                             - cpus
-                            - listCpus
                             type: object
                           type: object
-                        listCpus:
+                        cpus:
                           items:
                             type: integer
                           type: array
                       required:
                       - cores
-                      - listCpus
+                      - cpus
                       type: object
                     type: object
                 type: object

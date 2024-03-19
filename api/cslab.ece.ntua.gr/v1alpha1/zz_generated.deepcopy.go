@@ -29,13 +29,6 @@ func (in *Core) DeepCopyInto(out *Core) {
 	*out = *in
 	if in.Cpus != nil {
 		in, out := &in.Cpus, &out.Cpus
-		*out = make(map[string]Cpu, len(*in))
-		for key, val := range *in {
-			(*out)[key] = val
-		}
-	}
-	if in.ListCpus != nil {
-		in, out := &in.ListCpus, &out.ListCpus
 		*out = make([]int, len(*in))
 		copy(*out, *in)
 	}
@@ -83,8 +76,8 @@ func (in *CpuTopology) DeepCopyInto(out *CpuTopology) {
 			(*out)[key] = *val.DeepCopy()
 		}
 	}
-	if in.ListCpus != nil {
-		in, out := &in.ListCpus, &out.ListCpus
+	if in.Cpus != nil {
+		in, out := &in.Cpus, &out.Cpus
 		*out = make([]int, len(*in))
 		copy(*out, *in)
 	}
@@ -195,13 +188,6 @@ func (in *NumaNode) DeepCopyInto(out *NumaNode) {
 	*out = *in
 	if in.Cpus != nil {
 		in, out := &in.Cpus, &out.Cpus
-		*out = make(map[string]Cpu, len(*in))
-		for key, val := range *in {
-			(*out)[key] = val
-		}
-	}
-	if in.ListCpus != nil {
-		in, out := &in.ListCpus, &out.ListCpus
 		*out = make([]int, len(*in))
 		copy(*out, *in)
 	}
@@ -321,8 +307,8 @@ func (in *Socket) DeepCopyInto(out *Socket) {
 			(*out)[key] = *val.DeepCopy()
 		}
 	}
-	if in.ListCpus != nil {
-		in, out := &in.ListCpus, &out.ListCpus
+	if in.Cpus != nil {
+		in, out := &in.Cpus, &out.Cpus
 		*out = make([]int, len(*in))
 		copy(*out, *in)
 	}

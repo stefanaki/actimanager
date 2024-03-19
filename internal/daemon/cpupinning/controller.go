@@ -100,7 +100,7 @@ func (c CpuPinningController) Remove(pod *cpupinning.Pod) error {
 }
 
 func (c CpuPinningController) reconcilePodsWithSharedResources(pod *cpupinning.Pod, rm bool) error {
-	sharedCpus := c.cpuTopology.DeepCopy().ListCpus
+	sharedCpus := c.cpuTopology.DeepCopy().Cpus
 	cpuBindings, err := c.podCpuBindingClient.PodCpuBindingsForNode(c.nodeName)
 	if err != nil {
 		return fmt.Errorf("failed to get pod cpu bindings: %v", err)
@@ -109,7 +109,8 @@ func (c CpuPinningController) reconcilePodsWithSharedResources(pod *cpupinning.P
 	for _, binding := range cpuBindings {
 		cpuBoundPods[fmt.Sprintf("%s/%s", binding.Namespace, binding.Spec.PodName)] = struct{}{}
 		if binding.Status.ResourceStatus != v1alpha1.StatusApplied &&
-			binding.Status.ResourceStatus != v1alpha1.StatusBindingPending {
+			binding.Status.ResourceStatus != v1alpha1.StatusBindingPending &&
+			binding.Status.ResourceStatus != v1alpha1.StatusValidated {
 			continue
 		}
 		if rm && pod.Namespace == binding.Namespace && pod.Name == binding.Spec.PodName {
@@ -124,6 +125,7 @@ func (c CpuPinningController) reconcilePodsWithSharedResources(pod *cpupinning.P
 			}
 		}
 	}
+	c.logger.Info("--- shared cpus ---", "cpus", sharedCpus)
 	pods, err := c.podClient.PodsForNode(c.nodeName)
 	if err != nil {
 		return fmt.Errorf("failed to get pods for node: %v", err)

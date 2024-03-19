@@ -86,7 +86,6 @@ spec:
                 - Collision
                 - Failed
                 - CpuSetAllocationFailed
-                - Validated
                 type: string
             required:
             - nodeName
