@@ -12,17 +12,17 @@ func GetExclusiveCPUsOfCPUBinding(cpuBinding *v1alpha1.PodCPUBinding, topology *
 	for _, cpu := range cpuBinding.Spec.CPUSet {
 		_, coreID, socketID, numaID := nct.GetCPUParentInfo(topology, cpu.CPUID)
 		switch cpuBinding.Spec.ExclusivenessLevel {
-		case "CPU":
+		case v1alpha1.ResourceLevelCPU:
 			exclusiveCPUs[cpu.CPUID] = struct{}{}
-		case "Core":
+		case v1alpha1.ResourceLevelCore:
 			for _, c := range nct.GetAllCPUsInCore(topology, coreID) {
 				exclusiveCPUs[c] = struct{}{}
 			}
-		case "Socket":
+		case v1alpha1.ResourceLevelSocket:
 			for _, c := range nct.GetAllCPUsInSocket(topology, socketID) {
 				exclusiveCPUs[c] = struct{}{}
 			}
-		case "NUMA":
+		case v1alpha1.ResourceLevelNUMA:
 			for _, c := range nct.GetAllCPUsInNUMA(topology, numaID) {
 				exclusiveCPUs[c] = struct{}{}
 			}

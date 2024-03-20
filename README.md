@@ -62,6 +62,7 @@ This repository is a framework for fine-grained orchestration of Kubernetes Pods
        - '--container-runtime=docker' # containerd, kind
        - '--cgroups-path=/cgroup'
        - '--cgroups-driver=systemd' # cgroupfs
+       - '--reconcile-period=20'
     ```
 3. Install the components on the cluster.
 

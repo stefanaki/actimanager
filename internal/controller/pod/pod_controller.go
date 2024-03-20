@@ -28,7 +28,13 @@ var eventFilters = builder.WithPredicates(predicate.Funcs{
 	CreateFunc: func(e event.CreateEvent) bool { return false },
 	DeleteFunc: func(e event.DeleteEvent) bool { return false },
 	UpdateFunc: func(e event.UpdateEvent) bool {
-		return e.ObjectNew.GetDeletionTimestamp() != e.ObjectOld.GetDeletionTimestamp()
+		oldPod, _ := e.ObjectNew.(*corev1.Pod)
+		newPod, _ := e.ObjectOld.(*corev1.Pod)
+
+		podCompleted := newPod.Status.Phase == corev1.PodSucceeded || oldPod.Status.Phase == corev1.PodFailed
+		podDeleted := newPod.GetDeletionTimestamp() != oldPod.GetDeletionTimestamp()
+
+		return podCompleted || podDeleted
 	},
 })
 

@@ -97,7 +97,6 @@ func (r *NodeCPUTopologyReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 		r.Recorder.Eventf(topology, corev1.EventTypeWarning, string(v1alpha1.StatusTopologyFailed), "Failed to update status: %v", err)
 		return ctrl.Result{}, err
 	}
-
 	r.Recorder.Eventf(topology, corev1.EventTypeNormal, string(v1alpha1.StatusFresh), "Topology is up to date, CPUs: %v", topology.Spec.Topology.CPUs)
 	return ctrl.Result{}, nil
 }

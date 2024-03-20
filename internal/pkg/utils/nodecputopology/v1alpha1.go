@@ -131,11 +131,11 @@ func DeleteCPUFromTopology(topology *v1alpha1.CPUTopology, cpuID int) {
 	}
 }
 
-func GetAvailableResources(exclusivenessLevel string, feasibleCPUs v1alpha1.CPUTopology, topology v1alpha1.CPUTopology) []int {
-	switch exclusivenessLevel {
-	case "CPU":
+func GetAvailableResources(level v1alpha1.ResourceLevel, feasibleCPUs v1alpha1.CPUTopology, topology v1alpha1.CPUTopology) []int {
+	switch level {
+	case v1alpha1.ResourceLevelCPU:
 		return feasibleCPUs.CPUs
-	case "Core":
+	case v1alpha1.ResourceLevelCore:
 		cores := make([]int, 0)
 		for socketID, socket := range feasibleCPUs.Sockets {
 			for coreID, core := range socket.Cores {
@@ -147,7 +147,7 @@ func GetAvailableResources(exclusivenessLevel string, feasibleCPUs v1alpha1.CPUT
 			}
 		}
 		return cores
-	case "Socket":
+	case v1alpha1.ResourceLevelSocket:
 		sockets := make([]int, 0)
 		for socketID := range feasibleCPUs.Sockets {
 			socketCPUs := GetAllCPUsInSocket(&feasibleCPUs, socketID)
@@ -158,7 +158,7 @@ func GetAvailableResources(exclusivenessLevel string, feasibleCPUs v1alpha1.CPUT
 			sockets = append(sockets, id)
 		}
 		return sockets
-	case "NUMA":
+	case v1alpha1.ResourceLevelNUMA:
 		numas := make([]int, 0)
 		for numaID := range feasibleCPUs.NUMANodes {
 			numaCPUs := GetAllCPUsInNUMA(&feasibleCPUs, numaID)

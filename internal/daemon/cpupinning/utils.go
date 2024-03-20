@@ -7,15 +7,6 @@ import (
 	"strings"
 )
 
-const (
-	MinShares      = 2
-	MaxShares      = 262144
-	SharesPerCPU   = 1024
-	MilliCPUToCPU  = 1000
-	QuotaPeriod    = 100000
-	MinQuotaPeriod = 1000
-)
-
 // QosFromResources returns QoS class based on resource requests and limits of a pod.
 func QosFromResources(resources ResourceInfo) QoS {
 	limitCPU := resources.LimitCPUs

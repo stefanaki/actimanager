@@ -34,6 +34,8 @@ spec:
 #           - '--container-runtime=containerd'
             - '--cgroups-path=/cgroup'
             - '--cgroups-driver=systemd'
+            - '--reconcile-period=15'
+            - '--verbosity=3'
           env:
             - name: NODE_NAME
               valueFrom:

@@ -1,29 +1,32 @@
 package main
 
 import (
+	"flag"
+	"os"
+	"os/exec"
+	"os/signal"
+	"syscall"
+
 	"cslab.ece.ntua.gr/actimanager/api/cslab.ece.ntua.gr/v1alpha1"
 	"cslab.ece.ntua.gr/actimanager/internal/daemon/client"
 	"cslab.ece.ntua.gr/actimanager/internal/daemon/cpupinning"
 	"cslab.ece.ntua.gr/actimanager/internal/daemon/topology"
 	clients "cslab.ece.ntua.gr/actimanager/internal/pkg/client"
 	nctutils "cslab.ece.ntua.gr/actimanager/internal/pkg/utils/nodecputopology"
-	"flag"
 	"github.com/go-logr/logr"
 	"k8s.io/klog/v2/textlogger"
-	"os"
-	"os/exec"
-	"os/signal"
-	"syscall"
 )
 
 func main() {
+	var verbosity = flag.Int("verbosity", 3, "Log verbosity level (0 = least verbose, 5 = most verbose)")
 	var nodeName = flag.String("node-name", "minikube-m02", "Name of the node")
 	var runtime = flag.String("container-runtime", "docker", "Container Runtime (Default: containerd, Values: containerd, docker, kind)")
 	var cgroupsPath = flag.String("cgroups-path", "/sys/fs/cgroup/", "Specify Path to cgroups")
 	var driver = flag.String("cgroups-driver", "systemd", "Set cgroups driver used by kubelet. Values: systemd, cgroupfs")
+	var reconcilePeriod = flag.String("reconcile-period", "10s", "Reconcile period")
 	flag.Parse()
 
-	var logger = createLogger()
+	var logger = createLogger(verbosity)
 	defer func() {
 		err := recover()
 		if err != nil {
@@ -37,6 +40,7 @@ func main() {
 		"nodeName", nodeName,
 		"driver", driver,
 		"cgroupsPath", cgroupsPath,
+		"reconcilePeriod", reconcilePeriod,
 	)
 
 	var err error
@@ -72,6 +76,7 @@ func main() {
 		*cpuTopology,
 		*nodeName,
 		logger,
+		*reconcilePeriod,
 	)
 	if err != nil {
 		logger.Error(err, "cannot create cpu pinnning controller")
@@ -95,11 +100,12 @@ func main() {
 	daemonServer.Stop()
 	podCPUBindingClient.Stop()
 	podClient.Stop()
+	close(stopChannel)
 }
 
-func createLogger() logr.Logger {
+func createLogger(verbosity *int) logr.Logger {
 	flags := flag.NewFlagSet("klog", flag.ContinueOnError)
-	config := textlogger.NewConfig(textlogger.Verbosity(3))
+	config := textlogger.NewConfig(textlogger.Verbosity(*verbosity))
 	config.AddFlags(flags)
 	return textlogger.NewLogger(config)
 }

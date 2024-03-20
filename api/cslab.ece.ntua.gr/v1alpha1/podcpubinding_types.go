@@ -22,6 +22,16 @@ var FinalizerCPUBoundPod = GroupVersion.Group + "/cpu-bound-pod"
 
 var AnnotationExclusivenessLevel = GroupVersion.Group + "/exclusiveness-level"
 
+type ResourceLevel string
+
+const (
+	ResourceLevelNone   ResourceLevel = "None"
+	ResourceLevelCPU    ResourceLevel = "CPU"
+	ResourceLevelCore   ResourceLevel = "Core"
+	ResourceLevelSocket ResourceLevel = "Socket"
+	ResourceLevelNUMA   ResourceLevel = "NUMA"
+)
+
 // PodCPUBindingSpec defines the CPU set on which a pod is bound,
 // as well as the level of exclusiveness of the resources it needs
 type PodCPUBindingSpec struct {
@@ -32,8 +42,7 @@ type PodCPUBindingSpec struct {
 	CPUSet []CPU `json:"cpuSet"`
 
 	// +kubebuilder:validation:Enum=None;CPU;Core;Socket;NUMA
-	// +kubebuilder:default:CPU
-	ExclusivenessLevel string `json:"exclusivenessLevel"`
+	ExclusivenessLevel ResourceLevel `json:"exclusivenessLevel"`
 }
 
 // PodCPUBindingStatus defines the observed state of PodCPUBinding

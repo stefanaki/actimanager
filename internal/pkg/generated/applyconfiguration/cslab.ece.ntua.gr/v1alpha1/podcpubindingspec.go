@@ -17,12 +17,16 @@ limitations under the License.
 
 package v1alpha1
 
+import (
+	cslabecentuagrv1alpha1 "cslab.ece.ntua.gr/actimanager/api/cslab.ece.ntua.gr/v1alpha1"
+)
+
 // PodCPUBindingSpecApplyConfiguration represents an declarative configuration of the PodCPUBindingSpec type for use
 // with apply.
 type PodCPUBindingSpecApplyConfiguration struct {
-	PodName            *string                 `json:"podName,omitempty"`
-	CPUSet             []CPUApplyConfiguration `json:"cpuSet,omitempty"`
-	ExclusivenessLevel *string                 `json:"exclusivenessLevel,omitempty"`
+	PodName            *string                               `json:"podName,omitempty"`
+	CPUSet             []CPUApplyConfiguration               `json:"cpuSet,omitempty"`
+	ExclusivenessLevel *cslabecentuagrv1alpha1.ResourceLevel `json:"exclusivenessLevel,omitempty"`
 }
 
 // PodCPUBindingSpecApplyConfiguration constructs an declarative configuration of the PodCPUBindingSpec type for use with
@@ -55,7 +59,7 @@ func (b *PodCPUBindingSpecApplyConfiguration) WithCPUSet(values ...*CPUApplyConf
 // WithExclusivenessLevel sets the ExclusivenessLevel field in the declarative configuration to the given value
 // and returns the receiver, so that objects can be built by chaining "With" function invocations.
 // If called multiple times, the ExclusivenessLevel field is set to the value of the last call.
-func (b *PodCPUBindingSpecApplyConfiguration) WithExclusivenessLevel(value string) *PodCPUBindingSpecApplyConfiguration {
+func (b *PodCPUBindingSpecApplyConfiguration) WithExclusivenessLevel(value cslabecentuagrv1alpha1.ResourceLevel) *PodCPUBindingSpecApplyConfiguration {
 	b.ExclusivenessLevel = &value
 	return b
 }

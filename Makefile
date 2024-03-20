@@ -91,7 +91,7 @@ build-controller: manifests generate fmt vet ## Build manager binary.
 
 .PHONY: build-daemon
 build-daemon: manifests generate fmt vet ## Build daemon binary.
-	go build -o bin/daemon cmd/daemon/main.go cmd/daemon/daemon.go
+	go build -o bin/daemon cmd/daemon/main.go cmd/daemon/server.go
 
 .PHONY: build-scheduler
 build-scheduler: manifests generate fmt vet ## Build scheduler binary.
@@ -102,8 +102,10 @@ run-manager: manifests generate fmt vet ## Run the manager from your host.
 	go run cmd/controller/main.go
 
 .PHONY: run-daemon
-run-daemon: manifests generate fmt vet ## Run the daemon from your host.
-	go run cmd/daemon/main.go cmd/daemon/daemon.go
+#run-daemon: manifests generate fmt vet ## Run the daemon from your host.
+run-daemon:
+	go run cmd/daemon/main.go cmd/daemon/server.go
+
 
 .PHONY: run-scheduler
 run-scheduler: manifests generate fmt vet ## Run the scheduler from your host.

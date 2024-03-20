@@ -81,15 +81,21 @@ func (r *PodCPUBindingReconciler) validateExclusivenessLevel(ctx context.Context
 	unfeasibleCPUs := make(map[int]struct{})
 	podCPUBindingList := &v1alpha1.PodCPUBindingList{}
 	err := r.List(ctx, podCPUBindingList,
-		client.MatchingFields{"status.nodeName": nodeName},
-		client.MatchingFields{"status.resourceStatus": string(v1alpha1.StatusApplied)})
+		client.MatchingFields{"status.nodeName": nodeName})
 
 	if err != nil {
 		return false, "", "", fmt.Errorf("failed to list PodCPUBindings: %v", err.Error())
 	}
 	for _, pcb := range podCPUBindingList.Items {
-		if (pcb.Namespace == namespacedName.Namespace && pcb.Name == namespacedName.Name) ||
-			pcb.Status.ResourceStatus != v1alpha1.StatusApplied || pcb.Status.NodeName != nodeName {
+		if pcb.Namespace == namespacedName.Namespace && pcb.Name == namespacedName.Name {
+			continue
+		}
+		if pcb.Status.NodeName != nodeName {
+			continue
+		}
+		if pcb.Status.ResourceStatus != v1alpha1.StatusApplied &&
+			pcb.Status.ResourceStatus != v1alpha1.StatusBindingPending &&
+			pcb.Status.ResourceStatus != v1alpha1.StatusValidated {
 			continue
 		}
 		exclusiveCPUs := pcbutils.GetExclusiveCPUsOfCPUBinding(&pcb, &topology.Spec.Topology)

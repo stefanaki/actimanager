@@ -25,7 +25,7 @@ cp -a "${DIFFROOT}"/* "${TMP_DIFFROOT}"
 
 "${SCRIPT_ROOT}/hack/update-codegen.sh"
 echo "copying generated ${SCRIPT_ROOT}/${MODULE}/${OUTPUT_PKG} to ${DIFFROOT}"
-cp -r "${SCRIPT_ROOT}/${MODULE}/${OUTPUT_PKG}"/* "${DIFFROOT}"
+cp -r "${SCRIPT_ROOT}/${OUTPUT_PKG}"/* "${DIFFROOT}"
 
 echo "diffing ${DIFFROOT} against freshly generated codegen"
 ret=0

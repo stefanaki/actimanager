@@ -50,7 +50,7 @@ type PodIsolation struct {
 // PodIsolationStateData represents the state data for the PodIsolation.
 type PodIsolationStateData struct {
 	// ExclusivenessLevel is the level of exclusiveness of the resources needed by the pod.
-	ExclusivenessLevel string
+	ExclusivenessLevel v1alpha1.ResourceLevel
 
 	// NodeCPUTopologies stores the CPU topology of each node in the cluster.
 	NodeCPUTopologies map[string]v1alpha1.NodeCPUTopology
@@ -110,7 +110,7 @@ func (p *PodIsolation) PreFilter(ctx context.Context, state *framework.CycleStat
 
 	exclusivenessLevel, ok := pod.Annotations[v1alpha1.AnnotationExclusivenessLevel]
 	if !ok {
-		exclusivenessLevel = "None"
+		exclusivenessLevel = string(v1alpha1.ResourceLevelNone)
 	}
 
 	podCPURequests := int64(0)
@@ -119,7 +119,7 @@ func (p *PodIsolation) PreFilter(ctx context.Context, state *framework.CycleStat
 	}
 
 	stateData := &PodIsolationStateData{
-		ExclusivenessLevel: exclusivenessLevel,
+		ExclusivenessLevel: v1alpha1.ResourceLevel(exclusivenessLevel),
 		PodCPURequests:     podCPURequests,
 		NodeCPUTopologies:  make(map[string]v1alpha1.NodeCPUTopology),
 		PodCPUBindings:     make(map[string][]v1alpha1.PodCPUBinding),
@@ -200,11 +200,11 @@ func (p *PodIsolation) Filter(ctx context.Context, state *framework.CycleState, 
 		var cpus []int
 		id := strconv.Itoa(r)
 		switch exclusivenessLevel {
-		case "Core":
+		case v1alpha1.ResourceLevelCore:
 			cpus = nctutils.GetAllCPUsInCore(&feasibleCPUs, id)
-		case "Socket":
+		case v1alpha1.ResourceLevelSocket:
 			cpus = nctutils.GetAllCPUsInSocket(&feasibleCPUs, id)
-		case "NUMA":
+		case v1alpha1.ResourceLevelNUMA:
 			cpus = nctutils.GetAllCPUsInNUMA(&feasibleCPUs, id)
 		default:
 			res = int(totalCPUs)
@@ -316,18 +316,18 @@ func (p *PodIsolation) PostBind(ctx context.Context, state *framework.CycleState
 	for _, r := range availableResources {
 		id := strconv.Itoa(r)
 		switch exclusivenessLevel {
-		case "CPU":
+		case v1alpha1.ResourceLevelCPU:
 			cpus = append(cpus, r)
 			requestedCPUs--
-		case "Core":
+		case v1alpha1.ResourceLevelCore:
 			c := nctutils.GetAllCPUsInCore(&feasibleCPUs, id)
 			cpus = append(cpus, c...)
 			requestedCPUs -= int64(len(c))
-		case "Socket":
+		case v1alpha1.ResourceLevelSocket:
 			c := nctutils.GetAllCPUsInSocket(&feasibleCPUs, id)
 			cpus = append(cpus, c...)
 			requestedCPUs -= int64(len(c))
-		case "NUMA":
+		case v1alpha1.ResourceLevelNUMA:
 			c := nctutils.GetAllCPUsInNUMA(&feasibleCPUs, id)
 			cpus = append(cpus, c...)
 			requestedCPUs -= int64(len(c))

@@ -23,7 +23,6 @@ import (
 	"flag"
 	"os"
 
-	batchv1 "k8s.io/api/batch/v1"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 
 	"cslab.ece.ntua.gr/actimanager/internal/controller/nodecputopology"
@@ -49,7 +48,6 @@ var (
 
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
-	utilruntime.Must(batchv1.AddToScheme(scheme))
 	utilruntime.Must(v1alpha1.AddToScheme(scheme))
 
 	//+kubebuilder:scaffold:scheme
