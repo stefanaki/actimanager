@@ -37,17 +37,8 @@ enum ResponseStatus {
   ERROR = 1;
 }
 
-enum ErrorType {
-  UNKNOWN = 0;
-  INVALID_ARGUMENT = 1;
-  PERMISSION_DENIED = 2;
-  INTERNAL_ERROR = 3;
-}
-
 message Response {
   ResponseStatus status = 1;
-  optional string message = 2;
-  optional ErrorType errorType = 3;
 }
 
 service CPUPinning {

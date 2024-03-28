@@ -7,7 +7,6 @@ import (
 
 	"k8s.io/apimachinery/pkg/fields"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
-	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 
@@ -31,7 +30,7 @@ var eventFilters = builder.WithPredicates(predicate.Funcs{
 		oldPod, _ := e.ObjectNew.(*corev1.Pod)
 		newPod, _ := e.ObjectOld.(*corev1.Pod)
 
-		podCompleted := newPod.Status.Phase == corev1.PodSucceeded || oldPod.Status.Phase == corev1.PodFailed
+		podCompleted := newPod.Status.Phase == corev1.PodSucceeded || newPod.Status.Phase == corev1.PodFailed
 		podDeleted := newPod.GetDeletionTimestamp() != oldPod.GetDeletionTimestamp()
 
 		return podCompleted || podDeleted
@@ -54,26 +53,19 @@ func (r *PodReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	if controllerutil.ContainsFinalizer(pod, v1alpha1.FinalizerCPUBoundPod) {
-		// Handle deleted pod
-		cpuBindings := &v1alpha1.PodCPUBindingList{}
-		if err := r.List(ctx, cpuBindings, &client.ListOptions{
-			FieldSelector: fields.OneTermEqualSelector("spec.podName", req.NamespacedName.Name),
-			Namespace:     pod.Namespace,
-		}); err != nil {
-			logger.Info("error listing cpu bindings", "error", err.Error())
-			return ctrl.Result{}, fmt.Errorf("error listing CPU bindings: %v", err.Error())
-		}
+	// Handle deleted pod
+	cpuBindings := &v1alpha1.PodCPUBindingList{}
+	if err := r.List(ctx, cpuBindings, &client.ListOptions{
+		FieldSelector: fields.OneTermEqualSelector("spec.podName", req.NamespacedName.Name),
+		Namespace:     pod.Namespace,
+	}); err != nil {
+		logger.Info("error listing cpu bindings", "error", err.Error())
+		return ctrl.Result{}, fmt.Errorf("error listing CPU bindings: %v", err.Error())
+	}
 
-		for _, cpuBinding := range cpuBindings.Items {
-			if err := r.Delete(ctx, &cpuBinding); err != nil {
-				logger.Error(err, "could not delete cpu bindings for deleted pod", "pod", req.Name)
-				return ctrl.Result{}, err
-			}
-		}
-
-		controllerutil.RemoveFinalizer(pod, v1alpha1.FinalizerCPUBoundPod)
-		if err := r.Update(ctx, pod); err != nil {
+	for _, cpuBinding := range cpuBindings.Items {
+		if err := r.Delete(ctx, &cpuBinding); err != nil {
+			logger.Error(err, "could not delete cpu bindings for deleted pod", "pod", req.Name)
 			return ctrl.Result{}, err
 		}
 	}

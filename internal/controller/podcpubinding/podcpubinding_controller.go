@@ -101,7 +101,7 @@ func (r *PodCPUBindingReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		if err := r.removeCPUPinning(ctx, pod); err != nil {
 			return ctrl.Result{}, fmt.Errorf("error removing cpu pinning: %v", err.Error())
 		}
-		r.Recorder.Eventf(cpuBinding, corev1.EventTypeNormal, "CPUPinningRemoved", "CPU pinning removed from pod %s", cpuBinding.Spec.PodName)
+		r.Recorder.Event(cpuBinding, corev1.EventTypeNormal, "CPUPinningRemoved", "CPU pinning removed")
 	}
 
 	// Initialize CR
@@ -116,7 +116,7 @@ func (r *PodCPUBindingReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		if err := r.Status().Update(ctx, cpuBinding); err != nil {
 			return ctrl.Result{}, fmt.Errorf("error updating status: %v", err.Error())
 		}
-		r.Recorder.Eventf(cpuBinding, corev1.EventTypeNormal, string(v1alpha1.StatusBindingPending), "CPU binding for pod %s/%s is pending", cpuBinding.Namespace, cpuBinding.Spec.PodName)
+
 		return ctrl.Result{}, nil
 	}
 
@@ -144,7 +144,7 @@ func (r *PodCPUBindingReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		if err := r.Status().Update(ctx, cpuBinding); err != nil {
 			return ctrl.Result{}, fmt.Errorf("error updating status: %v", err.Error())
 		}
-		r.Recorder.Eventf(cpuBinding, corev1.EventTypeNormal, string(v1alpha1.StatusValidated), "CPU binding for pod %s/%s is validated", cpuBinding.Namespace, cpuBinding.Spec.PodName)
+		r.Recorder.Eventf(cpuBinding, corev1.EventTypeNormal, string(v1alpha1.StatusValidated), "CPU binding is validated")
 		return ctrl.Result{}, nil
 	}
 
@@ -157,11 +157,11 @@ func (r *PodCPUBindingReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 
 	// Handle reconcilation
 	// Apply CPU pinning
-	cpuSet := pcbutils.ConvertCPUSliceToIntSlice(cpuBinding.Spec.CPUSet)
-	memSet := nctutils.GetNUMANodesOfCPUSet(cpuSet, topology.Spec.Topology)
+	cpuSet := pcbutils.CPUSliceToIntSlice(cpuBinding.Spec.CPUSet)
+	memSet := nctutils.NUMANodesForCPUSet(cpuSet, &topology.Spec.Topology)
 	err = r.applyCPUPinning(ctx, cpuSet, memSet, pod)
 	if err != nil {
-		r.Recorder.Eventf(cpuBinding, corev1.EventTypeWarning, string(v1alpha1.StatusFailed), "Failed to apply CPU pinning to pod %s: %v", cpuBinding.Spec.PodName, err)
+		r.Recorder.Eventf(cpuBinding, corev1.EventTypeWarning, string(v1alpha1.StatusFailed), "Failed to apply CPU pinning: %v", err)
 		cpuBinding.Status.ResourceStatus = v1alpha1.StatusFailed
 	}
 	cpuBinding.Status.ResourceStatus = v1alpha1.StatusApplied
@@ -171,11 +171,7 @@ func (r *PodCPUBindingReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		return ctrl.Result{}, fmt.Errorf("error updating status: %v", err.Error())
 	}
 
-	r.Recorder.Eventf(cpuBinding, corev1.EventTypeNormal, string(v1alpha1.StatusApplied), "CPUSet %v, MemSet %v applied to pod %s/%s", cpuSet, memSet, pod.Namespace, pod.Name)
-	controllerutil.AddFinalizer(pod, v1alpha1.FinalizerCPUBoundPod)
-	if err := r.Update(ctx, pod); err != nil {
-		return ctrl.Result{}, fmt.Errorf("failed to add finalizer to pod: %v", err.Error())
-	}
+	r.Recorder.Eventf(cpuBinding, corev1.EventTypeNormal, string(v1alpha1.StatusApplied), "Applied CPUSet %v, MemSet %v", cpuSet, memSet)
 
 	return ctrl.Result{}, nil
 }

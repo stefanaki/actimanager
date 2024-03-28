@@ -26,3 +26,13 @@ ${CODEGEN_PKG}/generate-groups.sh all \
  ${GROUP_VERSION} \
   --output-base "$(dirname "${BASH_SOURCE[0]}")/../../.." \
   --go-header-file "${SCRIPT_ROOT}/hack/boilerplate.go.txt"
+
+${CODEGEN_PKG}/generate-internal-groups.sh \
+  "deepcopy,conversion,defaulter,validation" \
+  ${MODULE}/${OUTPUT_PKG} \
+  ${MODULE}/${APIS_PKG} \
+  ${MODULE}/${APIS_PKG} \
+  "config:v1" \
+  --trim-path-prefix ${MODULE} \
+  --output-base "./" \
+  --go-header-file "${SCRIPT_ROOT}/hack/boilerplate.go.txt"

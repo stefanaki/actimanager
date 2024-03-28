@@ -55,7 +55,7 @@ func NewCPUPinningController(containerRuntime ContainerRuntime,
 		logger:              logger.WithName("cpu-pinning"),
 	}
 
-	go c.periodicReconciliation(time.Second * reconcilePeriod)
+	go c.periodicReconciliation(reconcilePeriod)
 
 	return &c, nil
 }
@@ -135,7 +135,7 @@ func (c CPUPinningController) reconcilePodsWithSharedResources(pod *cpupinning.P
 		if rm && pod.Namespace == binding.Namespace && pod.Name == binding.Spec.PodName {
 			continue
 		}
-		for cpu := range pcbutils.GetExclusiveCPUsOfCPUBinding(&binding, &c.cpuTopology) {
+		for cpu := range pcbutils.ExclusiveCPUsOfCPUBinding(&binding, &c.cpuTopology) {
 			for i, sharedCPU := range sharedCPUs {
 				if sharedCPU == cpu {
 					sharedCPUs = append(sharedCPUs[:i], sharedCPUs[i+1:]...)
@@ -159,7 +159,7 @@ func (c CPUPinningController) reconcilePodsWithSharedResources(pod *cpupinning.P
 				continue
 			}
 			cpus := ConvertIntSliceToString(sharedCPUs)
-			mems := ConvertIntSliceToString(nctutils.GetNUMANodesOfCPUSet(sharedCPUs, c.cpuTopology))
+			mems := ConvertIntSliceToString(nctutils.NUMANodesForCPUSet(sharedCPUs, &c.cpuTopology))
 			resources := cpupinning.ParseContainerResources(container.Name, &pod)
 			info := ContainerInfo{
 				CID:  container.ContainerID,

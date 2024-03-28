@@ -151,7 +151,7 @@ func (p *PodIsolation) PreFilter(ctx context.Context, state *framework.CycleStat
 			// and exclude them from nodeFeasibleCPUs
 			stateData.PodCPUBindings[nodeName] = append(stateData.PodCPUBindings[nodeName], binding)
 			// For every CPU binding, get all exclusive CPUs and remove them from the topology
-			for exclusiveCPU := range pcbutils.GetExclusiveCPUsOfCPUBinding(&binding, &topology.Spec.Topology) {
+			for exclusiveCPU := range pcbutils.ExclusiveCPUsOfCPUBinding(&binding, &topology.Spec.Topology) {
 				// Delete CPU with key cpuID from nodeFeasibleCPUs topology
 				nctutils.DeleteCPUFromTopology(nodeFeasibleCPUs, exclusiveCPU)
 			}
@@ -186,13 +186,13 @@ func (p *PodIsolation) Filter(ctx context.Context, state *framework.CycleState, 
 	feasibleCPUs := stateData.FeasibleCPUs[node.Name]
 	topology := stateData.NodeCPUTopologies[node.Name].Spec.Topology
 	exclusivenessLevel := stateData.ExclusivenessLevel
-	totalCPUs := int64(nctutils.GetTotalCPUsCount(feasibleCPUs))
+	totalCPUs := int64(len(feasibleCPUs.CPUs))
 
 	if totalCPUs == 0 {
 		return framework.NewStatus(framework.Unschedulable, fmt.Sprintf("%s/%s: node has no unreserved CPUs", pod.Namespace, pod.Name))
 	}
 
-	availableResources := nctutils.GetAvailableResources(exclusivenessLevel, feasibleCPUs, topology)
+	availableResources := nctutils.AvailableResources(exclusivenessLevel, feasibleCPUs, topology)
 
 	// Check if there are enough allocatable resources of the exclusiveness level type needed by the pod
 	res := 0
@@ -201,11 +201,11 @@ func (p *PodIsolation) Filter(ctx context.Context, state *framework.CycleState, 
 		id := strconv.Itoa(r)
 		switch exclusivenessLevel {
 		case v1alpha1.ResourceLevelCore:
-			cpus = nctutils.GetAllCPUsInCore(&feasibleCPUs, id)
+			cpus = nctutils.CPUsInCore(&feasibleCPUs, id)
 		case v1alpha1.ResourceLevelSocket:
-			cpus = nctutils.GetAllCPUsInSocket(&feasibleCPUs, id)
+			cpus = nctutils.CPUsInSocket(&feasibleCPUs, id)
 		case v1alpha1.ResourceLevelNUMA:
-			cpus = nctutils.GetAllCPUsInNUMA(&feasibleCPUs, id)
+			cpus = nctutils.CPUsInNUMA(&feasibleCPUs, id)
 		default:
 			res = int(totalCPUs)
 			break
@@ -244,7 +244,7 @@ func (p *PodIsolation) Score(ctx context.Context, state *framework.CycleState, p
 	topology := stateData.NodeCPUTopologies[nodeName].Spec.Topology
 	exclusivenessLevel := stateData.ExclusivenessLevel
 
-	availableResources := nctutils.GetAvailableResources(exclusivenessLevel, feasibleCPUs, topology)
+	availableResources := nctutils.AvailableResources(exclusivenessLevel, feasibleCPUs, topology)
 	score := int64(len(availableResources) * 100)
 
 	logger.Info("scored", "score", score, "node", nodeName)
@@ -311,7 +311,7 @@ func (p *PodIsolation) PostBind(ctx context.Context, state *framework.CycleState
 	topology := stateData.NodeCPUTopologies[nodeName].Spec.Topology
 	exclusivenessLevel := stateData.ExclusivenessLevel
 	requestedCPUs := stateData.PodCPURequests
-	availableResources := nctutils.GetAvailableResources(exclusivenessLevel, feasibleCPUs, topology)
+	availableResources := nctutils.AvailableResources(exclusivenessLevel, feasibleCPUs, topology)
 
 	for _, r := range availableResources {
 		id := strconv.Itoa(r)
@@ -320,15 +320,15 @@ func (p *PodIsolation) PostBind(ctx context.Context, state *framework.CycleState
 			cpus = append(cpus, r)
 			requestedCPUs--
 		case v1alpha1.ResourceLevelCore:
-			c := nctutils.GetAllCPUsInCore(&feasibleCPUs, id)
+			c := nctutils.CPUsInCore(&feasibleCPUs, id)
 			cpus = append(cpus, c...)
 			requestedCPUs -= int64(len(c))
 		case v1alpha1.ResourceLevelSocket:
-			c := nctutils.GetAllCPUsInSocket(&feasibleCPUs, id)
+			c := nctutils.CPUsInSocket(&feasibleCPUs, id)
 			cpus = append(cpus, c...)
 			requestedCPUs -= int64(len(c))
 		case v1alpha1.ResourceLevelNUMA:
-			c := nctutils.GetAllCPUsInNUMA(&feasibleCPUs, id)
+			c := nctutils.CPUsInNUMA(&feasibleCPUs, id)
 			cpus = append(cpus, c...)
 			requestedCPUs -= int64(len(c))
 		}
@@ -344,7 +344,7 @@ func (p *PodIsolation) PostBind(ctx context.Context, state *framework.CycleState
 		},
 		Spec: v1alpha1.PodCPUBindingSpec{
 			PodName:            pod.Name,
-			CPUSet:             pcbutils.ConvertIntSliceToCPUSlice(cpus),
+			CPUSet:             pcbutils.IntSliceToCPUSlice(cpus),
 			ExclusivenessLevel: exclusivenessLevel,
 		},
 	}

@@ -4,7 +4,9 @@ Fine-grained resource management for Kubernetes Pods.
 
 ## Description
 
-This repository is a framework for fine-grained orchestration of Kubernetes Pods. It utilizes the Operator Pattern, CRD's, Scheduling Framework plugins and other extension points of Kubernetes to provide a solution for fine-grained resource allocation. It consists of the following components:
+This repository is a framework for fine-grained orchestration of Kubernetes Pods. It utilizes the Operator Pattern, CRD's, Scheduling Framework plugins and other extension points of Kubernetes to provide a solution for managing the CPU resources of Pods at a fine-grained level.
+
+## Components
 
 - **Custom Resource Definitions (CRD's)**
     - `NodeCPUTopology`: The CPU and NUMA topology of a node.
@@ -62,7 +64,7 @@ This repository is a framework for fine-grained orchestration of Kubernetes Pods
        - '--container-runtime=docker' # containerd, kind
        - '--cgroups-path=/cgroup'
        - '--cgroups-driver=systemd' # cgroupfs
-       - '--reconcile-period=20'
+       - '--reconcile-period=15s'
     ```
 3. Install the components on the cluster.
 

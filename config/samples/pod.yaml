@@ -1,31 +1,33 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pd-4
+  namespace: benchmarks
+  labels:
+    cslab.ece.ntua.gr/workload-type: "cpu-bound"
+spec:
+  schedulerName: maestro
+  restartPolicy: Never
+  containers:
+  - name: benchmark
+    image: spirals/parsec-3.0
+    resources:
+      requests:
+        cpu: "1"
+      limits:
+        cpu: "1"
+    command:
+    - /bin/bash
+    - "-c"
+    - sleep 9999999999999999
+#---
 #apiVersion: v1
 #kind: Pod
 #metadata:
-#  name: benchpod-cpu-2
+#  name: pd-2
 #  namespace: benchmarks
-#  annotations:
-#    cslab.ece.ntua.gr/exclusiveness-level: CPU
-#spec:
-#  schedulerName: maestro
-#  restartPolicy: Never
-#  containers:
-#  - name: benchmark
-#    image: spirals/parsec-3.0
-#    resources:
-#      requests:
-#        cpu: "2"
-#    command:
-#    - /bin/bash
-#    - "-c"
-#    - sleep 9999999999999999
-##---
-#apiVersion: v1
-#kind: Pod
-#metadata:
-#  name: benchpod-core-2
-#  namespace: benchmarks
-#  annotations:
-#    cslab.ece.ntua.gr/exclusiveness-level: Core
+#  labels:
+#    cslab.ece.ntua.gr/workload-type: "cpu-bound"
 #spec:
 #  schedulerName: maestro
 #  restartPolicy: Never
@@ -43,10 +45,10 @@
 #apiVersion: v1
 #kind: Pod
 #metadata:
-#  name: benchpod-core-5
+#  name: pd-3
 #  namespace: benchmarks
-#  annotations:
-#    cslab.ece.ntua.gr/exclusiveness-level: Core
+#  labels:
+#    cslab.ece.ntua.gr/workload-type: "io-bound"
 #spec:
 #  schedulerName: maestro
 #  restartPolicy: Never
@@ -55,71 +57,233 @@
 #      image: spirals/parsec-3.0
 #      resources:
 #        requests:
-#          cpu: "5"
+#          cpu: "2"
 #      command:
 #        - /bin/bash
 #        - "-c"
 #        - sleep 9999999999999999
 #---
-#apiVersion: v1
-#kind: Pod
-#metadata:
-#  name: benchpod-core-3
-#  namespace: benchmarks
-#  annotations:
-#    cslab.ece.ntua.gr/exclusiveness-level: Core
-#spec:
-#  schedulerName: maestro
-#  restartPolicy: Never
-#  containers:
-#    - name: benchmark
-#      image: spirals/parsec-3.0
-#      resources:
-#        requests:
-#          cpu: "3"
-#      command:
-#        - /bin/bash
-#        - "-c"
-#        - sleep 9999999999999999
-#---
-#apiVersion: v1
-#kind: Pod
-#metadata:
-#  name: benchpod-cpu-43
-#  namespace: benchmarks
-#  annotations:
-#    cslab.ece.ntua.gr/exclusiveness-level: CPU
-#spec:
-#  schedulerName: maestro
-#  restartPolicy: Never
-#  containers:
-#    - name: benchmark
-#      image: spirals/parsec-3.0
-#      resources:
-#        requests:
-#          cpu: "1"
-#      command:
-#        - /bin/bash
-#        - "-c"
-#        - sleep 9999999999999999
-#---
-apiVersion: v1
-kind: Pod
-metadata:
-  name: benchpod-core-x
-  namespace: benchmarks
-  annotations:
-    cslab.ece.ntua.gr/exclusiveness-level: Core
-spec:
-  schedulerName: maestro
-  restartPolicy: Never
-  containers:
-    - name: benchmark
-      image: spirals/parsec-3.0
-      resources:
-        requests:
-          cpu: "2"
-      command:
-        - /bin/bash
-        - "-c"
-        - sleep 9999999999999999
+##apiVersion: v1
+##kind: Pod
+##metadata:
+##  name: pd-4
+##  namespace: benchmarks
+##  labels:
+##    cslab.ece.ntua.gr/workload-type: "memory-bound"
+##spec:
+##  schedulerName: maestro
+##  restartPolicy: Never
+##  containers:
+##    - name: benchmark
+##      image: spirals/parsec-3.0
+##      resources:
+##        requests:
+##          cpu: "2"
+##      command:
+##        - /bin/bash
+##        - "-c"
+##        - sleep 9999999999999999
+##---
+##apiVersion: v1
+##kind: Pod
+##metadata:
+##  name: pd-5
+##  namespace: benchmarks
+##  labels:
+##    cslab.ece.ntua.gr/workload-type: "io-bound"
+##spec:
+##  schedulerName: maestro
+##  restartPolicy: Never
+##  containers:
+##    - name: benchmark
+##      image: spirals/parsec-3.0
+##      resources:
+##        requests:
+##          cpu: "2"
+##      command:
+##        - /bin/bash
+##        - "-c"
+##        - sleep 9999999999999999
+##---
+##apiVersion: v1
+##kind: Pod
+##metadata:
+##  name: pd-6
+##  namespace: benchmarks
+##  labels:
+##    cslab.ece.ntua.gr/workload-type: "memory-bound"
+##spec:
+##  schedulerName: maestro
+##  restartPolicy: Never
+##  containers:
+##    - name: benchmark
+##      image: spirals/parsec-3.0
+##      resources:
+##        requests:
+##          cpu: "2"
+##      command:
+##        - /bin/bash
+##        - "-c"
+##        - sleep 9999999999999999
+###apiVersion: v1
+###kind: Pod
+###metadata:
+###  name: cpu-bound-21
+###  namespace: benchmarks
+###  labels:
+###    cslab.ece.ntua.gr/workload-type: "cpu-bound"
+###spec:
+###  schedulerName: maestro
+###  restartPolicy: Never
+###  containers:
+###    - name: benchmark
+###      image: spirals/parsec-3.0
+###      resources:
+###        requests:
+###          cpu: "4"
+###      command:
+###        - /bin/bash
+###        - "-c"
+###        - sleep 9999999999999999
+###---
+###apiVersion: v1
+###kind: Pod
+###metadata:
+###  name: cpu-bound-31
+###  namespace: benchmarks
+###  labels:
+###    cslab.ece.ntua.gr/workload-type: "cpu-bound"
+###spec:
+###  schedulerName: maestro
+###  restartPolicy: Never
+###  containers:
+###    - name: benchmark
+###      image: spirals/parsec-3.0
+###      resources:
+###        requests:
+###          cpu: "1"
+###      command:
+###        - /bin/bash
+###        - "-c"
+###        - sleep 9999999999999999
+##---
+###apiVersion: v1
+###kind: Pod
+###metadata:
+###  name: benchpod-core-2
+###  namespace: benchmarks
+###spec:
+###  restartPolicy: Never
+###  containers:
+###    - name: benchmark
+###      image: spirals/parsec-3.0
+###      resources:
+###        requests:
+###          cpu: "2"
+###      command:
+###        - /bin/bash
+###        - "-c"
+###        - sleep 9999999999999999
+###---
+###apiVersion: v1
+###kind: Pod
+###metadata:
+###  name: benchpod-core-5
+###  namespace: benchmarks
+###spec:
+###  restartPolicy: Never
+###  containers:
+###    - name: benchmark
+###      image: spirals/parsec-3.0
+###      resources:
+###        requests:
+###          cpu: "5"
+###      command:
+###        - /bin/bash
+###        - "-c"
+###        - sleep 9999999999999999
+###---
+###apiVersion: v1
+###kind: Pod
+###metadata:
+###  name: benchpod-core-3
+###  namespace: benchmarks
+###spec:
+###  restartPolicy: Never
+###  containers:
+###    - name: benchmark
+###      image: spirals/parsec-3.0
+###      resources:
+###        requests:
+###          cpu: "3"
+###      command:
+###        - /bin/bash
+###        - "-c"
+###        - sleep 9999999999999999
+###---
+###apiVersion: v1
+###kind: Pod
+###metadata:
+###  name: benchpod-core-x
+###  namespace: benchmarks
+###spec:
+###  restartPolicy: Never
+###  containers:
+###    - name: benchmark
+###      image: spirals/parsec-3.0
+###      resources:
+###        requests:
+###          cpu: "2"
+###      command:
+###        - /bin/bash
+###        - "-c"
+###        - sleep 9999999999999999
+###---
+###apiVersion: cslab.ece.ntua.gr/v1alpha1
+###kind: PodCPUBinding
+###metadata:
+###  name: bind-benchpod-cpu-2
+###  namespace: benchmarks
+###spec:
+###  exclusivenessLevel: Core
+###  podName: benchpod-cpu-2
+###  cpuSet:
+###    - cpuID: 2
+###    - cpuID: 3
+###---
+###apiVersion: cslab.ece.ntua.gr/v1alpha1
+###kind: PodCPUBinding
+###metadata:
+###  name: bind-benchpod-core-2
+###  namespace: benchmarks
+###spec:
+###  exclusivenessLevel: Core
+###  podName: benchpod-cpu-2
+###  cpuSet:
+###    - cpuID: 4
+###    - cpuID: 5
+###    - cpuID: 6
+###    - cpuID: 7
+###---
+###apiVersion: cslab.ece.ntua.gr/v1alpha1
+###kind: PodCPUBinding
+###metadata:
+###  name: bind-benchpod-core-5
+###  namespace: benchmarks
+###spec:
+###  exclusivenessLevel: Core
+###  podName: benchpod-cpu-2
+###  cpuSet:
+###    - cpuID: 10
+###    - cpuID: 11
+###---
+###apiVersion: cslab.ece.ntua.gr/v1alpha1
+###kind: PodCPUBinding
+###metadata:
+###  name: bind-benchpod-core-x
+###  namespace: benchmarks
+###spec:
+###  exclusivenessLevel: None
+###  podName: benchpod-cpu-2
+###  cpuSet:
+###    - cpuID: 4

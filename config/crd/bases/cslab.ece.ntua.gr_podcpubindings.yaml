@@ -20,6 +20,9 @@ spec:
     - jsonPath: .spec.podName
       name: Pod Name
       type: string
+    - jsonPath: .status.nodeName
+      name: Node Name
+      type: string
     - jsonPath: .spec.exclusivenessLevel
       name: Exclusiveness Level
       type: string
@@ -83,7 +86,6 @@ spec:
                 - Pending
                 - PodNotFound
                 - InvalidCPUSet
-                - Collision
                 - Failed
                 - CPUSetAllocationFailed
                 - Validated

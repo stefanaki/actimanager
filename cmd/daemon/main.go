@@ -94,7 +94,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Graceful shutdown on SIGINT and SIGTERM
+	// Graceful shutdown on SIGINT SIGTERM, SIGQUIT
 	<-signalCh
 	logger.Info("Received signal, shutting down")
 	daemonServer.Stop()

@@ -108,7 +108,8 @@ run-daemon:
 
 
 .PHONY: run-scheduler
-run-scheduler: manifests generate fmt vet ## Run the scheduler from your host.
+#run-scheduler: manifests generate fmt vet ## Run the scheduler from your host.
+run-scheduler:
 	go run cmd/scheduler/main.go \
 		--kubeconfig=/home/georgios/.kube/config \
         --config=/home/georgios/go/src/cslab.ece.ntua.gr/actimanager/config/scheduler/kube-scheduler-config.yaml \

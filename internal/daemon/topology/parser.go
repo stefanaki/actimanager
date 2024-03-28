@@ -3,6 +3,7 @@ package topology
 import (
 	pbtopo "cslab.ece.ntua.gr/actimanager/internal/pkg/protobuf/topology"
 	"fmt"
+	"slices"
 	"strconv"
 	"strings"
 )
@@ -61,22 +62,13 @@ func ParseTopology(output string) (*pbtopo.TopologyResponse, error) {
 				Cpus: make([]int64, 0),
 			}
 		}
-		if !contains(res.Sockets[socketIdStr].Cores[coreIdStr].Cpus, int64(cpuId)) {
+		if !slices.Contains(res.Sockets[socketIdStr].Cores[coreIdStr].Cpus, int64(cpuId)) {
 			res.Cpus = append(res.Cpus, int64(cpuId))
 			res.Sockets[socketIdStr].Cores[coreIdStr].Cpus = append(res.Sockets[socketIdStr].Cores[coreIdStr].Cpus, int64(cpuId))
 		}
-		if !contains(res.NumaNodes[nodeIdStr].Cpus, int64(cpuId)) {
+		if !slices.Contains(res.NumaNodes[nodeIdStr].Cpus, int64(cpuId)) {
 			res.NumaNodes[nodeIdStr].Cpus = append(res.NumaNodes[nodeIdStr].Cpus, int64(cpuId))
 		}
 	}
 	return res, nil
-}
-
-func contains(arr []int64, el int64) bool {
-	for _, x := range arr {
-		if x == el {
-			return true
-		}
-	}
-	return false
 }

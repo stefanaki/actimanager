@@ -3,7 +3,7 @@ package podcpubinding
 import (
 	"context"
 	"cslab.ece.ntua.gr/actimanager/api/cslab.ece.ntua.gr/v1alpha1"
-	nct "cslab.ece.ntua.gr/actimanager/internal/pkg/utils/nodecputopology"
+	nctutils "cslab.ece.ntua.gr/actimanager/internal/pkg/utils/nodecputopology"
 	pcbutils "cslab.ece.ntua.gr/actimanager/internal/pkg/utils/podcpubinding"
 	"fmt"
 	"golang.org/x/exp/maps"
@@ -63,10 +63,10 @@ func (r *PodCPUBindingReconciler) validateTopology(ctx context.Context, cpuBindi
 	}
 	*topology = topologies.Items[0]
 	// Check if specified cpuset is available in the node topology
-	if !nct.IsCPUSetInTopology(&topology.Spec.Topology, cpuBinding.Spec.CPUSet) {
+	if !nctutils.CPUSetInTopology(&topology.Spec.Topology, cpuBinding.Spec.CPUSet) {
 		return false,
 			v1alpha1.StatusInvalidCPUSet,
-			fmt.Sprintf("CPUs %v do not exist in node %v", pcbutils.ConvertCPUSliceToIntSlice(cpuBinding.Spec.CPUSet),
+			fmt.Sprintf("CPUs %v do not exist in node %v", pcbutils.CPUSliceToIntSlice(cpuBinding.Spec.CPUSet),
 				topology.Name),
 			nil
 	}
@@ -98,7 +98,7 @@ func (r *PodCPUBindingReconciler) validateExclusivenessLevel(ctx context.Context
 			pcb.Status.ResourceStatus != v1alpha1.StatusValidated {
 			continue
 		}
-		exclusiveCPUs := pcbutils.GetExclusiveCPUsOfCPUBinding(&pcb, &topology.Spec.Topology)
+		exclusiveCPUs := pcbutils.ExclusiveCPUsOfCPUBinding(&pcb, &topology.Spec.Topology)
 		for c := range exclusiveCPUs {
 			unfeasibleCPUs[c] = struct{}{}
 		}
@@ -117,9 +117,9 @@ func (r *PodCPUBindingReconciler) validateExclusivenessLevel(ctx context.Context
 func hasUnfeasibleCPUs(cpuBinding *v1alpha1.PodCPUBinding, topology *v1alpha1.NodeCPUTopology, unfeasibleCPUs map[int]struct{}) (bool, []int) {
 	var requestedCPUs map[int]struct{}
 	if cpuBinding.Spec.ExclusivenessLevel == "None" {
-		requestedCPUs = pcbutils.GetCPUsOfCPUBinding(cpuBinding)
+		requestedCPUs = pcbutils.CPUsOfCPUBinding(cpuBinding)
 	} else {
-		requestedCPUs = pcbutils.GetExclusiveCPUsOfCPUBinding(cpuBinding, &topology.Spec.Topology)
+		requestedCPUs = pcbutils.ExclusiveCPUsOfCPUBinding(cpuBinding, &topology.Spec.Topology)
 	}
 	cpus := make(map[int]struct{})
 	for cpu := range requestedCPUs {

@@ -9,6 +9,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+const NodeRoleControlPlane = "node-role.kubernetes.io/control-plane"
+
 // CreateInitialNodeCPUTopologies creates initial NodeCPUTopology resources for each cluster node.
 // It lists the cluster nodes and existing topologies, and creates a new topology for each node that doesn't have one.
 // The new topology is created with the name "<node-name>-cputopology".
@@ -23,9 +25,6 @@ func (r *NodeCPUTopologyReconciler) CreateInitialNodeCPUTopologies(ctx context.C
 	}
 	for _, n := range nodes.Items {
 		skip := false
-		if _, controlPlane := n.Labels["node-role.kubernetes.io/control-plane"]; controlPlane {
-			continue
-		}
 		for _, t := range topologies.Items {
 			if t.Spec.NodeName == n.Name {
 				skip = true
@@ -40,6 +39,9 @@ func (r *NodeCPUTopologyReconciler) CreateInitialNodeCPUTopologies(ctx context.C
 			Spec: v1alpha1.NodeCPUTopologySpec{
 				NodeName: n.Name,
 			},
+		}
+		if _, controlPlane := n.Labels[NodeRoleControlPlane]; controlPlane {
+			newTopology.Labels = map[string]string{NodeRoleControlPlane: ""}
 		}
 		if err := r.Create(ctx, newTopology); err != nil {
 			return fmt.Errorf("error creating new topology: %v", err.Error())

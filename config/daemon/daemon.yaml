@@ -13,6 +13,9 @@ spec:
       labels:
         app: daemon
     spec:
+      tolerations:
+        - key: node-role.kubernetes.io/control-plane
+          effect: NoSchedule
       serviceAccountName: controller-manager
       hostNetwork: true
       containers:
@@ -30,11 +33,11 @@ spec:
                 - all
           args:
             - '--node-name=$(NODE_NAME)'
-            - '--container-runtime=docker'
-#           - '--container-runtime=containerd'
+#           - '--container-runtime=docker'
+            - '--container-runtime=containerd'
             - '--cgroups-path=/cgroup'
             - '--cgroups-driver=systemd'
-            - '--reconcile-period=15'
+            - '--reconcile-period=15s'
             - '--verbosity=3'
           env:
             - name: NODE_NAME

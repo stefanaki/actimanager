@@ -29,20 +29,27 @@ data:
     leaderElection:
       leaderElect: false
     profiles:
-      - schedulerName: maestro
-        plugins:
-          preFilter:
-            enabled:
-              - name: PodIsolation
-          score:
-            enabled:
-              - name: PodIsolation
-          filter:
-            enabled:
-              - name: PodIsolation
-          postBind:
-            enabled:
-              - name: PodIsolation
+    - schedulerName: maestro
+      plugins:
+        preFilter:
+          enabled:
+            - name: WorkloadAware
+        filter:
+          enabled:
+            - name: TaintToleration
+            - name: WorkloadAware
+        score:
+          enabled:
+            - name: WorkloadAware
+        reserve:
+          enabled:
+            - name: WorkloadAware
+      pluginConfig:
+        - name: WorkloadAware
+          args:
+            policy: MaximumUtilization
+            features:
+              - PhysicalCores
 ---
 apiVersion: apps/v1
 kind: Deployment

@@ -7,8 +7,8 @@ import (
 	"strconv"
 )
 
-// IsCPUSetInTopology checks if a given CPU set is present in the provided topology.
-func IsCPUSetInTopology(topology *v1alpha1.CPUTopology, cpuSet []v1alpha1.CPU) bool {
+// CPUSetInTopology checks if a given CPU set is present in the provided topology.
+func CPUSetInTopology(topology *v1alpha1.CPUTopology, cpuSet []v1alpha1.CPU) bool {
 	remaining := len(cpuSet)
 	for _, socket := range topology.Sockets {
 		for _, core := range socket.Cores {
@@ -25,10 +25,10 @@ func IsCPUSetInTopology(topology *v1alpha1.CPUTopology, cpuSet []v1alpha1.CPU) b
 	return remaining == 0
 }
 
-// GetCPUParentInfo returns the CPU parent information for the given CPU ID in the provided NodeCPUTopology.
+// CPUParentInfo returns the CPU parent information for the given CPU ID in the provided NodeCPUTopology.
 // It searches for the CPU ID in the NUMANodes and Sockets of the topology and returns the corresponding CPU ID, Core ID, Socket ID, and NUMA ID.
 // If the CPU ID is not found, it returns -1 for all the values.
-func GetCPUParentInfo(topology *v1alpha1.CPUTopology, targetCPUID int) (string, string, string, string) {
+func CPUParentInfo(topology *v1alpha1.CPUTopology, targetCPUID int) (string, string, string, string) {
 	numaID := "-1"
 	for numaNodeID, numaNode := range topology.NUMANodes {
 		for _, cpu := range numaNode.CPUs {
@@ -49,8 +49,8 @@ func GetCPUParentInfo(topology *v1alpha1.CPUTopology, targetCPUID int) (string, 
 	return "-1", "-1", "-1", "-1"
 }
 
-// GetAllCPUsInCore returns a map of CPU IDs belonging to the specified core ID in the given NodeCPUTopology.
-func GetAllCPUsInCore(topology *v1alpha1.CPUTopology, targetCoreID string) []int {
+// CPUsInCore returns the CPU IDs belonging to the specified core ID in the given NodeCPUTopology.
+func CPUsInCore(topology *v1alpha1.CPUTopology, targetCoreID string) []int {
 	for _, socket := range topology.Sockets {
 		for coreID, core := range socket.Cores {
 			if coreID == targetCoreID {
@@ -61,28 +61,26 @@ func GetAllCPUsInCore(topology *v1alpha1.CPUTopology, targetCoreID string) []int
 	return []int{}
 }
 
-// GetAllCPUsInSocket returns a map of CPU IDs belonging to the specified socket in the given NodeCPUTopology.
-func GetAllCPUsInSocket(topology *v1alpha1.CPUTopology, targetSocketID string) []int {
-	for socketID, socket := range topology.Sockets {
-		if socketID == targetSocketID {
-			return socket.CPUs
-		}
+// CPUsInSocket returns the CPU IDs belonging to the specified socket in the given NodeCPUTopology.
+func CPUsInSocket(topology *v1alpha1.CPUTopology, targetSocketID string) []int {
+	socket, ok := topology.Sockets[targetSocketID]
+	if ok {
+		return socket.CPUs
 	}
 	return []int{}
 }
 
-// GetAllCPUsInNUMA returns a map of CPU IDs belonging to the specified NUMA node in the given NodeCPUTopology.
-func GetAllCPUsInNUMA(topology *v1alpha1.CPUTopology, targetNUMAID string) []int {
-	for numaNodeID, numaNode := range topology.NUMANodes {
-		if numaNodeID == targetNUMAID {
-			return numaNode.CPUs
-		}
+// CPUsInNUMA returns the CPU IDs belonging to the specified NUMA node in the given NodeCPUTopology.
+func CPUsInNUMA(topology *v1alpha1.CPUTopology, targetNUMAID string) []int {
+	numa, ok := topology.NUMANodes[targetNUMAID]
+	if ok {
+		return numa.CPUs
 	}
 	return []int{}
 }
 
-// GetNUMANodesOfCPUSet returns a map of NUMANodes that contain the given CPUs in the provided CPUTopology.
-func GetNUMANodesOfCPUSet(cpus []int, topology v1alpha1.CPUTopology) []int {
+// NUMANodesForCPUSet returns the IDs of the NUMA Nodes that contain the given CPUs in the provided CPUTopology.
+func NUMANodesForCPUSet(cpus []int, topology *v1alpha1.CPUTopology) []int {
 	numaNodes := make(map[int]struct{})
 	for numaNodeID, numaNode := range topology.NUMANodes {
 		for _, cpuInNUMA := range numaNode.CPUs {
@@ -98,10 +96,6 @@ func GetNUMANodesOfCPUSet(cpus []int, topology v1alpha1.CPUTopology) []int {
 	nodeSlice := maps.Keys(numaNodes)
 	sort.Ints(nodeSlice)
 	return nodeSlice
-}
-
-func GetTotalCPUsCount(topology v1alpha1.CPUTopology) int {
-	return len(topology.CPUs)
 }
 
 func DeleteCPUFromTopology(topology *v1alpha1.CPUTopology, cpuID int) {
@@ -131,7 +125,7 @@ func DeleteCPUFromTopology(topology *v1alpha1.CPUTopology, cpuID int) {
 	}
 }
 
-func GetAvailableResources(level v1alpha1.ResourceLevel, feasibleCPUs v1alpha1.CPUTopology, topology v1alpha1.CPUTopology) []int {
+func AvailableResources(level v1alpha1.ResourceLevel, feasibleCPUs v1alpha1.CPUTopology, topology v1alpha1.CPUTopology) []int {
 	switch level {
 	case v1alpha1.ResourceLevelCPU:
 		return feasibleCPUs.CPUs
@@ -150,8 +144,8 @@ func GetAvailableResources(level v1alpha1.ResourceLevel, feasibleCPUs v1alpha1.C
 	case v1alpha1.ResourceLevelSocket:
 		sockets := make([]int, 0)
 		for socketID := range feasibleCPUs.Sockets {
-			socketCPUs := GetAllCPUsInSocket(&feasibleCPUs, socketID)
-			if len(topology.Sockets[socketID].Cores) > len(socketCPUs) {
+			socketCPUs := CPUsInSocket(&feasibleCPUs, socketID)
+			if len(topology.Sockets[socketID].CPUs) > len(socketCPUs) {
 				continue
 			}
 			id, _ := strconv.Atoi(socketID)
@@ -161,7 +155,7 @@ func GetAvailableResources(level v1alpha1.ResourceLevel, feasibleCPUs v1alpha1.C
 	case v1alpha1.ResourceLevelNUMA:
 		numas := make([]int, 0)
 		for numaID := range feasibleCPUs.NUMANodes {
-			numaCPUs := GetAllCPUsInNUMA(&feasibleCPUs, numaID)
+			numaCPUs := CPUsInNUMA(&feasibleCPUs, numaID)
 			if len(topology.NUMANodes[numaID].CPUs) > len(numaCPUs) {
 				continue
 			}

@@ -18,7 +18,6 @@ const (
 )
 
 var FinalizerPodCPUBinding = GroupVersion.Group + "/pod-cpu-binding-finalizer"
-var FinalizerCPUBoundPod = GroupVersion.Group + "/cpu-bound-pod"
 
 var AnnotationExclusivenessLevel = GroupVersion.Group + "/exclusiveness-level"
 
@@ -47,7 +46,7 @@ type PodCPUBindingSpec struct {
 
 // PodCPUBindingStatus defines the observed state of PodCPUBinding
 type PodCPUBindingStatus struct {
-	// +kubebuilder:validation:Enum=Applied;Pending;PodNotFound;InvalidCPUSet;Collision;Failed;CPUSetAllocationFailed;Validated
+	// +kubebuilder:validation:Enum=Applied;Pending;PodNotFound;InvalidCPUSet;Failed;CPUSetAllocationFailed;Validated
 	ResourceStatus PodCPUBindingResourceStatus `json:"resourceStatus"`
 	NodeName       string                      `json:"nodeName"`
 }
@@ -58,6 +57,7 @@ type PodCPUBindingStatus struct {
 // +kubebuilder:subresource:status
 // +kubebuilder:resource:shortName=pcb
 // +kubebuilder:printcolumn:name="Pod Name",type=string,JSONPath=`.spec.podName`
+// +kubebuilder:printcolumn:name="Node Name",type=string,JSONPath=`.status.nodeName`
 // +kubebuilder:printcolumn:name="Exclusiveness Level",type=string,JSONPath=`.spec.exclusivenessLevel`
 // +kubebuilder:printcolumn:name="Resource Status",type=string,JSONPath=`.status.resourceStatus`
 

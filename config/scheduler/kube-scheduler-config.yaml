@@ -9,13 +9,21 @@ profiles:
     plugins:
       preFilter:
         enabled:
-          - name: PodIsolation
-      score:
-        enabled:
-          - name: PodIsolation
+          - name: WorkloadAware
       filter:
         enabled:
-          - name: PodIsolation
-      postBind:
+          - name: TaintToleration
+          - name: WorkloadAware
+      score:
         enabled:
-          - name: PodIsolation
+          - name: WorkloadAware
+      reserve:
+        enabled:
+          - name: WorkloadAware
+    pluginConfig:
+      - name: WorkloadAware
+        args:
+          policy: MaximumUtilization
+          features:
+#            - PhysicalCores
+#            - MemoryBoundExclusiveSockets
