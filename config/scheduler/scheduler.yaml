@@ -31,19 +31,17 @@ data:
     profiles:
     - schedulerName: maestro
       plugins:
-        preFilter:
+        bind:
           enabled:
             - name: WorkloadAware
+          disabled:
+            - name: '*'
         filter:
           enabled:
             - name: TaintToleration
-            - name: WorkloadAware
-        score:
-          enabled:
-            - name: WorkloadAware
-        reserve:
-          enabled:
-            - name: WorkloadAware
+        multiPoint:
+            enabled:
+                - name: WorkloadAware
       pluginConfig:
         - name: WorkloadAware
           args:

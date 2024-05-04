@@ -29,9 +29,8 @@ var eventFilters = builder.WithPredicates(predicate.Funcs{
 		newObj := e.ObjectNew.(*v1alpha1.NodeCPUTopology)
 
 		nodeNameChanged := oldObj.Spec.NodeName != newObj.Spec.NodeName
-		statusNeedsSync := newObj.Status.ResourceStatus == v1alpha1.StatusNeedsSync
 
-		return nodeNameChanged || statusNeedsSync
+		return nodeNameChanged
 	},
 })
 
@@ -65,13 +64,13 @@ func (r *NodeCPUTopologyReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 		if err := r.Status().Update(ctx, topology); err != nil {
 			return ctrl.Result{}, fmt.Errorf("error updating resource: %v", err)
 		}
-		return ctrl.Result{}, nil
 	}
 
 	// Check if specified NodeName is a valid name of a node
 	node := &corev1.Node{}
 	if err := r.Get(ctx, client.ObjectKey{Name: topology.Spec.NodeName}, node); err != nil {
 		topology.Status.ResourceStatus = v1alpha1.StatusNodeNotFound
+		topology.Status.InternalIP = ""
 		if err := r.Status().Update(ctx, topology); err != nil {
 			return ctrl.Result{}, fmt.Errorf("could not update status: %v", err)
 		}
@@ -80,7 +79,12 @@ func (r *NodeCPUTopologyReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 	}
 
 	// Handle reconciliation
-	topologyResponse, err := r.getTopology(ctx, node)
+	nodeIP, err := r.getNodeAddress(ctx, node)
+	if err != nil {
+		r.Recorder.Eventf(topology, corev1.EventTypeWarning, string(v1alpha1.StatusTopologyFailed), "Failed to get node address: %v", err)
+		return ctrl.Result{}, err
+	}
+	topologyResponse, err := r.getTopology(ctx, nodeIP)
 	if err != nil {
 		r.Recorder.Eventf(topology, corev1.EventTypeWarning, string(v1alpha1.StatusTopologyFailed), "Failed to get topology: %v", err)
 		return ctrl.Result{}, err
@@ -93,6 +97,7 @@ func (r *NodeCPUTopologyReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 		return ctrl.Result{}, err
 	}
 	topology.Status.ResourceStatus = v1alpha1.StatusFresh
+	topology.Status.InternalIP = nodeIP
 	if err := r.Status().Update(ctx, topology); err != nil {
 		r.Recorder.Eventf(topology, corev1.EventTypeWarning, string(v1alpha1.StatusTopologyFailed), "Failed to update status: %v", err)
 		return ctrl.Result{}, err

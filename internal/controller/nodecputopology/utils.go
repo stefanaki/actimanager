@@ -24,11 +24,7 @@ func (r *NodeCPUTopologyReconciler) getNodeAddress(ctx context.Context, node *co
 	return nodeAddress, nil
 }
 
-func (r *NodeCPUTopologyReconciler) getTopology(ctx context.Context, node *corev1.Node) (*pbtopo.TopologyResponse, error) {
-	nodeAddress, err := r.getNodeAddress(ctx, node)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get IP address of node: %v", err)
-	}
+func (r *NodeCPUTopologyReconciler) getTopology(ctx context.Context, nodeAddress string) (*pbtopo.TopologyResponse, error) {
 	conn, err := grpc.Dial(fmt.Sprintf("%v:8089", nodeAddress), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to gRPC server: %v", err)

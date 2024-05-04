@@ -6,6 +6,7 @@ import (
 	"cslab.ece.ntua.gr/actimanager/api/cslab.ece.ntua.gr/v1alpha1"
 	"cslab.ece.ntua.gr/actimanager/internal/pkg/client"
 	clientset "cslab.ece.ntua.gr/actimanager/internal/pkg/generated/clientset/versioned"
+	nctutils "cslab.ece.ntua.gr/actimanager/internal/pkg/utils/nodecputopology"
 	"fmt"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -16,6 +17,7 @@ import (
 	"k8s.io/kubernetes/pkg/scheduler/framework"
 	"math"
 	"slices"
+	"time"
 )
 
 // WorkloadAware is a Scheduler Plugin that takes into account the workload type of a Pod
@@ -24,6 +26,16 @@ import (
 // 	- CPUBound: Workloads with execution time that depends on the available CPU resources
 // 	- IOBound: Workloads that have threads with high IO wait time
 // 	- BestEffort: Workloads that place every thread on the same logical CPU (oversubscription)
+
+// Resource allocation based on the workload type:
+// 	- MemoryBound: Place threads on different memory nodes (sockets)
+// 	- CPUBound: Place threads on different, non-utilized cores, preferably on the same socket
+// 	- IOBound: Place threads on the same physical core, or utilize more cores if needed
+// 	- BestEffort: Place every thread on the same logical CPU
+
+// Extra features:
+// 	- PhysicalCores: Use only physical cores for scheduling
+// 	- MemoryBoundExclusiveSockets: Allocate memory nodes (sockets) exclusively for MemoryBound workloads
 
 const Name string = "WorkloadAware"
 
@@ -45,7 +57,7 @@ type State struct {
 var _ framework.PreFilterPlugin = &WorkloadAware{}
 var _ framework.FilterPlugin = &WorkloadAware{}
 var _ framework.ScorePlugin = &WorkloadAware{}
-var _ framework.ReservePlugin = &WorkloadAware{}
+var _ framework.BindPlugin = &WorkloadAware{}
 
 func (w *WorkloadAware) Name() string {
 	return Name
@@ -73,6 +85,9 @@ func (w *WorkloadAware) PreFilter(ctx context.Context, state *framework.CycleSta
 		logger.Info("Application type not specified, assuming best effort")
 		workloadType = config.WorkloadTypeBestEffort
 	}
+
+	// Wait for previous PodCPUBindings to be validated
+	time.Sleep(5 * time.Second)
 
 	stateData := &State{
 		WorkloadType:    workloadType,
@@ -108,42 +123,55 @@ func (w *WorkloadAware) PreFilter(ctx context.Context, state *framework.CycleSta
 
 func (w *WorkloadAware) Filter(ctx context.Context, state *framework.CycleState, pod *corev1.Pod, nodeInfo *framework.NodeInfo) *framework.Status {
 	node := nodeInfo.Node()
-	logger := w.logger.WithName("filter").WithValues("pod", fmt.Sprintf("%s/%s", pod.Namespace, pod.Name), "node", node.Name)
+	// logger := w.logger.WithName("filter").WithValues("pod", fmt.Sprintf("%s/%s", pod.Namespace, pod.Name), "node", node.Name)
 
 	stateData, err := w.getState(state)
 	if err != nil {
 		return framework.NewStatus(framework.Unschedulable, fmt.Sprintf("could not get state data: %v", err))
 	}
 
-	featurePhysicalCores := slices.Contains(w.args.Features, config.FeaturePhysicalCores)
 	cpuRequests, cpuLimits := stateData.PodRequests.Cpu().MilliValue(), stateData.PodLimits.Cpu().MilliValue()
 	allocatable := stateData.AllocatableCPUs[node.Name]
-	numAllocatableCPUs := int64(len(allocatable) * 1000)
+	numAllocatable := int64(len(allocatable) * 1000)
+	noun := "cpus"
+
+	featurePhysicalCores := slices.Contains(w.args.Features, config.FeaturePhysicalCores)
+	featureMemoryBoundExclusiveCores := slices.Contains(w.args.Features, config.FeatureMemoryBoundExclusiveSockets)
+
 	if featurePhysicalCores || stateData.WorkloadType == config.WorkloadTypeCPUBound {
-		numAllocatableCPUs = int64(len(allocatableCores(allocatable, true)) * 1000)
+		noun = "cores"
+		numAllocatable = int64(len(allocatableCores(allocatable, true)) * 1000)
+	}
+	if featureMemoryBoundExclusiveCores && stateData.WorkloadType == config.WorkloadTypeMemoryBound {
+		noun = "sockets"
+		numAllocatable = int64(len(allocatableSockets(allocatable, true)) * 1000)
 	}
 
-	if numAllocatableCPUs == 0 {
-		return framework.NewStatus(framework.Unschedulable, fmt.Sprintf("all cpus are reserved for other pods"))
+	if numAllocatable == 0 {
+		return framework.NewStatus(framework.Unschedulable, fmt.Sprintf("all %s are reserved for other pods", noun))
 	}
-	if cpuRequests != 0 && numAllocatableCPUs < cpuRequests {
-		return framework.NewStatus(framework.Unschedulable, fmt.Sprintf("not enough cpus, request: %dm, available: %dm", cpuRequests, numAllocatableCPUs))
+	if cpuRequests != 0 && numAllocatable < cpuRequests {
+		return framework.NewStatus(framework.Unschedulable, fmt.Sprintf("not enough %s, request: %dm, available: %dm", noun, cpuRequests, numAllocatable))
 	}
-	if cpuLimits != 0 && numAllocatableCPUs < cpuLimits {
-		return framework.NewStatus(framework.Unschedulable, fmt.Sprintf("not enough cpus, limit: %dm, available: %dm", cpuLimits, numAllocatableCPUs))
+	if cpuLimits != 0 && numAllocatable < cpuLimits {
+		return framework.NewStatus(framework.Unschedulable, fmt.Sprintf("not enough %s, limit: %dm, available: %dm", noun, cpuLimits, numAllocatable))
 	}
 
-	logger.Info("filter passed", "cpuRequests", cpuRequests, "cpuLimits", cpuLimits, "numAllocatableCPUs", numAllocatableCPUs)
 	return framework.NewStatus(framework.Success)
 }
 
 func (w *WorkloadAware) Score(ctx context.Context, state *framework.CycleState, pod *corev1.Pod, nodeName string) (int64, *framework.Status) {
+	logger := w.logger.WithName("score").WithValues("pod", fmt.Sprintf("%s/%s", pod.Namespace, pod.Name), "node", nodeName)
+
 	stateData, err := w.getState(state)
 	if err != nil {
 		return 0, framework.NewStatus(framework.Error, fmt.Sprintf("could not get state data: %v", err))
 	}
 	allocatable := stateData.AllocatableCPUs[nodeName]
+	topology := stateData.Topologies[nodeName]
+
 	featurePhysicalCores := slices.Contains(w.args.Features, config.FeaturePhysicalCores)
+	featureMemoryBoundExclusiveSockets := slices.Contains(w.args.Features, config.FeatureMemoryBoundExclusiveSockets)
 
 	score := int64(0)
 	switch stateData.WorkloadType {
@@ -151,20 +179,30 @@ func (w *WorkloadAware) Score(ctx context.Context, state *framework.CycleState, 
 		// MemoryBound workloads require as many memory nodes (sockets) as possible
 		// We have assured that all scored nodes can fit the Pod's requirements,
 		// so we just need to count the number of sockets
-		score = int64(len(allocatableSockets(allocatable))*1000 + len(allocatableCores(allocatable, featurePhysicalCores))*100 + len(allocatable)*10)
+		numAllocatableSockets := len(allocatableSockets(allocatable, featureMemoryBoundExclusiveSockets))
+		numAllSockets := len(stateData.Topologies[nodeName].Sockets)
+		score = int64(math.Ceil(float64(numAllocatableSockets)/float64(numAllSockets)*100)) + int64(numAllocatableSockets)
 	case config.WorkloadTypeCPUBound:
 		// CPUBound workloads place threads on different, non-utilized cores, to avoid interference
-		score = int64(len(allocatableCores(allocatable, true))*100 + len(allocatable)*10)
+		numAllocatableCores := len(allocatableCores(allocatable, true))
+		numAllCores := len(nctutils.CoresInTopology(&topology))
+		score = int64(math.Ceil(float64(numAllocatableCores)/float64(numAllCores))*100) + int64(numAllocatableCores)
 	case config.WorkloadTypeIOBound:
 		// IOBound workloads place threads on the same physical core
-		score = int64(len(allocatableCores(allocatable, featurePhysicalCores))*100 + len(allocatable)*10)
+		numAllocatableCores := len(allocatableCores(allocatable, featurePhysicalCores))
+		numAllCores := len(nctutils.CoresInTopology(&topology))
+		score = int64(math.Ceil(float64(numAllocatableCores)/float64(numAllCores)*100)) + int64(numAllocatableCores)
 	case config.WorkloadTypeBestEffort:
 		// BestEffort workloads place every thread on the same logical CPU
 		// So we need the number of all logical CPUs
 		if featurePhysicalCores {
-			score = int64(len(allocatableCores(allocatable, true))*100 + len(allocatable)*10)
+			numAllocatableCores := len(allocatableCores(allocatable, true))
+			numAllCores := len(nctutils.CoresInTopology(&topology))
+			score = int64(math.Ceil(float64(numAllocatableCores)/float64(numAllCores))*100) + int64(numAllocatableCores)
 		} else {
-			score = int64(len(allocatable) * 10)
+			numAllocatableCPUs := len(allocatable)
+			numAllCPUs := len(stateData.Topologies[nodeName].CPUs)
+			score = int64(math.Ceil(float64(numAllocatableCPUs)/float64(numAllCPUs))*100) + int64(numAllocatableCPUs)
 		}
 	}
 
@@ -177,11 +215,13 @@ func (w *WorkloadAware) Score(ctx context.Context, state *framework.CycleState, 
 		// Balanced policy does not require any further action
 	}
 
+	logger.Info("scored node", "score", score)
+
 	return score, framework.NewStatus(framework.Success)
 }
 
 func (w *WorkloadAware) NormalizeScore(ctx context.Context, state *framework.CycleState, pod *corev1.Pod, scores framework.NodeScoreList) *framework.Status {
-	logger := w.logger.WithName("normalize").WithValues("pod", fmt.Sprintf("%s/%s", pod.Namespace, pod.Name))
+	// logger := w.logger.WithName("normalize").WithValues("pod", fmt.Sprintf("%s/%s", pod.Namespace, pod.Name))
 
 	// Find highest and lowest scores.
 	var highest int64 = -math.MaxInt64
@@ -206,33 +246,52 @@ func (w *WorkloadAware) NormalizeScore(ctx context.Context, state *framework.Cyc
 		}
 	}
 
-	logger.Info("normalized scores", "scores", scores)
+	// logger.Info("normalized scores", "scores", scores)
 	return framework.NewStatus(framework.Success)
 }
 
-func (w *WorkloadAware) Reserve(ctx context.Context, state *framework.CycleState, pod *corev1.Pod, nodeName string) *framework.Status {
-	logger := w.logger.WithName("reserve").WithValues("pod", fmt.Sprintf("%s/%s", pod.Namespace, pod.Name), "node", nodeName)
+func (w *WorkloadAware) Bind(ctx context.Context, state *framework.CycleState, pod *corev1.Pod, nodeName string) *framework.Status {
+	logger := w.logger.WithName("bind").WithValues("pod", fmt.Sprintf("%s/%s", pod.Namespace, pod.Name), "node", nodeName)
+
+	// Bind the Pod to the Node
+	podBinding := &corev1.Binding{
+		ObjectMeta: metav1.ObjectMeta{Namespace: pod.Namespace, Name: pod.Name, UID: pod.UID},
+		Target:     corev1.ObjectReference{Kind: "Node", Name: nodeName},
+	}
+	err := w.handle.ClientSet().CoreV1().Pods(podBinding.Namespace).Bind(ctx, podBinding, metav1.CreateOptions{})
+	if err != nil {
+		return framework.NewStatus(framework.Error, fmt.Sprintf("failed to bind pod: %v", err))
+	}
+
+	// Create a PodCPUBinding resource to bind the Pod's threads to the Node's CPUs
 	stateData, err := w.getState(state)
 	if err != nil {
 		w.logger.Error(err, "could not get state data")
 		return framework.NewStatus(framework.Error, fmt.Sprintf("could not get state data: %v", err))
 	}
 
-	var fullCores = false
 	var cpuSet []v1alpha1.CPU
 	var exclusivenessLevel = v1alpha1.ResourceLevelCPU
 
-	if slices.Contains(w.args.Features, config.FeaturePhysicalCores) {
-		fullCores = true
+	var featureFullCores = slices.Contains(w.args.Features, config.FeaturePhysicalCores)
+	var featureMemoryBoundExclusiveSockets = slices.Contains(w.args.Features, config.FeatureMemoryBoundExclusiveSockets)
+	if featureFullCores {
 		exclusivenessLevel = v1alpha1.ResourceLevelCore
 	}
-	if stateData.WorkloadType == config.WorkloadTypeMemoryBound &&
-		slices.Contains(w.args.Features, config.FeatureMemoryBoundExclusiveSockets) {
+	if stateData.WorkloadType == config.WorkloadTypeMemoryBound && featureMemoryBoundExclusiveSockets {
 		exclusivenessLevel = v1alpha1.ResourceLevelSocket
 	}
 
-	cpuSet = cpuSetForWorkloadType(stateData, nodeName, stateData.WorkloadType, fullCores)
-	logger.Info("cpuSet", "cpuSet", cpuSet)
+	switch stateData.WorkloadType {
+	case config.WorkloadTypeMemoryBound:
+		cpuSet = cpuSetForMemoryBound(stateData, nodeName, featureMemoryBoundExclusiveSockets)
+	case config.WorkloadTypeCPUBound:
+		cpuSet = cpuSetForCPUBound(stateData, nodeName, featureFullCores)
+	case config.WorkloadTypeIOBound:
+		cpuSet = cpuSetForIOBound(stateData, nodeName, featureFullCores)
+	case config.WorkloadTypeBestEffort:
+		cpuSet = cpuSetForBestEffort(stateData, nodeName, featureFullCores)
+	}
 
 	cpuBinding := v1alpha1.PodCPUBinding{
 		ObjectMeta: metav1.ObjectMeta{
@@ -251,11 +310,9 @@ func (w *WorkloadAware) Reserve(ctx context.Context, state *framework.CycleState
 		return framework.NewStatus(framework.Error, fmt.Sprintf("failed to create pod cpu binding: %v", err))
 	}
 
-	logger.Info("created pod cpu binding", "pod", fmt.Sprintf("%s/%s", pod.Namespace, pod.Name), "node", nodeName, "cpuSet", cpuBinding.Spec.CPUSet)
-	return framework.NewStatus(framework.Success)
-}
+	logger.Info("pod scheduled", "pod", fmt.Sprintf("%s/%s", pod.Namespace, pod.Name), "node", nodeName, "cpuSet", cpuBinding.Spec.CPUSet)
 
-func (w *WorkloadAware) Unreserve(ctx context.Context, state *framework.CycleState, pod *corev1.Pod, nodeName string) {
+	return framework.NewStatus(framework.Success)
 }
 
 func (w *WorkloadAware) PreFilterExtensions() framework.PreFilterExtensions {

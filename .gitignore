@@ -26,4 +26,6 @@ Dockerfile.cross
 *~
 
 scheduler.conf
+scheduler.conf.minikube
+kubectl-view-allocations
 vendor/

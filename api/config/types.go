@@ -22,7 +22,6 @@ type Feature string
 
 var (
 	FeatureMemoryBoundExclusiveSockets Feature = "MemoryBoundExclusiveSockets"
-	FeatureMemoryBoundExclusiveCores   Feature = "MemoryBoundExclusiveCores"
 	FeaturePhysicalCores               Feature = "PhysicalCores"
 )
 

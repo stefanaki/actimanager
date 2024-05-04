@@ -17,13 +17,15 @@ profiles:
       score:
         enabled:
           - name: WorkloadAware
-      reserve:
+      bind:
         enabled:
           - name: WorkloadAware
+        disabled:
+            - name: '*'
     pluginConfig:
       - name: WorkloadAware
         args:
-          policy: MaximumUtilization
+          policy: Balanced
           features:
 #            - PhysicalCores
 #            - MemoryBoundExclusiveSockets

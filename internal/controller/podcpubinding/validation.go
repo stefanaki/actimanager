@@ -7,7 +7,6 @@ import (
 	pcbutils "cslab.ece.ntua.gr/actimanager/internal/pkg/utils/podcpubinding"
 	"fmt"
 	"golang.org/x/exp/maps"
-
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
@@ -42,6 +41,7 @@ func (r *PodCPUBindingReconciler) validatePodName(ctx context.Context, cpuBindin
 	if err != nil {
 		return false, "", "", fmt.Errorf("error getting pod: %v", err)
 	}
+
 	return true, "", "", nil
 }
 
@@ -49,11 +49,11 @@ func (r *PodCPUBindingReconciler) validatePodName(ctx context.Context, cpuBindin
 // node is available and if the specified CPU set is valid
 func (r *PodCPUBindingReconciler) validateTopology(ctx context.Context, cpuBinding *v1alpha1.PodCPUBinding,
 	topology *v1alpha1.NodeCPUTopology, pod *corev1.Pod) (bool, v1alpha1.PodCPUBindingResourceStatus, string, error) {
+
 	// Get NodeCPUTopology of node
 	topologies := &v1alpha1.NodeCPUTopologyList{}
 	err := r.List(ctx,
-		topologies,
-		client.MatchingFields{"spec.nodeName": pod.Spec.NodeName})
+		topologies, client.MatchingFields{"spec.nodeName": pod.Spec.NodeName})
 
 	if errors.IsNotFound(err) {
 		return false, v1alpha1.StatusNodeTopologyNotFound, fmt.Sprintf("topology for node %v not found", pod.Spec.NodeName), nil
@@ -61,6 +61,7 @@ func (r *PodCPUBindingReconciler) validateTopology(ctx context.Context, cpuBindi
 	if err != nil {
 		return false, "", "", fmt.Errorf("error listing CPU topologies: %v", err.Error())
 	}
+
 	*topology = topologies.Items[0]
 	// Check if specified cpuset is available in the node topology
 	if !nctutils.CPUSetInTopology(&topology.Spec.Topology, cpuBinding.Spec.CPUSet) {
@@ -94,7 +95,6 @@ func (r *PodCPUBindingReconciler) validateExclusivenessLevel(ctx context.Context
 			continue
 		}
 		if pcb.Status.ResourceStatus != v1alpha1.StatusApplied &&
-			pcb.Status.ResourceStatus != v1alpha1.StatusBindingPending &&
 			pcb.Status.ResourceStatus != v1alpha1.StatusValidated {
 			continue
 		}

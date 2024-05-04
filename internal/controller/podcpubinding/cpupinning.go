@@ -8,6 +8,7 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/log"
+	"time"
 )
 
 // applyCPUPinning applies CPU pinning for a given pod on a specified node
@@ -15,15 +16,11 @@ func (r *PodCPUBindingReconciler) applyCPUPinning(
 	ctx context.Context,
 	cpuSet []int,
 	memSet []int,
-	pod *corev1.Pod) error {
+	pod *corev1.Pod,
+	ip string) error {
 	logger := log.FromContext(ctx).WithName("apply-pinning")
 
-	nodeAddress, err := r.getNodeAddress(ctx, pod.Spec.NodeName)
-	if err != nil {
-		return err
-	}
-
-	conn, err := grpc.Dial(fmt.Sprintf("%v:8089", nodeAddress), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.Dial(fmt.Sprintf("%v:8089", ip), grpc.WithTransportCredentials(insecure.NewCredentials()))
 
 	if err != nil {
 		return fmt.Errorf("failed to connect to gRPC server: %v", err.Error())
@@ -37,7 +34,7 @@ func (r *PodCPUBindingReconciler) applyCPUPinning(
 		CpuSet: convertIntSliceToInt32(cpuSet),
 		MemSet: convertIntSliceToInt32(memSet),
 	}
-	logger.Info("Requesting CPU pinning", "request", applyCPUPinningRequest)
+	logger.Info("Requesting pinning", "pod", fmt.Sprintf("%v/%v", pod.Namespace, pod.Name), "cpuset", cpuSet, "memset", memSet)
 
 	res, err := cpuPinningClient.ApplyPinning(ctx, applyCPUPinningRequest)
 	if err != nil {
@@ -48,6 +45,7 @@ func (r *PodCPUBindingReconciler) applyCPUPinning(
 		return fmt.Errorf("failed to apply CPU pinning: unknown error")
 	}
 
+	time.Sleep(2 * time.Second)
 	return nil
 }
 
@@ -67,7 +65,7 @@ func (r *PodCPUBindingReconciler) removeCPUPinning(
 
 	cpuPinningClient := cpupinning.NewCPUPinningClient(conn)
 	removeCPUPinningRequest := &cpupinning.RemovePinningRequest{Pod: cpupinning.ParsePodInfo(pod)}
-	logger.Info("Removing CPU pinning", "request", removeCPUPinningRequest)
+	logger.Info("Remove pinning", "pod", fmt.Sprintf("%v/%v", pod.Namespace, pod.Name))
 
 	res, err := cpuPinningClient.RemovePinning(ctx, removeCPUPinningRequest)
 	if err != nil {
@@ -78,6 +76,7 @@ func (r *PodCPUBindingReconciler) removeCPUPinning(
 		return fmt.Errorf("failed to remove CPU pinning: unknown error")
 	}
 
+	time.Sleep(2 * time.Second)
 	return nil
 }
 

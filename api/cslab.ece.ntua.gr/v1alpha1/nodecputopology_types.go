@@ -23,8 +23,9 @@ type NodeCPUTopologySpec struct {
 
 // NodeCPUTopologyStatus defines the observed state of NodeCPUTopology
 type NodeCPUTopologyStatus struct {
-	//+kubebuilder:validation:Required
 	ResourceStatus NodeCPUTopologyResourceStatus `json:"resourceStatus"`
+	//+kubebuilder:validation:Optional
+	InternalIP string `json:"internalIP"`
 }
 
 // +genclient

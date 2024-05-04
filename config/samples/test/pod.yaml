@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: podpod
+  namespace: benchmarks
+spec:
+  nodeName: node-4
+  restartPolicy: Never
+  containers:
+    - name: benchmark
+      image: spirals/parsec-3.0
+      imagePullPolicy: IfNotPresent
+      resources:
+        requests:
+          cpu: "2"
+        limits:
+          cpu: "2"
+      command:
+        - /bin/bash
+        - "-c"
+        - sleep 9999999999999999

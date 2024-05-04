@@ -98,6 +98,8 @@ spec:
           status:
             description: NodeCPUTopologyStatus defines the observed state of NodeCPUTopology
             properties:
+              internalIP:
+                type: string
               resourceStatus:
                 type: string
             required:

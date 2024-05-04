@@ -25,6 +25,7 @@ import (
 // with apply.
 type NodeCPUTopologyStatusApplyConfiguration struct {
 	ResourceStatus *v1alpha1.NodeCPUTopologyResourceStatus `json:"resourceStatus,omitempty"`
+	InternalIP     *string                                 `json:"internalIP,omitempty"`
 }
 
 // NodeCPUTopologyStatusApplyConfiguration constructs an declarative configuration of the NodeCPUTopologyStatus type for use with
@@ -38,5 +39,13 @@ func NodeCPUTopologyStatus() *NodeCPUTopologyStatusApplyConfiguration {
 // If called multiple times, the ResourceStatus field is set to the value of the last call.
 func (b *NodeCPUTopologyStatusApplyConfiguration) WithResourceStatus(value v1alpha1.NodeCPUTopologyResourceStatus) *NodeCPUTopologyStatusApplyConfiguration {
 	b.ResourceStatus = &value
+	return b
+}
+
+// WithInternalIP sets the InternalIP field in the declarative configuration to the given value
+// and returns the receiver, so that objects can be built by chaining "With" function invocations.
+// If called multiple times, the InternalIP field is set to the value of the last call.
+func (b *NodeCPUTopologyStatusApplyConfiguration) WithInternalIP(value string) *NodeCPUTopologyStatusApplyConfiguration {
+	b.InternalIP = &value
 	return b
 }

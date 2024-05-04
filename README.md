@@ -18,17 +18,17 @@ This repository is a framework for fine-grained orchestration of Kubernetes Pods
         name: benchpod-1-binding
         namespace: benchmarks
       spec:
-        exclusivenessLevel: Core
+        exclusivenessLevel: Core  # None, CPU, Core, Socket, NUMA
         podName: benchpod-3
         cpuSet:
           - cpuID: 10
           - cpuID: 12
       ```
 - **Controller - Manager**
-    - Watches for changes in the CRD's and takes action accordingly.
+    - Watches for changes in the CRD's and reconciles them.
 - **Custom Scheduler**
   - A custom scheduler that schedules Pods based on the CRD's.
-  - Implements multiple scheduling policies for different use cases.
+  - Implements the `WorkloadAware` plugin, which schedules and binds Pods based on the workload family they belong in (MemoryBound, CPUBound, IOBound, BestEffort).
 - **Daemon**
     - A gRPC server that runs on each node as a DaemonSet.
     - Exposes `Topology` and `CPUPinning` services to interact with each node.
@@ -60,11 +60,12 @@ This repository is a framework for fine-grained orchestration of Kubernetes Pods
     
     ```yaml
      args:
-       - '--node-name=$(NODE_NAME)'
-       - '--container-runtime=docker' # containerd, kind
-       - '--cgroups-path=/cgroup'
-       - '--cgroups-driver=systemd' # cgroupfs
-       - '--reconcile-period=15s'
+        - '--node-name=$(NODE_NAME)'
+        - '--container-runtime=containerd'  # containerd, docker, kind
+        - '--cgroups-path=/cgroup'
+        - '--cgroups-driver=systemd'        # systemd, cgroupfs
+        - '--reconcile-period=15s'
+        - '--verbosity=3'
     ```
 3. Install the components on the cluster.
 

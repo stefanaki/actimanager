@@ -125,6 +125,17 @@ func DeleteCPUFromTopology(topology *v1alpha1.CPUTopology, cpuID int) {
 	}
 }
 
+func CoresInTopology(topology *v1alpha1.CPUTopology) []int {
+	cores := make([]int, 0)
+	for _, socket := range topology.Sockets {
+		for coreID := range socket.Cores {
+			id, _ := strconv.Atoi(coreID)
+			cores = append(cores, id)
+		}
+	}
+	return cores
+}
+
 func AvailableResources(level v1alpha1.ResourceLevel, feasibleCPUs v1alpha1.CPUTopology, topology v1alpha1.CPUTopology) []int {
 	switch level {
 	case v1alpha1.ResourceLevelCPU:

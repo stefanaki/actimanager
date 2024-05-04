@@ -128,7 +128,6 @@ func (c CPUPinningController) reconcilePodsWithSharedResources(pod *cpupinning.P
 	for _, binding := range cpuBindings {
 		cpuBoundPods[fmt.Sprintf("%s/%s", binding.Namespace, binding.Spec.PodName)] = struct{}{}
 		if binding.Status.ResourceStatus != v1alpha1.StatusApplied &&
-			binding.Status.ResourceStatus != v1alpha1.StatusBindingPending &&
 			binding.Status.ResourceStatus != v1alpha1.StatusValidated {
 			continue
 		}
