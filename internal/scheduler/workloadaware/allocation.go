@@ -1,6 +1,7 @@
 package workloadaware
 
 import (
+	"cslab.ece.ntua.gr/actimanager/api/config"
 	"cslab.ece.ntua.gr/actimanager/api/cslab.ece.ntua.gr/v1alpha1"
 	pcbutils "cslab.ece.ntua.gr/actimanager/internal/pkg/utils/podcpubinding"
 	"golang.org/x/exp/maps"
@@ -18,9 +19,14 @@ type AllocatableCPU struct {
 
 type NodeAllocatableCPUs map[int]AllocatableCPU
 
-func allocatableCPUsForNode(nodeName string, t *v1alpha1.CPUTopology, b *v1alpha1.PodCPUBindingList) NodeAllocatableCPUs {
+func allocatableCPUsForNode(
+	nodeName string,
+	topology *v1alpha1.CPUTopology,
+	bindings *v1alpha1.PodCPUBindingList,
+	workloadType string,
+) NodeAllocatableCPUs {
 	res := make(map[int]AllocatableCPU)
-	for socketID, socket := range t.Sockets {
+	for socketID, socket := range topology.Sockets {
 		for coreID, core := range socket.Cores {
 			for _, cpuID := range core.CPUs {
 				res[cpuID] = AllocatableCPU{
@@ -34,12 +40,15 @@ func allocatableCPUsForNode(nodeName string, t *v1alpha1.CPUTopology, b *v1alpha
 		}
 	}
 
-	for _, binding := range b.Items {
+	for _, binding := range bindings.Items {
 		if binding.Status.NodeName != nodeName {
 			continue
 		}
 		if binding.Status.ResourceStatus != v1alpha1.StatusApplied &&
 			binding.Status.ResourceStatus != v1alpha1.StatusValidated {
+			continue
+		}
+		if binding.Spec.ExclusivenessLevel == v1alpha1.ResourceLevelNone && workloadType != config.WorkloadTypeBestEffort {
 			continue
 		}
 
@@ -51,7 +60,7 @@ func allocatableCPUsForNode(nodeName string, t *v1alpha1.CPUTopology, b *v1alpha
 				res[cpu] = x
 			}
 		} else {
-			cpus := pcbutils.ExclusiveCPUsOfCPUBinding(&binding, t)
+			cpus := pcbutils.ExclusiveCPUsOfCPUBinding(&binding, topology)
 			for cpu := range cpus {
 				delete(res, cpu)
 			}
@@ -261,6 +270,10 @@ func cpuSetForBestEffort(state *State, nodeName string, fullCores bool) []v1alph
 				if !coreAllocatable {
 					continue
 				}
+
+				var nonSharedCPUS []int
+				var sharedCPUs []int
+
 				for _, cpu := range core.CPUs {
 					if _, ok := allocatable[cpu]; !ok {
 						continue
@@ -268,11 +281,31 @@ func cpuSetForBestEffort(state *State, nodeName string, fullCores bool) []v1alph
 					if _, ok := cpuSet[cpu]; ok {
 						continue
 					}
+					// Split shared and non-shared CPUs
+					if allocatable[cpu].Shared {
+						sharedCPUs = append(sharedCPUs, cpu)
+					} else {
+						nonSharedCPUS = append(nonSharedCPUS, cpu)
+					}
+				}
+				// Allocate non-shared CPUs first
+				for _, cpu := range nonSharedCPUS {
 					cpuSet[cpu] = struct{}{}
 					if done(cpuSet, cpuRequests) {
 						break
 					}
 				}
+				if done(cpuSet, cpuRequests) {
+					break
+				}
+				// Allocate shared CPUs next if needed
+				for _, cpu := range sharedCPUs {
+					cpuSet[cpu] = struct{}{}
+					if done(cpuSet, cpuRequests) {
+						break
+					}
+				}
+
 				if done(cpuSet, cpuRequests) {
 					break
 				}

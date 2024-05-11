@@ -1,0 +1,5 @@
+resources:
+  - benchpod-11.yaml
+  - benchpod-12.yaml
+  - benchpod-13.yaml
+  - benchpod-14.yaml

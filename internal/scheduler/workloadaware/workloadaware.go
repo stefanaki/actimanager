@@ -20,23 +20,6 @@ import (
 	"time"
 )
 
-// WorkloadAware is a Scheduler Plugin that takes into account the workload type of a Pod
-// to make scheduling and resource binding decisions, based on the following classification:
-// 	- MemoryBound: Workloads that require as many memory nodes (sockets) as possible
-// 	- CPUBound: Workloads with execution time that depends on the available CPU resources
-// 	- IOBound: Workloads that have threads with high IO wait time
-// 	- BestEffort: Workloads that place every thread on the same logical CPU (oversubscription)
-
-// Resource allocation based on the workload type:
-// 	- MemoryBound: Place threads on different memory nodes (sockets)
-// 	- CPUBound: Place threads on different, non-utilized cores, preferably on the same socket
-// 	- IOBound: Place threads on the same physical core, or utilize more cores if needed
-// 	- BestEffort: Place every thread on the same logical CPU
-
-// Extra features:
-// 	- PhysicalCores: Use only physical cores for scheduling
-// 	- MemoryBoundExclusiveSockets: Allocate memory nodes (sockets) exclusively for MemoryBound workloads
-
 const Name string = "WorkloadAware"
 
 type WorkloadAware struct {
@@ -113,7 +96,7 @@ func (w *WorkloadAware) PreFilter(ctx context.Context, state *framework.CycleSta
 			continue
 		}
 		nodes.Insert(t.Spec.NodeName)
-		stateData.AllocatableCPUs[t.Spec.NodeName] = allocatableCPUsForNode(t.Spec.NodeName, &t.Spec.Topology, cpuBindings)
+		stateData.AllocatableCPUs[t.Spec.NodeName] = allocatableCPUsForNode(t.Spec.NodeName, &t.Spec.Topology, cpuBindings, workloadType)
 		stateData.Topologies[t.Spec.NodeName] = t.Spec.Topology
 	}
 
@@ -275,11 +258,16 @@ func (w *WorkloadAware) Bind(ctx context.Context, state *framework.CycleState, p
 
 	var featureFullCores = slices.Contains(w.args.Features, config.FeaturePhysicalCores)
 	var featureMemoryBoundExclusiveSockets = slices.Contains(w.args.Features, config.FeatureMemoryBoundExclusiveSockets)
+	var featureBestEffortSharedCPUs = slices.Contains(w.args.Features, config.FeatureBestEffortSharedCPUs)
+
 	if featureFullCores {
 		exclusivenessLevel = v1alpha1.ResourceLevelCore
 	}
-	if stateData.WorkloadType == config.WorkloadTypeMemoryBound && featureMemoryBoundExclusiveSockets {
+	if featureMemoryBoundExclusiveSockets && stateData.WorkloadType == config.WorkloadTypeMemoryBound {
 		exclusivenessLevel = v1alpha1.ResourceLevelSocket
+	}
+	if featureBestEffortSharedCPUs && stateData.WorkloadType == config.WorkloadTypeBestEffort {
+		exclusivenessLevel = v1alpha1.ResourceLevelNone
 	}
 
 	switch stateData.WorkloadType {

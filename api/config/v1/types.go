@@ -16,6 +16,7 @@ type Feature string
 const (
 	FeaturePhysicalCores               Feature = "PhysicalCores"
 	FeatureMemoryBoundExclusiveSockets Feature = "MemoryBoundExclusiveSockets"
+	FeatureBestEffortSharedCPUs        Feature = "BestEffortSharedCPUs"
 )
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

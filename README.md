@@ -28,7 +28,7 @@ This repository is a framework for fine-grained orchestration of Kubernetes Pods
     - Watches for changes in the CRD's and reconciles them.
 - **Custom Scheduler**
   - A custom scheduler that schedules Pods based on the CRD's.
-  - Implements the `WorkloadAware` plugin, which schedules and binds Pods based on the workload family they belong in (MemoryBound, CPUBound, IOBound, BestEffort).
+  - Implements the [`WorkloadAware`](internal/scheduler/workloadaware) plugin, which schedules and binds Pods based on the workload family they belong in (MemoryBound, CPUBound, IOBound, BestEffort).
 - **Daemon**
     - A gRPC server that runs on each node as a DaemonSet.
     - Exposes `Topology` and `CPUPinning` services to interact with each node.

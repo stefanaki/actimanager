@@ -23,6 +23,7 @@ type Feature string
 var (
 	FeatureMemoryBoundExclusiveSockets Feature = "MemoryBoundExclusiveSockets"
 	FeaturePhysicalCores               Feature = "PhysicalCores"
+	FeatureBestEffortSharedCPUs        Feature = "BestEffortSharedCPUs"
 )
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

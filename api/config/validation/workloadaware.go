@@ -14,6 +14,7 @@ var validWorkloadAwarePolicies = sets.NewString(
 var validWorkloadAwareFeatures = sets.NewString(
 	string(config.FeatureMemoryBoundExclusiveSockets),
 	string(config.FeaturePhysicalCores),
+	string(config.FeatureBestEffortSharedCPUs),
 )
 
 func ValidateWorkloadAwareArgs(path *field.Path, args *config.WorkloadAwareArgs) error {
