@@ -25,7 +25,7 @@ profiles:
     pluginConfig:
       - name: WorkloadAware
         args:
-          policy: MaximumUtilization
+          policy: Balanced
           features:
             - PhysicalCores
             - BestEffortSharedCPUs

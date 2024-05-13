@@ -164,28 +164,28 @@ func (w *WorkloadAware) Score(ctx context.Context, state *framework.CycleState, 
 		// so we just need to count the number of sockets
 		numAllocatableSockets := len(allocatableSockets(allocatable, featureMemoryBoundExclusiveSockets))
 		numAllSockets := len(stateData.Topologies[nodeName].Sockets)
-		score = int64(math.Ceil(float64(numAllocatableSockets)/float64(numAllSockets)*100)) + int64(numAllocatableSockets)
+		score = int64(math.Ceil(float64(numAllocatableSockets)/float64(numAllSockets)*10000)) + int64(numAllocatableSockets)
 	case config.WorkloadTypeCPUBound:
 		// CPUBound workloads place threads on different, non-utilized cores, to avoid interference
 		numAllocatableCores := len(allocatableCores(allocatable, true))
 		numAllCores := len(nctutils.CoresInTopology(&topology))
-		score = int64(math.Ceil(float64(numAllocatableCores)/float64(numAllCores))*100) + int64(numAllocatableCores)
+		score = int64(math.Ceil(float64(numAllocatableCores)/float64(numAllCores))*10000) + int64(numAllocatableCores)
 	case config.WorkloadTypeIOBound:
 		// IOBound workloads place threads on the same physical core
 		numAllocatableCores := len(allocatableCores(allocatable, featurePhysicalCores))
 		numAllCores := len(nctutils.CoresInTopology(&topology))
-		score = int64(math.Ceil(float64(numAllocatableCores)/float64(numAllCores)*100)) + int64(numAllocatableCores)
+		score = int64(math.Ceil(float64(numAllocatableCores)/float64(numAllCores)*10000)) + int64(numAllocatableCores)
 	case config.WorkloadTypeBestEffort:
 		// BestEffort workloads place every thread on the same logical CPU
 		// So we need the number of all logical CPUs
 		if featurePhysicalCores {
 			numAllocatableCores := len(allocatableCores(allocatable, true))
 			numAllCores := len(nctutils.CoresInTopology(&topology))
-			score = int64(math.Ceil(float64(numAllocatableCores)/float64(numAllCores))*100) + int64(numAllocatableCores)
+			score = int64(math.Ceil(float64(numAllocatableCores)/float64(numAllCores))*10000) + int64(numAllocatableCores)
 		} else {
 			numAllocatableCPUs := len(allocatable)
 			numAllCPUs := len(stateData.Topologies[nodeName].CPUs)
-			score = int64(math.Ceil(float64(numAllocatableCPUs)/float64(numAllCPUs))*100) + int64(numAllocatableCPUs)
+			score = int64(math.Ceil(float64(numAllocatableCPUs)/float64(numAllCPUs))*10000) + int64(numAllocatableCPUs)
 		}
 	}
 
