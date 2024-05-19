@@ -17,7 +17,7 @@ func NewCPUPinningServer(controller *CPUPinningController) *Server {
 	return &Server{Controller: controller}
 }
 
-// ApplyPinning applies CPU pinning based on the provided request.
+// ApplyPinning applies the requested CPU pinning on the containers of a Pod.
 func (s Server) ApplyPinning(ctx context.Context, request *cpupinning.ApplyPinningRequest) (*cpupinning.Response, error) {
 	pod := request.GetPod()
 	cpuSet := ConvertIntSliceToString(request.CpuSet)
@@ -34,7 +34,7 @@ func (s Server) ApplyPinning(ctx context.Context, request *cpupinning.ApplyPinni
 	}, nil
 }
 
-// RemovePinning removes the CPU pinning configuration.
+// RemovePinning removes the CPU pinning of the containers of a Pod.
 func (s Server) RemovePinning(ctx context.Context, request *cpupinning.RemovePinningRequest) (*cpupinning.Response, error) {
 	if err := s.Controller.Remove(request.GetPod()); err != nil {
 		return &cpupinning.Response{

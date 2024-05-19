@@ -27,6 +27,6 @@ profiles:
         args:
           policy: Balanced
           features:
-            - PhysicalCores
+#            - PhysicalCores
             - BestEffortSharedCPUs
 #            - MemoryBoundExclusiveSockets

@@ -60,8 +60,7 @@ func NewCPUPinningController(containerRuntime ContainerRuntime,
 	return &c, nil
 }
 
-// UpdateCPUSet updates the CPU and memory sets, quota, shares, and period for a given container.
-// It updates the CPU and memory sets using the cgroups controller.
+// UpdateCPUSet updates the cpus, mems, quota, shares, and period for a given container.
 func (c CPUPinningController) UpdateCPUSet(container ContainerInfo, cSet string, memSet string, quota *int64, shares, period *uint64) error {
 	runtimeURLPrefix := [2]string{"docker://", "containerd://"}
 	if c.containerRuntime == Kind || c.containerRuntime != Kind &&
@@ -70,11 +69,10 @@ func (c CPUPinningController) UpdateCPUSet(container ContainerInfo, cSet string,
 		c.logger.V(5).Info("allocating cgroup", "cgroupPath", c.cgroupsController.CgroupsPath, "slicePath", slice, "cpuSet", cSet, "memSet", memSet)
 		return c.cgroupsController.UpdateCPUSet(slice, cSet, memSet, quota, shares, period)
 	}
-
 	return nil
 }
 
-// Apply updates the CPU set of the container, reconciling with the CPU bindings of other pods.
+// Apply updates the CPU set of the container and sets the shared resources to the non-bound Pods.
 func (c CPUPinningController) Apply(pod *cpupinning.Pod, cpuSet string, memSet string) error {
 	if err := c.reconcilePodsWithSharedResources(pod, false); err != nil {
 		return fmt.Errorf("failed to reconcile pods with shared resources: %v", err)
@@ -102,8 +100,7 @@ func (c CPUPinningController) Apply(pod *cpupinning.Pod, cpuSet string, memSet s
 	return nil
 }
 
-// Remove removes the given pod from the CPU pinning controller.
-// It reconciles the pods with shared resources and returns an error if reconciliation fails.
+// Remove removes the container's allocated CPU resources and sets the shared resources to the non-bound Pods.
 func (c CPUPinningController) Remove(pod *cpupinning.Pod) error {
 	err := c.reconcilePodsWithSharedResources(pod, true)
 	if err != nil {
@@ -112,12 +109,9 @@ func (c CPUPinningController) Remove(pod *cpupinning.Pod) error {
 	return nil
 }
 
-// reconcilePodsWithSharedResources reconciles the CPU bindings for pods that share resources.
-// It takes a pod and a boolean flag indicating whether to remove the pod's CPU binding.
-// The function retrieves the shared CPUs from the CPU topology, gets the CPU bindings for the node,
-// and iterates through the bindings to update the shared CPUs.
-// It then retrieves the pods for the node and iterates through them to update the CPU bindings
-// for the containers that are ready.
+// reconcilePodsWithSharedResources sets the shared cgroup resources to all the non-bound Pods.
+// It excludes all the exclusively allocated CPUs and memory nodes of the node and applies the
+// remaining resources to the rest of the Pods that are running on the node.
 func (c CPUPinningController) reconcilePodsWithSharedResources(pod *cpupinning.Pod, rm bool) error {
 	sharedCPUs := c.cpuTopology.DeepCopy().CPUs
 	cpuBindings, err := c.podCPUBindingClient.PodCPUBindingsForNode(c.nodeName)

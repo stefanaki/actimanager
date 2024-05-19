@@ -1,0 +1,5 @@
+resources:
+  - vips.yaml
+  - x264.yaml
+  - canneal.yaml
+  - facesim.yaml

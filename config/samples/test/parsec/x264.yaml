@@ -1,0 +1,39 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: x264-pod
+  namespace: benchmarks
+  labels:
+    cslab.ece.ntua.gr/workload-type: cpu-bound
+spec:
+  schedulerName: maestro
+#  nodeName: node-4
+  restartPolicy: Never
+  containers:
+    - name: benchmark
+      image: spirals/parsec-3.0
+      resources:
+        limits:
+          cpu: "2"
+          memory: "3Gi"
+        requests:
+          cpu: "2"
+          memory: "3Gi"
+      volumeMounts:
+        - name: logs
+          mountPath: /mnt/logs
+      command:
+        - /bin/bash
+        - "-c"
+        - |
+          ./run \
+          -a run \
+          -p parsec.x264 \
+          -c gcc \
+          -n 2 \
+          -i native \
+          | tee -a /mnt/logs/run-parsec-x264-gcc-n2-c2-native.log
+  volumes:
+    - name: logs
+      persistentVolumeClaim:
+        claimName: benchmarks-logs-pvc
