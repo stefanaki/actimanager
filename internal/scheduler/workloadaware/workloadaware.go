@@ -70,7 +70,7 @@ func (w *WorkloadAware) PreFilter(ctx context.Context, state *framework.CycleSta
 	}
 
 	// Wait for previous PodCPUBindings to be validated
-	time.Sleep(5 * time.Second)
+	time.Sleep(4 * time.Second)
 
 	stateData := &State{
 		WorkloadType:    workloadType,

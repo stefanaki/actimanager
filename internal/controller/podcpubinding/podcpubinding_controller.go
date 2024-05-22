@@ -55,6 +55,8 @@ var eventFilters = builder.WithPredicates(predicate.Funcs{
 func (r *PodCPUBindingReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	logger := log.FromContext(ctx).WithName("pcb-controller")
 
+	time.Sleep(2 * time.Second)
+
 	// Get PodCPUBinding CR
 	cpuBinding := &v1alpha1.PodCPUBinding{}
 
@@ -96,6 +98,7 @@ func (r *PodCPUBindingReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		if err != nil {
 			return ctrl.Result{}, fmt.Errorf("error getting pod: %v", err.Error())
 		}
+
 		if err := r.removeCPUPinning(ctx, pod); err != nil {
 			return ctrl.Result{}, fmt.Errorf("error removing cpu pinning: %v", err.Error())
 		}
@@ -143,6 +146,7 @@ func (r *PodCPUBindingReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 
 	// Handle reconciliation
 	// Apply CPU pinning
+
 	ip := topology.Status.InternalIP
 	cpuSet := pcbutils.CPUSliceToIntSlice(cpuBinding.Spec.CPUSet)
 	memSet := nctutils.NUMANodesForCPUSet(cpuSet, &topology.Spec.Topology)

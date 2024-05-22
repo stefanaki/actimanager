@@ -8,7 +8,6 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/log"
-	"time"
 )
 
 // applyCPUPinning applies CPU pinning for a given pod on a specified node
@@ -45,7 +44,6 @@ func (r *PodCPUBindingReconciler) applyCPUPinning(
 		return fmt.Errorf("failed to apply CPU pinning: unknown error")
 	}
 
-	time.Sleep(2 * time.Second)
 	return nil
 }
 
@@ -76,7 +74,6 @@ func (r *PodCPUBindingReconciler) removeCPUPinning(
 		return fmt.Errorf("failed to remove CPU pinning: unknown error")
 	}
 
-	time.Sleep(2 * time.Second)
 	return nil
 }
 

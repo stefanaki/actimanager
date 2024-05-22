@@ -6,8 +6,8 @@ metadata:
   labels:
     cslab.ece.ntua.gr/workload-type: cpu-bound
 spec:
-#  schedulerName: maestro
-  nodeName: node-4
+  schedulerName: maestro
+  # nodeName: node-4
   containers:
     - name: graph-analytics-container
       image: ioannispapadakis/graph-analytics:latest

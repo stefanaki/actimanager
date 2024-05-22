@@ -4,7 +4,7 @@ metadata:
   name: podpod
   namespace: benchmarks
 spec:
-  nodeName: node-4
+#  nodeName: node-4
   restartPolicy: Never
   containers:
     - name: benchmark
