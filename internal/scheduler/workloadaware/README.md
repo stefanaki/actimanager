@@ -2,7 +2,7 @@
 
 The WorkloadAware plugin is designed to make scheduling and resource binding decisions based on the workload type of a Pod. It classifies workloads into four categories:
 
-- **MemoryBound:** Workloads that require as many memory nodes (sockets) as possible.
+- **MemoryBound:** Workloads with execution time that depends on the available memory bandwidth.
 - **CPUBound:** Workloads with execution time that depends on the available CPU resources.
 - **IOBound:** Workloads that have threads with high IO wait time.
 - **BestEffort:** Workloads that place every thread on the same logical CPU (oversubscription).
