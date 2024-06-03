@@ -27,24 +27,12 @@ func main() {
 	flag.Parse()
 
 	var logger = createLogger(verbosity)
-	defer func() {
-		err := recover()
-		if err != nil {
-			logger.Info("Fatal error", "value", err)
-		}
-	}()
+	defer handlePanic(logger)
 
-	logger.Info(
-		"args",
-		"runtime", runtime,
-		"nodeName", nodeName,
-		"driver", driver,
-		"cgroupsPath", cgroupsPath,
-		"reconcilePeriod", reconcilePeriod,
-	)
+	logger.Info("args", "runtime", runtime, "nodeName", nodeName, "driver", driver, "cgroupsPath", cgroupsPath, "reconcilePeriod", reconcilePeriod)
 
-	var err error
-	stopChannel := make(chan struct{})
+	stopCh1, stopCh2 := make(chan struct{}), make(chan struct{})
+
 	coreClient, err := clients.NewClient()
 	cslabClient, err := clients.NewCSLabClient()
 	podCPUBindingClient, err := client.NewPodCPUBindingClient(*cslabClient, logger)
@@ -53,18 +41,20 @@ func main() {
 		logger.Error(err, "cannot create clients")
 		os.Exit(1)
 	}
-	err = podCPUBindingClient.Start(&stopChannel)
-	err = podClient.Start(&stopChannel)
+
+	err = podCPUBindingClient.Start(&stopCh1)
+	err = podClient.Start(&stopCh2)
 	if err != nil {
 		logger.Error(err, "cannot start the clients")
 		os.Exit(1)
 	}
+
 	cpuTopology, err := getCPUTopology()
 	if err != nil {
 		logger.Error(err, "cannot get cpu topology")
 		os.Exit(1)
 	}
-	logger.Info("cpu topology", "topology", cpuTopology)
+
 	containerRuntime := cpupinning.ParseRuntime(*runtime)
 	cgroupsDriver := cpupinning.ParseCgroupsDriver(*driver)
 	cpuPinningController, err := cpupinning.NewCPUPinningController(
@@ -82,6 +72,7 @@ func main() {
 		logger.Error(err, "cannot create cpu pinnning controller")
 		os.Exit(1)
 	}
+
 	cpuPinningServer := cpupinning.NewCPUPinningServer(cpuPinningController)
 	topologyServer := topology.NewTopologyServer()
 	daemonServer := NewDaemonServer(":8089", cpuPinningServer, topologyServer, logger)
@@ -100,7 +91,8 @@ func main() {
 	daemonServer.Stop()
 	podCPUBindingClient.Stop()
 	podClient.Stop()
-	close(stopChannel)
+	close(stopCh1)
+	close(stopCh2)
 }
 
 func createLogger(verbosity *int) logr.Logger {
@@ -117,4 +109,10 @@ func getCPUTopology() (*v1alpha1.CPUTopology, error) {
 		return nil, err
 	}
 	return nctutils.TopologyToV1Alpha1(t), nil
+}
+
+func handlePanic(logger logr.Logger) {
+	if err := recover(); err != nil {
+		logger.Info("Fatal error", "value", err)
+	}
 }
