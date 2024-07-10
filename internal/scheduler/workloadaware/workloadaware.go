@@ -195,7 +195,7 @@ func (w *WorkloadAware) Score(ctx context.Context, state *framework.CycleState, 
 		// In MaximumUtilization we should favor nodes with the least capacity in resources
 		score = math.MaxInt64 - score
 	case config.PolicyBalanced:
-		// Balanced policy does not require any further action
+		// Balanced policy does not require further action
 	}
 
 	logger.Info("scored node", "score", score)
@@ -272,7 +272,7 @@ func (w *WorkloadAware) Bind(ctx context.Context, state *framework.CycleState, p
 
 	switch stateData.WorkloadType {
 	case config.WorkloadTypeMemoryBound:
-		cpuSet = cpuSetForMemoryBound(stateData, nodeName, featureMemoryBoundExclusiveSockets)
+		cpuSet = cpuSetForMemoryBound(stateData, nodeName, featureFullCores, featureMemoryBoundExclusiveSockets)
 	case config.WorkloadTypeCPUBound:
 		cpuSet = cpuSetForCPUBound(stateData, nodeName, featureFullCores)
 	case config.WorkloadTypeIOBound:

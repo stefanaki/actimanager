@@ -110,40 +110,100 @@ func allocatableCores(allocatable NodeAllocatableCPUs, full bool) []int {
 	return maps.Keys(cores)
 }
 
-func cpuSetForMemoryBound(state *State, nodeName string, fullSockets bool) []v1alpha1.CPU {
+func cpuSetForMemoryBound(state *State, nodeName string, fullCores, fullSockets bool) []v1alpha1.CPU {
 	cpuSet := make(map[int]struct{})
 	allocatable := state.AllocatableCPUs[nodeName]
 	cpuRequests := state.PodRequests.Cpu().MilliValue()
+	seenCores := make(map[string]struct{})
 
-	for !done(cpuSet, cpuRequests) {
-		for _, socket := range state.Topologies[nodeName].Sockets {
-			socketAllocatable := true
-			if fullSockets {
-				for _, cpu := range socket.CPUs {
+	// First try to allocate one thread per socket
+	for _, socket := range state.Topologies[nodeName].Sockets {
+		socketAllocated := false
+		// Check if whole socket is allocatable
+		socketAllocatable := true
+		if fullSockets {
+			for _, cpu := range socket.CPUs {
+				if _, ok := allocatable[cpu]; !ok {
+					socketAllocatable = false
+					break
+				}
+			}
+		}
+		if !socketAllocatable {
+			continue
+		}
+		for coreID, core := range socket.Cores {
+			// Check if whole physical core is allocatable
+			coreAllocatable := true
+			if fullCores {
+				for _, cpu := range core.CPUs {
 					if _, ok := allocatable[cpu]; !ok {
-						socketAllocatable = false
+						coreAllocatable = false
 						break
 					}
 				}
 			}
-			if !socketAllocatable {
+			if !coreAllocatable {
 				continue
 			}
-
-			socketAllocated := false
-			for _, core := range socket.Cores {
+			// Pick thread from physical core
+			for _, cpu := range core.CPUs {
+				if _, ok := allocatable[cpu]; !ok {
+					continue
+				}
+				if _, ok := cpuSet[cpu]; ok {
+					continue
+				}
+				cpuSet[cpu] = struct{}{}
+				seenCores[coreID] = struct{}{}
+				socketAllocated = true
+				break
+			}
+			if socketAllocated {
+				break
+			}
+		}
+		if done(cpuSet, cpuRequests) {
+			break
+		}
+	}
+	// Pick threads from already utilized sockets
+	for !done(cpuSet, cpuRequests) {
+		for _, socket := range state.Topologies[nodeName].Sockets {
+			for coreID, core := range socket.Cores {
+				// Check if whole physical core is allocatable
+				coreAllocatable := true
+				if fullCores {
+					for _, cpu := range core.CPUs {
+						if _, ok := allocatable[cpu]; !ok {
+							coreAllocatable = false
+							break
+						}
+					}
+				}
+				if !coreAllocatable {
+					continue
+				}
+				// Pick thread from physical core
+				coreAllocated := false
 				for _, cpu := range core.CPUs {
-					if _, ok := allocatable[cpu]; !ok {
+					alloc, ok := allocatable[cpu]
+					if !ok {
+						continue
+					}
+					// Skip seen cores
+					if _, ok := seenCores[alloc.CoreID]; ok {
 						continue
 					}
 					if _, ok := cpuSet[cpu]; ok {
 						continue
 					}
+					seenCores[coreID] = struct{}{}
 					cpuSet[cpu] = struct{}{}
-					socketAllocated = true
+					coreAllocated = true
 					break
 				}
-				if socketAllocated || done(cpuSet, cpuRequests) {
+				if coreAllocated || done(cpuSet, cpuRequests) {
 					break
 				}
 			}
@@ -152,7 +212,6 @@ func cpuSetForMemoryBound(state *State, nodeName string, fullSockets bool) []v1a
 			}
 		}
 	}
-
 	res := maps.Keys(cpuSet)
 	slices.Sort(res)
 	return pcbutils.IntSliceToCPUSlice(res)
