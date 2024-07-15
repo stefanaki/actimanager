@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: data-caching
+  namespace: benchmarks
+spec:
+  selector:
+    matchLabels:
+      app: data-caching
+  template:
+    metadata:
+      name: data-caching-pod
+      labels:
+        app: data-caching
+        cslab.ece.ntua.gr/workload-type: io-bound
+    spec:
+      schedulerName: maestro
+      containers:
+        - name: data-caching-server
+          image: cloudsuite/data-caching:server
+          args: ["-t 2 -m 4096 -n 220"]
+          resources:
+            requests:
+              cpu: "2"
+            limits:
+              cpu: "2"
+          ports:
+            - containerPort: 11211
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: data-caching-service
+  namespace: benchmarks
+spec:
+  type: NodePort
+  ports:
+    - name: port-0
+      port: 11211
+      targetPort: 11211
+      nodePort: 31211
+      protocol: TCP
+  selector:
+    app: data-caching

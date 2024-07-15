@@ -6,19 +6,16 @@ metadata:
   labels:
     cslab.ece.ntua.gr/workload-type: cpu-bound
 spec:
-# nodeName: node-4
-  schedulerName: maestro
+#  schedulerName: maestro
+  nodeName: node-4
   containers:
     - name: in-memory-analytics-container
       image: ioannispapadakis/in-memory-analytics:latest
-      volumeMounts:
-        - name: logs
-          mountPath: /mnt/logs
       resources:
         limits:
-          cpu: "8"
+          cpu: "2"
         requests:
-          cpu: "8"
+          cpu: "2"
       command:
         - /bin/bash
         - "-c"
@@ -26,206 +23,39 @@ spec:
           /root/entrypoint.sh \
           /data/ml-latest-small \
           /data/myratings.csv \
-          --executor-memory 16g
-          | tee -a /mnt/logs/in-memory-analytics.log
+          --driver-memory 1g \
+          --executor-memory 7g \
+          --num-executors 1
   #      args: [ "/data/ml-latest-small", "/data/myratings.csv", "--driver-memory", "8g", "--executor-memory", "8g", '--driver-cores', '2' ]
-  volumes:
-    - name: logs
-      persistentVolumeClaim:
-        claimName: benchmarks-logs-pvc
   restartPolicy: Never
 ---
-#apiVersion: v1
-#kind: Pod
-#metadata:
-#  name: in-memory-analytics-pod-2
-#  namespace: benchmarks
-#  labels:
-#    cslab.ece.ntua.gr/workload-type: memory-bound
-#spec:
-#  nodeName: node-4
-##  schedulerName: maestro
-#  containers:
-#    - name: in-memory-analytics-container
-#      image: ioannispapadakis/in-memory-analytics:latest
-#      volumeMounts:
-#        - name: logs
-#          mountPath: /mnt/logs
-#      resources:
-#        limits:
-#          cpu: "2"
-#        requests:
-#          cpu: "2"
-#      command:
-#        - /bin/bash
-#        - "-c"
-#        - |
-#          /root/entrypoint.sh \
-#          /data/ml-latest-small \
-#          /data/myratings.csv \
-#          --driver-memory 8g \
-#          --executor-memory 8g \
-#          --driver-cores 2 \
-#          | tee -a /mnt/logs/in-memory-analytics.log
-#  #      args: [ "/data/ml-latest-small", "/data/myratings.csv", "--driver-memory", "8g", "--executor-memory", "8g", '--driver-cores', '2' ]
-#  volumes:
-#    - name: logs
-#      persistentVolumeClaim:
-#        claimName: benchmarks-logs-pvc
-#  restartPolicy: Never
-#---
-#apiVersion: v1
-#kind: Pod
-#metadata:
-#  name: in-memory-analytics-pod-3
-#  namespace: benchmarks
-#  labels:
-#    cslab.ece.ntua.gr/workload-type: memory-bound
-#spec:
-#  nodeName: node-4
-##  schedulerName: maestro
-#  containers:
-#    - name: in-memory-analytics-container
-#      image: ioannispapadakis/in-memory-analytics:latest
-#      volumeMounts:
-#        - name: logs
-#          mountPath: /mnt/logs
-#      resources:
-#        limits:
-#          cpu: "2"
-#        requests:
-#          cpu: "2"
-#      command:
-#        - /bin/bash
-#        - "-c"
-#        - |
-#          /root/entrypoint.sh \
-#          /data/ml-latest-small \
-#          /data/myratings.csv \
-#          --driver-memory 8g \
-#          --executor-memory 8g \
-#          --driver-cores 2 \
-#          | tee -a /mnt/logs/in-memory-analytics.log
-#  #      args: [ "/data/ml-latest-small", "/data/myratings.csv", "--driver-memory", "8g", "--executor-memory", "8g", '--driver-cores', '2' ]
-#  volumes:
-#    - name: logs
-#      persistentVolumeClaim:
-#        claimName: benchmarks-logs-pvc
-#  restartPolicy: Never
-#---
-#apiVersion: v1
-#kind: Pod
-#metadata:
-#  name: in-memory-analytics-pod-4
-#  namespace: benchmarks
-#  labels:
-#    cslab.ece.ntua.gr/workload-type: memory-bound
-#spec:
-#  nodeName: node-4
-##  schedulerName: maestro
-#  containers:
-#    - name: in-memory-analytics-container
-#      image: ioannispapadakis/in-memory-analytics:latest
-#      volumeMounts:
-#        - name: logs
-#          mountPath: /mnt/logs
-#      resources:
-#        limits:
-#          cpu: "2"
-#        requests:
-#          cpu: "2"
-#      command:
-#        - /bin/bash
-#        - "-c"
-#        - |
-#          /root/entrypoint.sh \
-#          /data/ml-latest-small \
-#          /data/myratings.csv \
-#          --driver-memory 8g \
-#          --executor-memory 8g \
-#          --driver-cores 2 \
-#          | tee -a /mnt/logs/in-memory-analytics.log
-#  #      args: [ "/data/ml-latest-small", "/data/myratings.csv", "--driver-memory", "8g", "--executor-memory", "8g", '--driver-cores', '2' ]
-#  volumes:
-#    - name: logs
-#      persistentVolumeClaim:
-#        claimName: benchmarks-logs-pvc
-#  restartPolicy: Never
-#---
-#apiVersion: v1
-#kind: Pod
-#metadata:
-#  name: in-memory-analytics-pod-5
-#  namespace: benchmarks
-#  labels:
-#    cslab.ece.ntua.gr/workload-type: memory-bound
-#spec:
-#  nodeName: node-4
-##  schedulerName: maestro
-#  containers:
-#    - name: in-memory-analytics-container
-#      image: ioannispapadakis/in-memory-analytics:latest
-#      volumeMounts:
-#        - name: logs
-#          mountPath: /mnt/logs
-#      resources:
-#        limits:
-#          cpu: "2"
-#        requests:
-#          cpu: "2"
-#      command:
-#        - /bin/bash
-#        - "-c"
-#        - |
-#          /root/entrypoint.sh \
-#          /data/ml-latest-small \
-#          /data/myratings.csv \
-#          --driver-memory 8g \
-#          --executor-memory 8g \
-#          --driver-cores 2 \
-#          | tee -a /mnt/logs/in-memory-analytics.log
-#  #      args: [ "/data/ml-latest-small", "/data/myratings.csv", "--driver-memory", "8g", "--executor-memory", "8g", '--driver-cores', '2' ]
-#  volumes:
-#    - name: logs
-#      persistentVolumeClaim:
-#        claimName: benchmarks-logs-pvc
-#
-#---
-#
-#apiVersion: v1
-#kind: Pod
-#metadata:
-#  name: in-memory-analytics-pod-6
-#  namespace: benchmarks
-#  labels:
-#    cslab.ece.ntua.gr/workload-type: memory-bound
-#spec:
-#  nodeName: node-4
-##  schedulerName: maestro
-#  containers:
-#    - name: in-memory-analytics-container
-#      image: ioannispapadakis/in-memory-analytics:latest
-#      volumeMounts:
-#        - name: logs
-#          mountPath: /mnt/logs
-#      resources:
-#        limits:
-#          cpu: "2"
-#        requests:
-#          cpu: "2"
-#      command:
-#        - /bin/bash
-#        - "-c"
-#        - |
-#          /root/entrypoint.sh \
-#          /data/ml-latest-small \
-#          /data/myratings.csv \
-#          --driver-memory 8g \
-#          --executor-memory 8g \
-#          --driver-cores 2 \
-#          | tee -a /mnt/logs/in-memory-analytics.log
-#  #      args: [ "/data/ml-latest-small", "/data/myratings.csv", "--driver-memory", "8g", "--executor-memory", "8g", '--driver-cores', '2' ]
-#  volumes:
-#    - name: logs
-#      persistentVolumeClaim:
-#        claimName: benchmarks-logs-pvc
+apiVersion: v1
+kind: Pod
+metadata:
+  name: in-memory-analytics-pod-2
+  namespace: benchmarks
+  labels:
+    cslab.ece.ntua.gr/workload-type: cpu-bound
+spec:
+#  schedulerName: maestro
+  nodeName: node-4
+  containers:
+    - name: in-memory-analytics-container
+      image: ioannispapadakis/in-memory-analytics:latest
+      resources:
+        limits:
+          cpu: "2"
+        requests:
+          cpu: "2"
+      command:
+        - /bin/bash
+        - "-c"
+        - |
+          /root/entrypoint.sh \
+          /data/ml-latest-small \
+          /data/myratings.csv \
+          --driver-memory 1g \
+          --executor-memory 7g \
+          --num-executors 1
+  #      args: [ "/data/ml-latest-small", "/data/myratings.csv", "--driver-memory", "8g", "--executor-memory", "8g", '--driver-cores', '2' ]
+  restartPolicy: Never

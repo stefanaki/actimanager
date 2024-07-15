@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: data-caching-client-pod
+  namespace: benchmarks
+  labels:
+    app: data-caching-client
+spec:
+  containers:
+    - name: data-caching-client-container
+      image: ioannispapadakis/data-caching:client
+      command: [ '/usr/src/memcached/entrypoint.sh' ]
+      args: [ '--ip=100.85.103.19', '--m=RPS', '--D=4096', '--w=2', '--t=100', '--g=0.8', '--c=200', '--r=100000' ]
+      ports:
+        - containerPort: 11211
+          name: port-0
+  restartPolicy: OnFailure

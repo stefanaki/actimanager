@@ -19,6 +19,8 @@ type AllocatableCPU struct {
 
 type NodeAllocatableCPUs map[int]AllocatableCPU
 
+// allocatableCPUsForNode computes the allocatable CPUs for a given node based on its
+// topology and current CPU bindings.
 func allocatableCPUsForNode(
 	nodeName string,
 	topology *v1alpha1.CPUTopology,
@@ -70,6 +72,8 @@ func allocatableCPUsForNode(
 	return res
 }
 
+// allocatableSockets identifies the sockets with fully allocatable CPUs based on
+// the given NodeAllocatableCPUs map and a flag indicating whether to filter fully allocatable sockets.
 func allocatableSockets(allocatable NodeAllocatableCPUs, full bool) []int {
 	sockets := make(map[int]int)
 	socketNumCPUs := make(map[int]int)
@@ -90,6 +94,8 @@ func allocatableSockets(allocatable NodeAllocatableCPUs, full bool) []int {
 	return maps.Keys(sockets)
 }
 
+// allocatableCores identifies the cores with fully allocatable CPUs based on
+// the given NodeAllocatableCPUs map and a flag indicating whether to filter fully allocatable cores.
 func allocatableCores(allocatable NodeAllocatableCPUs, full bool) []int {
 	cores := make(map[int]int)
 	coreNumCPUs := make(map[int]int)
@@ -110,6 +116,42 @@ func allocatableCores(allocatable NodeAllocatableCPUs, full bool) []int {
 	return maps.Keys(cores)
 }
 
+// allCPUsAllocatableInCore checks if all CPUs in a given core are allocatable
+// based on the provided NodeAllocatableCPUs map.
+func allCPUsAllocatableInCore(core *v1alpha1.Core, allocatable NodeAllocatableCPUs) bool {
+	for _, cpu := range core.CPUs {
+		if _, ok := allocatable[cpu]; !ok {
+			return false
+		}
+	}
+	return true
+}
+
+// allCPUsAllocatableInSocket checks if all CPUs in a given socket are allocatable
+// based on the provided NodeAllocatableCPUs map.
+func allCPUsAllocatableInSocket(socket *v1alpha1.Socket, allocatable NodeAllocatableCPUs) bool {
+	for _, cpu := range socket.CPUs {
+		if _, ok := allocatable[cpu]; !ok {
+			return false
+		}
+	}
+	return true
+}
+
+// cpuFeasible checks if a specific CPU is feasible for allocation based on
+// its availability in the allocatable CPUs map and absence in the current cpuSet.
+func cpuFeasible(cpu int, allocatable NodeAllocatableCPUs, cpuSet map[int]struct{}) bool {
+	_, allocatableCPU := allocatable[cpu]
+	_, cpuAlreadyUsed := cpuSet[cpu]
+	return allocatableCPU && !cpuAlreadyUsed
+}
+
+// done checks if the CPU allocation process is complete based on the number of
+// allocated CPUs and the requested CPU resources.
+func done(cpuSet map[int]struct{}, requests int64) bool {
+	return int64(len(cpuSet)*1000) >= requests
+}
+
 func cpuSetForMemoryBound(state *State, nodeName string, fullCores, fullSockets bool) []v1alpha1.CPU {
 	cpuSet := make(map[int]struct{})
 	allocatable := state.AllocatableCPUs[nodeName]
@@ -122,12 +164,7 @@ func cpuSetForMemoryBound(state *State, nodeName string, fullCores, fullSockets 
 		// Check if whole socket is allocatable
 		socketAllocatable := true
 		if fullSockets {
-			for _, cpu := range socket.CPUs {
-				if _, ok := allocatable[cpu]; !ok {
-					socketAllocatable = false
-					break
-				}
-			}
+			socketAllocatable = allCPUsAllocatableInSocket(&socket, allocatable)
 		}
 		if !socketAllocatable {
 			continue
@@ -136,22 +173,14 @@ func cpuSetForMemoryBound(state *State, nodeName string, fullCores, fullSockets 
 			// Check if whole physical core is allocatable
 			coreAllocatable := true
 			if fullCores {
-				for _, cpu := range core.CPUs {
-					if _, ok := allocatable[cpu]; !ok {
-						coreAllocatable = false
-						break
-					}
-				}
+				coreAllocatable = allCPUsAllocatableInCore(&core, allocatable)
 			}
 			if !coreAllocatable {
 				continue
 			}
 			// Pick thread from physical core
 			for _, cpu := range core.CPUs {
-				if _, ok := allocatable[cpu]; !ok {
-					continue
-				}
-				if _, ok := cpuSet[cpu]; ok {
+				if !cpuFeasible(cpu, allocatable, cpuSet) {
 					continue
 				}
 				cpuSet[cpu] = struct{}{}
@@ -174,12 +203,7 @@ func cpuSetForMemoryBound(state *State, nodeName string, fullCores, fullSockets 
 				// Check if whole physical core is allocatable
 				coreAllocatable := true
 				if fullCores {
-					for _, cpu := range core.CPUs {
-						if _, ok := allocatable[cpu]; !ok {
-							coreAllocatable = false
-							break
-						}
-					}
+					coreAllocatable = allCPUsAllocatableInCore(&core, allocatable)
 				}
 				if !coreAllocatable {
 					continue
@@ -227,21 +251,13 @@ func cpuSetForCPUBound(state *State, nodeName string, fullCores bool) []v1alpha1
 			for _, core := range socket.Cores {
 				coreAllocatable := true
 				if fullCores {
-					for _, cpu := range core.CPUs {
-						if _, ok := allocatable[cpu]; !ok {
-							coreAllocatable = false
-							break
-						}
-					}
+					coreAllocatable = allCPUsAllocatableInCore(&core, allocatable)
 				}
 				if !coreAllocatable {
 					continue
 				}
 				for _, cpu := range core.CPUs {
-					if _, ok := allocatable[cpu]; !ok {
-						continue
-					}
-					if _, ok := cpuSet[cpu]; ok {
+					if !cpuFeasible(cpu, allocatable, cpuSet) {
 						continue
 					}
 					cpuSet[cpu] = struct{}{}
@@ -272,21 +288,13 @@ func cpuSetForIOBound(state *State, nodeName string, fullCores bool) []v1alpha1.
 			for _, core := range socket.Cores {
 				coreAllocatable := true
 				if fullCores {
-					for _, cpu := range core.CPUs {
-						if _, ok := allocatable[cpu]; !ok {
-							coreAllocatable = false
-							break
-						}
-					}
+					coreAllocatable = allCPUsAllocatableInCore(&core, allocatable)
 				}
 				if !coreAllocatable {
 					continue
 				}
 				for _, cpu := range core.CPUs {
-					if _, ok := allocatable[cpu]; !ok {
-						continue
-					}
-					if _, ok := cpuSet[cpu]; ok {
+					if !cpuFeasible(cpu, allocatable, cpuSet) {
 						continue
 					}
 					cpuSet[cpu] = struct{}{}
@@ -319,12 +327,7 @@ func cpuSetForBestEffort(state *State, nodeName string, fullCores bool) []v1alph
 			for _, core := range socket.Cores {
 				coreAllocatable := true
 				if fullCores {
-					for _, cpu := range core.CPUs {
-						if _, ok := allocatable[cpu]; !ok {
-							coreAllocatable = false
-							break
-						}
-					}
+					coreAllocatable = allCPUsAllocatableInCore(&core, allocatable)
 				}
 				if !coreAllocatable {
 					continue
@@ -334,10 +337,7 @@ func cpuSetForBestEffort(state *State, nodeName string, fullCores bool) []v1alph
 				var sharedCPUs []int
 
 				for _, cpu := range core.CPUs {
-					if _, ok := allocatable[cpu]; !ok {
-						continue
-					}
-					if _, ok := cpuSet[cpu]; ok {
+					if !cpuFeasible(cpu, allocatable, cpuSet) {
 						continue
 					}
 					// Split shared and non-shared CPUs
@@ -379,8 +379,4 @@ func cpuSetForBestEffort(state *State, nodeName string, fullCores bool) []v1alph
 	slices.Sort(res)
 	return pcbutils.IntSliceToCPUSlice(res)
 
-}
-
-func done(cpuSet map[int]struct{}, requests int64) bool {
-	return int64(len(cpuSet)*1000) >= requests
 }

@@ -28,5 +28,5 @@ profiles:
           policy: Balanced
           features:
             - PhysicalCores
-            - BestEffortSharedCPUs
+#            - BestEffortSharedCPUs
 #            - MemoryBoundExclusiveSockets
