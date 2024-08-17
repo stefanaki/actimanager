@@ -15,6 +15,7 @@ rules:
   - ""
   resources:
   - nodes
+  - pods/log
   verbs:
   - get
   - list
@@ -40,14 +41,6 @@ rules:
 - apiGroups:
   - ""
   resources:
-  - pods/log
-  verbs:
-  - get
-  - list
-  - watch
-- apiGroups:
-  - ""
-  resources:
   - pods/status
   verbs:
   - get
@@ -57,31 +50,6 @@ rules:
   - cslab.ece.ntua.gr
   resources:
   - nodecputopologies
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - cslab.ece.ntua.gr
-  resources:
-  - nodecputopologies/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - cslab.ece.ntua.gr
-  resources:
-  - nodecputopologies/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - cslab.ece.ntua.gr
-  resources:
   - podcpubindings
   verbs:
   - create
@@ -94,12 +62,14 @@ rules:
 - apiGroups:
   - cslab.ece.ntua.gr
   resources:
+  - nodecputopologies/finalizers
   - podcpubindings/finalizers
   verbs:
   - update
 - apiGroups:
   - cslab.ece.ntua.gr
   resources:
+  - nodecputopologies/status
   - podcpubindings/status
   verbs:
   - get

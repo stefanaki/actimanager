@@ -49,7 +49,7 @@ manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole and Cust
 	$(CONTROLLER_GEN) rbac:roleName=manager-role crd webhook paths="./..." output:crd:artifacts:config=config/crd/bases
 
 .PHONY: generate
-generate: controller-gen proto codegen ## Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.
+generate: codegen proto ## Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.
 	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./..."
 
 .PHONY: fmt
@@ -86,7 +86,7 @@ lint-fix: golangci-lint ## Run golangci-lint linter and perform fixes
 build: build-daemon build-controller build-scheduler ## Build all applications.
 
 .PHONY: build-controller
-build-controller: manifests generate fmt vet ## Build manager binary.
+build-controller: manifests generate fmt vet ## Build controller-manager binary.
 	go build -o bin/manager cmd/controller/main.go
 
 .PHONY: build-daemon
@@ -97,19 +97,16 @@ build-daemon: manifests generate fmt vet ## Build daemon binary.
 build-scheduler: manifests generate fmt vet ## Build scheduler binary.
 	go build -o bin/scheduler cmd/scheduler/main.go
 
-.PHONY: run-manager
-#run-manager: manifests generate fmt vet ## Run the manager from your host.
-run-manager:
+.PHONY: run-controller
+run-controller: ## Run the controller from your host.
 	go run cmd/controller/main.go
 
 .PHONY: run-daemon
-run-daemon: manifests generate fmt vet ## Run the daemon from your host.
+run-daemon: ## Run the daemon from your host.
 	go run cmd/daemon/main.go cmd/daemon/server.go
 
-
 .PHONY: run-scheduler
-#run-scheduler: manifests generate fmt vet ## Run the scheduler from your host.
-run-scheduler:
+run-scheduler: ## Run the scheduler from your host.
 	go run cmd/scheduler/main.go \
 		--kubeconfig=/home/georgios/.kube/config \
         --config=/home/georgios/go/src/cslab.ece.ntua.gr/actimanager/config/scheduler/kube-scheduler-config.yaml \
@@ -181,8 +178,8 @@ CONTROLLER_GEN ?= $(LOCALBIN)/controller-gen
 ENVTEST ?= $(LOCALBIN)/setup-envtest
 
 ## Tool Versions
-KUSTOMIZE_VERSION ?= v5.2.1
-CONTROLLER_TOOLS_VERSION ?= v0.13.0
+KUSTOMIZE_VERSION ?= v5.4.3
+CONTROLLER_TOOLS_VERSION ?= v0.16.1
 
 .PHONY: kustomize
 kustomize: $(KUSTOMIZE) ## Download kustomize locally if necessary. If wrong version is installed, it will be removed before downloading.
@@ -205,16 +202,22 @@ $(ENVTEST): $(LOCALBIN)
 	test -s $(LOCALBIN)/setup-envtest || GOBIN=$(LOCALBIN) go install sigs.k8s.io/controller-runtime/tools/setup-envtest@latest
 
 .PHONY: proto
-proto:
-	protoc \
+
+PROTO_FILES := \
 	internal/pkg/protobuf/cpupinning/cpupinning.proto \
-	--go_out=paths=source_relative:. \
-	--go-grpc_out=paths=source_relative:.
-	protoc \
-	internal/pkg/protobuf/topology/topology.proto \
-	--go_out=paths=source_relative:. \
-	--go-grpc_out=paths=source_relative:.
+	internal/pkg/protobuf/topology/topology.proto
+
+proto:
+	for proto_file in $(PROTO_FILES); do \
+		protoc $$proto_file \
+			--go_out=paths=source_relative:. \
+			--go-grpc_out=paths=source_relative:.; \
+	done
 
 .PHONY: codegen
 codegen:
 	hack/update-codegen.sh
+
+.PHONY: verify
+verify:
+	hack/verify-codegen.sh

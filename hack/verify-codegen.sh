@@ -1,11 +1,12 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
 set -o errexit
 set -o nounset
 set -o pipefail
 
+DOMAIN=cslab.ece.ntua.gr
+MODULE=${DOMAIN}/actimanager
 OUTPUT_PKG=internal/pkg/generated
-MODULE=cslab.ece.ntua.gr/actimanager
 
 SCRIPT_ROOT=$(dirname "${BASH_SOURCE[0]}")/..
 
@@ -24,9 +25,6 @@ mkdir -p "${TMP_DIFFROOT}"
 cp -a "${DIFFROOT}"/* "${TMP_DIFFROOT}"
 
 "${SCRIPT_ROOT}/hack/update-codegen.sh"
-echo "copying generated ${SCRIPT_ROOT}/${MODULE}/${OUTPUT_PKG} to ${DIFFROOT}"
-cp -r "${SCRIPT_ROOT}/${OUTPUT_PKG}"/* "${DIFFROOT}"
-
 echo "diffing ${DIFFROOT} against freshly generated codegen"
 ret=0
 diff -Naupr "${DIFFROOT}" "${TMP_DIFFROOT}" || ret=$?
