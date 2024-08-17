@@ -8,9 +8,9 @@ import (
 	"syscall"
 
 	"cslab.ece.ntua.gr/actimanager/api/cslab.ece.ntua.gr/v1alpha1"
-	"cslab.ece.ntua.gr/actimanager/internal/daemon/client"
-	"cslab.ece.ntua.gr/actimanager/internal/daemon/cpupinning"
-	"cslab.ece.ntua.gr/actimanager/internal/daemon/topology"
+	"cslab.ece.ntua.gr/actimanager/internal/app/daemon/client"
+	"cslab.ece.ntua.gr/actimanager/internal/app/daemon/cpupinning"
+	"cslab.ece.ntua.gr/actimanager/internal/app/daemon/topology"
 	clients "cslab.ece.ntua.gr/actimanager/internal/pkg/client"
 	nctutils "cslab.ece.ntua.gr/actimanager/internal/pkg/utils/nodecputopology"
 	"github.com/go-logr/logr"

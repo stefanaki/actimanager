@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"cslab.ece.ntua.gr/actimanager/api/cslab.ece.ntua.gr/v1alpha1"
-	"cslab.ece.ntua.gr/actimanager/internal/daemon/client"
+	"cslab.ece.ntua.gr/actimanager/internal/app/daemon/client"
 	cgroupsctrl "cslab.ece.ntua.gr/actimanager/internal/pkg/cgroups"
 	"cslab.ece.ntua.gr/actimanager/internal/pkg/protobuf/cpupinning"
 	nctutils "cslab.ece.ntua.gr/actimanager/internal/pkg/utils/nodecputopology"

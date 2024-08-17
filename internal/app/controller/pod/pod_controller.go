@@ -47,13 +47,11 @@ var eventFilters = builder.WithPredicates(predicate.Funcs{
 func (r *PodReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	logger := log.FromContext(ctx).WithName("pod-watcher")
 
-	// Get deleted pod
 	pod := &corev1.Pod{}
 	if err := r.Get(ctx, req.NamespacedName, pod); err != nil {
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	// Handle deleted pod
 	cpuBindings := &v1alpha1.PodCPUBindingList{}
 	if err := r.List(ctx, cpuBindings, &client.ListOptions{
 		FieldSelector: fields.OneTermEqualSelector("spec.podName", req.NamespacedName.Name),

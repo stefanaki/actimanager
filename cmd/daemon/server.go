@@ -2,8 +2,8 @@ package main
 
 import (
 	"context"
-	cpupinningserver "cslab.ece.ntua.gr/actimanager/internal/daemon/cpupinning"
-	topologyserver "cslab.ece.ntua.gr/actimanager/internal/daemon/topology"
+	cpupinningserver "cslab.ece.ntua.gr/actimanager/internal/app/daemon/cpupinning"
+	topologyserver "cslab.ece.ntua.gr/actimanager/internal/app/daemon/topology"
 	"cslab.ece.ntua.gr/actimanager/internal/pkg/protobuf/cpupinning"
 	"cslab.ece.ntua.gr/actimanager/internal/pkg/protobuf/topology"
 	"fmt"

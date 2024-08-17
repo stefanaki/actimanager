@@ -18,13 +18,13 @@ package main
 
 import (
 	"cslab.ece.ntua.gr/actimanager/api/cslab.ece.ntua.gr/v1alpha1"
-	"cslab.ece.ntua.gr/actimanager/internal/controller/pod"
-	"cslab.ece.ntua.gr/actimanager/internal/controller/podcpubinding"
+	"cslab.ece.ntua.gr/actimanager/internal/app/controller/pod"
+	"cslab.ece.ntua.gr/actimanager/internal/app/controller/podcpubinding"
 	"flag"
 	"os"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 
-	"cslab.ece.ntua.gr/actimanager/internal/controller/nodecputopology"
+	"cslab.ece.ntua.gr/actimanager/internal/app/controller/nodecputopology"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
