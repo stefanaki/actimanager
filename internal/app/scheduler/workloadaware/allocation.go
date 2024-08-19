@@ -24,7 +24,7 @@ type NodeAllocatableCPUs map[int]AllocatableCPU
 func allocatableCPUsForNode(
 	nodeName string,
 	topology *v1alpha1.CPUTopology,
-	bindings *v1alpha1.PodCPUBindingList,
+	bindings []*v1alpha1.PodCPUBinding,
 	workloadType string,
 ) NodeAllocatableCPUs {
 	res := make(map[int]AllocatableCPU)
@@ -42,7 +42,7 @@ func allocatableCPUsForNode(
 		}
 	}
 
-	for _, binding := range bindings.Items {
+	for _, binding := range bindings {
 		if binding.Status.NodeName != nodeName {
 			continue
 		}
@@ -55,14 +55,14 @@ func allocatableCPUsForNode(
 		}
 
 		if binding.Spec.ExclusivenessLevel == v1alpha1.ResourceLevelNone {
-			cpus := pcbutils.CPUsOfCPUBinding(&binding)
+			cpus := pcbutils.CPUsOfCPUBinding(binding)
 			for cpu := range cpus {
 				x := res[cpu]
 				x.Shared = true
 				res[cpu] = x
 			}
 		} else {
-			cpus := pcbutils.ExclusiveCPUsOfCPUBinding(&binding, topology)
+			cpus := pcbutils.ExclusiveCPUsOfCPUBinding(binding, topology)
 			for cpu := range cpus {
 				delete(res, cpu)
 			}

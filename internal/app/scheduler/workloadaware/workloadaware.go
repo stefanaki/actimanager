@@ -6,10 +6,13 @@ import (
 	"cslab.ece.ntua.gr/actimanager/api/cslab.ece.ntua.gr/v1alpha1"
 	"cslab.ece.ntua.gr/actimanager/internal/pkg/client"
 	clientset "cslab.ece.ntua.gr/actimanager/internal/pkg/generated/clientset/versioned"
+	informers "cslab.ece.ntua.gr/actimanager/internal/pkg/generated/informers/externalversions"
+	listers "cslab.ece.ntua.gr/actimanager/internal/pkg/generated/listers/cslab.ece.ntua.gr/v1alpha1"
 	nctutils "cslab.ece.ntua.gr/actimanager/internal/pkg/utils/nodecputopology"
 	"fmt"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/klog/v2"
@@ -23,10 +26,12 @@ import (
 const Name string = "WorkloadAware"
 
 type WorkloadAware struct {
-	args   *config.WorkloadAwareArgs
-	handle framework.Handle
-	client *clientset.Clientset
-	logger klog.Logger
+	args             *config.WorkloadAwareArgs
+	handle           framework.Handle
+	client           *clientset.Clientset
+	topologyLister   listers.NodeCPUTopologyLister
+	cpuBindingLister listers.PodCPUBindingLister
+	logger           klog.Logger
 }
 
 type State struct {
@@ -51,13 +56,24 @@ func New(ctx context.Context, obj runtime.Object, h framework.Handle) (framework
 	if err != nil {
 		return nil, err
 	}
+
 	csLabClient, err := client.NewCSLabClient()
 	if err != nil {
 		return nil, err
 	}
+	informerFactory := informers.NewSharedInformerFactory(csLabClient, 30*time.Second)
+
 	l := klog.NewKlogr().WithName(Name)
 	l.Info("args", "policy", args.Policy, "features", args.Features)
-	return &WorkloadAware{args: args, handle: h, client: csLabClient, logger: l}, err
+
+	return &WorkloadAware{
+		args:             args,
+		handle:           h,
+		client:           csLabClient,
+		topologyLister:   informerFactory.Cslab().V1alpha1().NodeCPUTopologies().Lister(),
+		cpuBindingLister: informerFactory.Cslab().V1alpha1().PodCPUBindings().Lister(),
+		logger:           l,
+	}, err
 }
 
 func (w *WorkloadAware) PreFilter(ctx context.Context, state *framework.CycleState, pod *corev1.Pod) (*framework.PreFilterResult, *framework.Status) {
@@ -65,8 +81,8 @@ func (w *WorkloadAware) PreFilter(ctx context.Context, state *framework.CycleSta
 	nodes := sets.Set[string]{}
 	workloadType, ok := pod.Labels[config.LabelWorkloadType]
 	if !ok {
-		logger.Info("Application type not specified, assuming best effort")
-		workloadType = config.WorkloadTypeBestEffort
+		logger.Info("Application type not specified, assuming CPU bound")
+		workloadType = config.WorkloadTypeCPUBound
 	}
 
 	// Wait for previous PodCPUBindings to be validated
@@ -80,18 +96,18 @@ func (w *WorkloadAware) PreFilter(ctx context.Context, state *framework.CycleSta
 		AllocatableCPUs: make(map[string]NodeAllocatableCPUs),
 	}
 
-	topologies, err := w.client.CslabV1alpha1().NodeCPUTopologies().List(ctx, metav1.ListOptions{})
+	topologies, err := w.topologyLister.List(labels.NewSelector())
 	if err != nil {
 		logger.Error(err, "failed to get node cpu topologies")
 		return nil, framework.NewStatus(framework.Error, "failed to get node cpu topologies")
 	}
-	cpuBindings, err := w.client.CslabV1alpha1().PodCPUBindings("").List(ctx, metav1.ListOptions{})
+	cpuBindings, err := w.cpuBindingLister.PodCPUBindings("").List(labels.NewSelector())
 	if err != nil {
 		logger.Error(err, "failed to get pod cpu bindings")
 		return nil, framework.NewStatus(framework.Error, "failed to get pod cpu bindings")
 	}
 
-	for _, t := range topologies.Items {
+	for _, t := range topologies {
 		if t.Status.ResourceStatus != v1alpha1.StatusFresh {
 			continue
 		}
