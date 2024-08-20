@@ -17,7 +17,7 @@ limitations under the License.
 
 package v1alpha1
 
-// CPUTopologyApplyConfiguration represents an declarative configuration of the CPUTopology type for use
+// CPUTopologyApplyConfiguration represents a declarative configuration of the CPUTopology type for use
 // with apply.
 type CPUTopologyApplyConfiguration struct {
 	Sockets   map[string]SocketApplyConfiguration   `json:"sockets,omitempty"`
@@ -25,7 +25,7 @@ type CPUTopologyApplyConfiguration struct {
 	CPUs      []int                                 `json:"cpus,omitempty"`
 }
 
-// CPUTopologyApplyConfiguration constructs an declarative configuration of the CPUTopology type for use with
+// CPUTopologyApplyConfiguration constructs a declarative configuration of the CPUTopology type for use with
 // apply.
 func CPUTopology() *CPUTopologyApplyConfiguration {
 	return &CPUTopologyApplyConfiguration{}

@@ -21,7 +21,7 @@ import (
 	cslabecentuagrv1alpha1 "cslab.ece.ntua.gr/actimanager/api/cslab.ece.ntua.gr/v1alpha1"
 )
 
-// PodCPUBindingSpecApplyConfiguration represents an declarative configuration of the PodCPUBindingSpec type for use
+// PodCPUBindingSpecApplyConfiguration represents a declarative configuration of the PodCPUBindingSpec type for use
 // with apply.
 type PodCPUBindingSpecApplyConfiguration struct {
 	PodName            *string                               `json:"podName,omitempty"`
@@ -29,7 +29,7 @@ type PodCPUBindingSpecApplyConfiguration struct {
 	ExclusivenessLevel *cslabecentuagrv1alpha1.ResourceLevel `json:"exclusivenessLevel,omitempty"`
 }
 
-// PodCPUBindingSpecApplyConfiguration constructs an declarative configuration of the PodCPUBindingSpec type for use with
+// PodCPUBindingSpecApplyConfiguration constructs a declarative configuration of the PodCPUBindingSpec type for use with
 // apply.
 func PodCPUBindingSpec() *PodCPUBindingSpecApplyConfiguration {
 	return &PodCPUBindingSpecApplyConfiguration{}

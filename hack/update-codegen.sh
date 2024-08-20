@@ -15,14 +15,13 @@ CODEGEN_PKG=${CODEGEN_PKG:-$(cd "${SCRIPT_ROOT}"; ls -d -1 ./vendor/k8s.io/code-
 source "${CODEGEN_PKG}/kube_codegen.sh"
 
 kube::codegen::gen_helpers \
-    --input-pkg-root "${MODULE}/${APIS_PKG}" \
-    --output-base "$(dirname "${BASH_SOURCE[0]}")/../../.." \
-    --boilerplate "${SCRIPT_ROOT}/hack/boilerplate.go.txt"
+    --boilerplate "${SCRIPT_ROOT}/hack/boilerplate.go.txt" \
+    "${SCRIPT_ROOT}/${APIS_PKG}"
 
 kube::codegen::gen_client \
     --with-watch \
     --with-applyconfig \
-    --input-pkg-root "${MODULE}/${APIS_PKG}" \
-    --output-pkg-root "${MODULE}/${OUTPUT_PKG}" \
-    --output-base "$(dirname "${BASH_SOURCE[0]}")/../../.." \
-    --boilerplate "${SCRIPT_ROOT}/hack/boilerplate.go.txt"
+    --output-pkg "${MODULE}/${OUTPUT_PKG}" \
+    --output-dir "${SCRIPT_ROOT}/${OUTPUT_PKG}" \
+    --boilerplate "${SCRIPT_ROOT}/hack/boilerplate.go.txt" \
+    "${SCRIPT_ROOT}/${APIS_PKG}"

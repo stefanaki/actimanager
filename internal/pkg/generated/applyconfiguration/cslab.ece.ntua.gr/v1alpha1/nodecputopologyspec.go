@@ -17,14 +17,14 @@ limitations under the License.
 
 package v1alpha1
 
-// NodeCPUTopologySpecApplyConfiguration represents an declarative configuration of the NodeCPUTopologySpec type for use
+// NodeCPUTopologySpecApplyConfiguration represents a declarative configuration of the NodeCPUTopologySpec type for use
 // with apply.
 type NodeCPUTopologySpecApplyConfiguration struct {
 	NodeName *string                        `json:"nodeName,omitempty"`
 	Topology *CPUTopologyApplyConfiguration `json:"topology,omitempty"`
 }
 
-// NodeCPUTopologySpecApplyConfiguration constructs an declarative configuration of the NodeCPUTopologySpec type for use with
+// NodeCPUTopologySpecApplyConfiguration constructs a declarative configuration of the NodeCPUTopologySpec type for use with
 // apply.
 func NodeCPUTopologySpec() *NodeCPUTopologySpecApplyConfiguration {
 	return &NodeCPUTopologySpecApplyConfiguration{}

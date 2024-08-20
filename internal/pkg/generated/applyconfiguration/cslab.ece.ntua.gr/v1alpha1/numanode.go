@@ -17,13 +17,13 @@ limitations under the License.
 
 package v1alpha1
 
-// NUMANodeApplyConfiguration represents an declarative configuration of the NUMANode type for use
+// NUMANodeApplyConfiguration represents a declarative configuration of the NUMANode type for use
 // with apply.
 type NUMANodeApplyConfiguration struct {
 	CPUs []int `json:"cpus,omitempty"`
 }
 
-// NUMANodeApplyConfiguration constructs an declarative configuration of the NUMANode type for use with
+// NUMANodeApplyConfiguration constructs a declarative configuration of the NUMANode type for use with
 // apply.
 func NUMANode() *NUMANodeApplyConfiguration {
 	return &NUMANodeApplyConfiguration{}

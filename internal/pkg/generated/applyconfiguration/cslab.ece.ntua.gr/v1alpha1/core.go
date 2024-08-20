@@ -17,13 +17,13 @@ limitations under the License.
 
 package v1alpha1
 
-// CoreApplyConfiguration represents an declarative configuration of the Core type for use
+// CoreApplyConfiguration represents a declarative configuration of the Core type for use
 // with apply.
 type CoreApplyConfiguration struct {
 	CPUs []int `json:"cpus,omitempty"`
 }
 
-// CoreApplyConfiguration constructs an declarative configuration of the Core type for use with
+// CoreApplyConfiguration constructs a declarative configuration of the Core type for use with
 // apply.
 func Core() *CoreApplyConfiguration {
 	return &CoreApplyConfiguration{}

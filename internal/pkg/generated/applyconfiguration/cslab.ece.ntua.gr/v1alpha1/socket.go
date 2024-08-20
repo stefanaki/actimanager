@@ -17,14 +17,14 @@ limitations under the License.
 
 package v1alpha1
 
-// SocketApplyConfiguration represents an declarative configuration of the Socket type for use
+// SocketApplyConfiguration represents a declarative configuration of the Socket type for use
 // with apply.
 type SocketApplyConfiguration struct {
 	Cores map[string]CoreApplyConfiguration `json:"cores,omitempty"`
 	CPUs  []int                             `json:"cpus,omitempty"`
 }
 
-// SocketApplyConfiguration constructs an declarative configuration of the Socket type for use with
+// SocketApplyConfiguration constructs a declarative configuration of the Socket type for use with
 // apply.
 func Socket() *SocketApplyConfiguration {
 	return &SocketApplyConfiguration{}

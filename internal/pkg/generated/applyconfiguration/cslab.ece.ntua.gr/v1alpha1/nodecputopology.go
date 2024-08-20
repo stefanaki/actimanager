@@ -23,7 +23,7 @@ import (
 	v1 "k8s.io/client-go/applyconfigurations/meta/v1"
 )
 
-// NodeCPUTopologyApplyConfiguration represents an declarative configuration of the NodeCPUTopology type for use
+// NodeCPUTopologyApplyConfiguration represents a declarative configuration of the NodeCPUTopology type for use
 // with apply.
 type NodeCPUTopologyApplyConfiguration struct {
 	v1.TypeMetaApplyConfiguration    `json:",inline"`
@@ -32,7 +32,7 @@ type NodeCPUTopologyApplyConfiguration struct {
 	Status                           *NodeCPUTopologyStatusApplyConfiguration `json:"status,omitempty"`
 }
 
-// NodeCPUTopology constructs an declarative configuration of the NodeCPUTopology type for use with
+// NodeCPUTopology constructs a declarative configuration of the NodeCPUTopology type for use with
 // apply.
 func NodeCPUTopology(name string) *NodeCPUTopologyApplyConfiguration {
 	b := &NodeCPUTopologyApplyConfiguration{}
@@ -214,4 +214,10 @@ func (b *NodeCPUTopologyApplyConfiguration) WithSpec(value *NodeCPUTopologySpecA
 func (b *NodeCPUTopologyApplyConfiguration) WithStatus(value *NodeCPUTopologyStatusApplyConfiguration) *NodeCPUTopologyApplyConfiguration {
 	b.Status = value
 	return b
+}
+
+// GetName retrieves the value of the Name field in the declarative configuration.
+func (b *NodeCPUTopologyApplyConfiguration) GetName() *string {
+	b.ensureObjectMetaApplyConfigurationExists()
+	return b.Name
 }

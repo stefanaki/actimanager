@@ -19,8 +19,8 @@ package v1alpha1
 
 import (
 	v1alpha1 "cslab.ece.ntua.gr/actimanager/api/cslab.ece.ntua.gr/v1alpha1"
-	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/client-go/listers"
 	"k8s.io/client-go/tools/cache"
 )
 
@@ -37,25 +37,17 @@ type PodCPUBindingLister interface {
 
 // podCPUBindingLister implements the PodCPUBindingLister interface.
 type podCPUBindingLister struct {
-	indexer cache.Indexer
+	listers.ResourceIndexer[*v1alpha1.PodCPUBinding]
 }
 
 // NewPodCPUBindingLister returns a new PodCPUBindingLister.
 func NewPodCPUBindingLister(indexer cache.Indexer) PodCPUBindingLister {
-	return &podCPUBindingLister{indexer: indexer}
-}
-
-// List lists all PodCPUBindings in the indexer.
-func (s *podCPUBindingLister) List(selector labels.Selector) (ret []*v1alpha1.PodCPUBinding, err error) {
-	err = cache.ListAll(s.indexer, selector, func(m interface{}) {
-		ret = append(ret, m.(*v1alpha1.PodCPUBinding))
-	})
-	return ret, err
+	return &podCPUBindingLister{listers.New[*v1alpha1.PodCPUBinding](indexer, v1alpha1.Resource("podcpubinding"))}
 }
 
 // PodCPUBindings returns an object that can list and get PodCPUBindings.
 func (s *podCPUBindingLister) PodCPUBindings(namespace string) PodCPUBindingNamespaceLister {
-	return podCPUBindingNamespaceLister{indexer: s.indexer, namespace: namespace}
+	return podCPUBindingNamespaceLister{listers.NewNamespaced[*v1alpha1.PodCPUBinding](s.ResourceIndexer, namespace)}
 }
 
 // PodCPUBindingNamespaceLister helps list and get PodCPUBindings.
@@ -73,26 +65,5 @@ type PodCPUBindingNamespaceLister interface {
 // podCPUBindingNamespaceLister implements the PodCPUBindingNamespaceLister
 // interface.
 type podCPUBindingNamespaceLister struct {
-	indexer   cache.Indexer
-	namespace string
-}
-
-// List lists all PodCPUBindings in the indexer for a given namespace.
-func (s podCPUBindingNamespaceLister) List(selector labels.Selector) (ret []*v1alpha1.PodCPUBinding, err error) {
-	err = cache.ListAllByNamespace(s.indexer, s.namespace, selector, func(m interface{}) {
-		ret = append(ret, m.(*v1alpha1.PodCPUBinding))
-	})
-	return ret, err
-}
-
-// Get retrieves the PodCPUBinding from the indexer for a given namespace and name.
-func (s podCPUBindingNamespaceLister) Get(name string) (*v1alpha1.PodCPUBinding, error) {
-	obj, exists, err := s.indexer.GetByKey(s.namespace + "/" + name)
-	if err != nil {
-		return nil, err
-	}
-	if !exists {
-		return nil, errors.NewNotFound(v1alpha1.Resource("podcpubinding"), name)
-	}
-	return obj.(*v1alpha1.PodCPUBinding), nil
+	listers.ResourceIndexer[*v1alpha1.PodCPUBinding]
 }

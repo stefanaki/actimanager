@@ -42,20 +42,22 @@ var nodecputopologiesKind = v1alpha1.SchemeGroupVersion.WithKind("NodeCPUTopolog
 
 // Get takes name of the nodeCPUTopology, and returns the corresponding nodeCPUTopology object, and an error if there is any.
 func (c *FakeNodeCPUTopologies) Get(ctx context.Context, name string, options v1.GetOptions) (result *v1alpha1.NodeCPUTopology, err error) {
+	emptyResult := &v1alpha1.NodeCPUTopology{}
 	obj, err := c.Fake.
-		Invokes(testing.NewRootGetAction(nodecputopologiesResource, name), &v1alpha1.NodeCPUTopology{})
+		Invokes(testing.NewRootGetActionWithOptions(nodecputopologiesResource, name, options), emptyResult)
 	if obj == nil {
-		return nil, err
+		return emptyResult, err
 	}
 	return obj.(*v1alpha1.NodeCPUTopology), err
 }
 
 // List takes label and field selectors, and returns the list of NodeCPUTopologies that match those selectors.
 func (c *FakeNodeCPUTopologies) List(ctx context.Context, opts v1.ListOptions) (result *v1alpha1.NodeCPUTopologyList, err error) {
+	emptyResult := &v1alpha1.NodeCPUTopologyList{}
 	obj, err := c.Fake.
-		Invokes(testing.NewRootListAction(nodecputopologiesResource, nodecputopologiesKind, opts), &v1alpha1.NodeCPUTopologyList{})
+		Invokes(testing.NewRootListActionWithOptions(nodecputopologiesResource, nodecputopologiesKind, opts), emptyResult)
 	if obj == nil {
-		return nil, err
+		return emptyResult, err
 	}
 
 	label, _, _ := testing.ExtractFromListOptions(opts)
@@ -74,36 +76,39 @@ func (c *FakeNodeCPUTopologies) List(ctx context.Context, opts v1.ListOptions) (
 // Watch returns a watch.Interface that watches the requested nodeCPUTopologies.
 func (c *FakeNodeCPUTopologies) Watch(ctx context.Context, opts v1.ListOptions) (watch.Interface, error) {
 	return c.Fake.
-		InvokesWatch(testing.NewRootWatchAction(nodecputopologiesResource, opts))
+		InvokesWatch(testing.NewRootWatchActionWithOptions(nodecputopologiesResource, opts))
 }
 
 // Create takes the representation of a nodeCPUTopology and creates it.  Returns the server's representation of the nodeCPUTopology, and an error, if there is any.
 func (c *FakeNodeCPUTopologies) Create(ctx context.Context, nodeCPUTopology *v1alpha1.NodeCPUTopology, opts v1.CreateOptions) (result *v1alpha1.NodeCPUTopology, err error) {
+	emptyResult := &v1alpha1.NodeCPUTopology{}
 	obj, err := c.Fake.
-		Invokes(testing.NewRootCreateAction(nodecputopologiesResource, nodeCPUTopology), &v1alpha1.NodeCPUTopology{})
+		Invokes(testing.NewRootCreateActionWithOptions(nodecputopologiesResource, nodeCPUTopology, opts), emptyResult)
 	if obj == nil {
-		return nil, err
+		return emptyResult, err
 	}
 	return obj.(*v1alpha1.NodeCPUTopology), err
 }
 
 // Update takes the representation of a nodeCPUTopology and updates it. Returns the server's representation of the nodeCPUTopology, and an error, if there is any.
 func (c *FakeNodeCPUTopologies) Update(ctx context.Context, nodeCPUTopology *v1alpha1.NodeCPUTopology, opts v1.UpdateOptions) (result *v1alpha1.NodeCPUTopology, err error) {
+	emptyResult := &v1alpha1.NodeCPUTopology{}
 	obj, err := c.Fake.
-		Invokes(testing.NewRootUpdateAction(nodecputopologiesResource, nodeCPUTopology), &v1alpha1.NodeCPUTopology{})
+		Invokes(testing.NewRootUpdateActionWithOptions(nodecputopologiesResource, nodeCPUTopology, opts), emptyResult)
 	if obj == nil {
-		return nil, err
+		return emptyResult, err
 	}
 	return obj.(*v1alpha1.NodeCPUTopology), err
 }
 
 // UpdateStatus was generated because the type contains a Status member.
 // Add a +genclient:noStatus comment above the type to avoid generating UpdateStatus().
-func (c *FakeNodeCPUTopologies) UpdateStatus(ctx context.Context, nodeCPUTopology *v1alpha1.NodeCPUTopology, opts v1.UpdateOptions) (*v1alpha1.NodeCPUTopology, error) {
+func (c *FakeNodeCPUTopologies) UpdateStatus(ctx context.Context, nodeCPUTopology *v1alpha1.NodeCPUTopology, opts v1.UpdateOptions) (result *v1alpha1.NodeCPUTopology, err error) {
+	emptyResult := &v1alpha1.NodeCPUTopology{}
 	obj, err := c.Fake.
-		Invokes(testing.NewRootUpdateSubresourceAction(nodecputopologiesResource, "status", nodeCPUTopology), &v1alpha1.NodeCPUTopology{})
+		Invokes(testing.NewRootUpdateSubresourceActionWithOptions(nodecputopologiesResource, "status", nodeCPUTopology, opts), emptyResult)
 	if obj == nil {
-		return nil, err
+		return emptyResult, err
 	}
 	return obj.(*v1alpha1.NodeCPUTopology), err
 }
@@ -117,7 +122,7 @@ func (c *FakeNodeCPUTopologies) Delete(ctx context.Context, name string, opts v1
 
 // DeleteCollection deletes a collection of objects.
 func (c *FakeNodeCPUTopologies) DeleteCollection(ctx context.Context, opts v1.DeleteOptions, listOpts v1.ListOptions) error {
-	action := testing.NewRootDeleteCollectionAction(nodecputopologiesResource, listOpts)
+	action := testing.NewRootDeleteCollectionActionWithOptions(nodecputopologiesResource, opts, listOpts)
 
 	_, err := c.Fake.Invokes(action, &v1alpha1.NodeCPUTopologyList{})
 	return err
@@ -125,10 +130,11 @@ func (c *FakeNodeCPUTopologies) DeleteCollection(ctx context.Context, opts v1.De
 
 // Patch applies the patch and returns the patched nodeCPUTopology.
 func (c *FakeNodeCPUTopologies) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *v1alpha1.NodeCPUTopology, err error) {
+	emptyResult := &v1alpha1.NodeCPUTopology{}
 	obj, err := c.Fake.
-		Invokes(testing.NewRootPatchSubresourceAction(nodecputopologiesResource, name, pt, data, subresources...), &v1alpha1.NodeCPUTopology{})
+		Invokes(testing.NewRootPatchSubresourceActionWithOptions(nodecputopologiesResource, name, pt, data, opts, subresources...), emptyResult)
 	if obj == nil {
-		return nil, err
+		return emptyResult, err
 	}
 	return obj.(*v1alpha1.NodeCPUTopology), err
 }
@@ -146,10 +152,11 @@ func (c *FakeNodeCPUTopologies) Apply(ctx context.Context, nodeCPUTopology *csla
 	if name == nil {
 		return nil, fmt.Errorf("nodeCPUTopology.Name must be provided to Apply")
 	}
+	emptyResult := &v1alpha1.NodeCPUTopology{}
 	obj, err := c.Fake.
-		Invokes(testing.NewRootPatchSubresourceAction(nodecputopologiesResource, *name, types.ApplyPatchType, data), &v1alpha1.NodeCPUTopology{})
+		Invokes(testing.NewRootPatchSubresourceActionWithOptions(nodecputopologiesResource, *name, types.ApplyPatchType, data, opts.ToPatchOptions()), emptyResult)
 	if obj == nil {
-		return nil, err
+		return emptyResult, err
 	}
 	return obj.(*v1alpha1.NodeCPUTopology), err
 }
@@ -168,10 +175,11 @@ func (c *FakeNodeCPUTopologies) ApplyStatus(ctx context.Context, nodeCPUTopology
 	if name == nil {
 		return nil, fmt.Errorf("nodeCPUTopology.Name must be provided to Apply")
 	}
+	emptyResult := &v1alpha1.NodeCPUTopology{}
 	obj, err := c.Fake.
-		Invokes(testing.NewRootPatchSubresourceAction(nodecputopologiesResource, *name, types.ApplyPatchType, data, "status"), &v1alpha1.NodeCPUTopology{})
+		Invokes(testing.NewRootPatchSubresourceActionWithOptions(nodecputopologiesResource, *name, types.ApplyPatchType, data, opts.ToPatchOptions(), "status"), emptyResult)
 	if obj == nil {
-		return nil, err
+		return emptyResult, err
 	}
 	return obj.(*v1alpha1.NodeCPUTopology), err
 }

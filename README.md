@@ -43,10 +43,10 @@ This repository is a framework for fine-grained orchestration of Kubernetes Pods
 ## Getting Started
 
 ### Prerequisites
-- go version v1.22.2+
-- docker version 26.01+.
-- kubectl version v1.29.4+.
-- Access to a Kubernetes v1.28.10+ cluster.
+- go version v1.22.6+
+- docker version 27.1.1+.
+- kubectl version v1.30.3+.
+- Access to a Kubernetes v1.31.0+ cluster.
 
 ### To Deploy on the cluster
 

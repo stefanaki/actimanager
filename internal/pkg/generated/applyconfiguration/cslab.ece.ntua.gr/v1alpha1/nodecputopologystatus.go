@@ -21,14 +21,14 @@ import (
 	v1alpha1 "cslab.ece.ntua.gr/actimanager/api/cslab.ece.ntua.gr/v1alpha1"
 )
 
-// NodeCPUTopologyStatusApplyConfiguration represents an declarative configuration of the NodeCPUTopologyStatus type for use
+// NodeCPUTopologyStatusApplyConfiguration represents a declarative configuration of the NodeCPUTopologyStatus type for use
 // with apply.
 type NodeCPUTopologyStatusApplyConfiguration struct {
 	ResourceStatus *v1alpha1.NodeCPUTopologyResourceStatus `json:"resourceStatus,omitempty"`
 	InternalIP     *string                                 `json:"internalIP,omitempty"`
 }
 
-// NodeCPUTopologyStatusApplyConfiguration constructs an declarative configuration of the NodeCPUTopologyStatus type for use with
+// NodeCPUTopologyStatusApplyConfiguration constructs a declarative configuration of the NodeCPUTopologyStatus type for use with
 // apply.
 func NodeCPUTopologyStatus() *NodeCPUTopologyStatusApplyConfiguration {
 	return &NodeCPUTopologyStatusApplyConfiguration{}

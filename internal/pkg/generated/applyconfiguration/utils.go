@@ -20,7 +20,10 @@ package applyconfiguration
 import (
 	v1alpha1 "cslab.ece.ntua.gr/actimanager/api/cslab.ece.ntua.gr/v1alpha1"
 	cslabecentuagrv1alpha1 "cslab.ece.ntua.gr/actimanager/internal/pkg/generated/applyconfiguration/cslab.ece.ntua.gr/v1alpha1"
+	internal "cslab.ece.ntua.gr/actimanager/internal/pkg/generated/applyconfiguration/internal"
+	runtime "k8s.io/apimachinery/pkg/runtime"
 	schema "k8s.io/apimachinery/pkg/runtime/schema"
+	testing "k8s.io/client-go/testing"
 )
 
 // ForKind returns an apply configuration type for the given GroupVersionKind, or nil if no
@@ -53,4 +56,8 @@ func ForKind(kind schema.GroupVersionKind) interface{} {
 
 	}
 	return nil
+}
+
+func NewTypeConverter(scheme *runtime.Scheme) *testing.TypeConverter {
+	return &testing.TypeConverter{Scheme: scheme, TypeResolver: internal.Parser()}
 }

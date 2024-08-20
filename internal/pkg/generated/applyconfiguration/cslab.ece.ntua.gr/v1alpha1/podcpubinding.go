@@ -23,7 +23,7 @@ import (
 	v1 "k8s.io/client-go/applyconfigurations/meta/v1"
 )
 
-// PodCPUBindingApplyConfiguration represents an declarative configuration of the PodCPUBinding type for use
+// PodCPUBindingApplyConfiguration represents a declarative configuration of the PodCPUBinding type for use
 // with apply.
 type PodCPUBindingApplyConfiguration struct {
 	v1.TypeMetaApplyConfiguration    `json:",inline"`
@@ -32,7 +32,7 @@ type PodCPUBindingApplyConfiguration struct {
 	Status                           *PodCPUBindingStatusApplyConfiguration `json:"status,omitempty"`
 }
 
-// PodCPUBinding constructs an declarative configuration of the PodCPUBinding type for use with
+// PodCPUBinding constructs a declarative configuration of the PodCPUBinding type for use with
 // apply.
 func PodCPUBinding(name, namespace string) *PodCPUBindingApplyConfiguration {
 	b := &PodCPUBindingApplyConfiguration{}
@@ -215,4 +215,10 @@ func (b *PodCPUBindingApplyConfiguration) WithSpec(value *PodCPUBindingSpecApply
 func (b *PodCPUBindingApplyConfiguration) WithStatus(value *PodCPUBindingStatusApplyConfiguration) *PodCPUBindingApplyConfiguration {
 	b.Status = value
 	return b
+}
+
+// GetName retrieves the value of the Name field in the declarative configuration.
+func (b *PodCPUBindingApplyConfiguration) GetName() *string {
+	b.ensureObjectMetaApplyConfigurationExists()
+	return b.Name
 }

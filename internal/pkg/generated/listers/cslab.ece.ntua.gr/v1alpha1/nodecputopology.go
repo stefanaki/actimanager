@@ -19,8 +19,8 @@ package v1alpha1
 
 import (
 	v1alpha1 "cslab.ece.ntua.gr/actimanager/api/cslab.ece.ntua.gr/v1alpha1"
-	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/client-go/listers"
 	"k8s.io/client-go/tools/cache"
 )
 
@@ -38,30 +38,10 @@ type NodeCPUTopologyLister interface {
 
 // nodeCPUTopologyLister implements the NodeCPUTopologyLister interface.
 type nodeCPUTopologyLister struct {
-	indexer cache.Indexer
+	listers.ResourceIndexer[*v1alpha1.NodeCPUTopology]
 }
 
 // NewNodeCPUTopologyLister returns a new NodeCPUTopologyLister.
 func NewNodeCPUTopologyLister(indexer cache.Indexer) NodeCPUTopologyLister {
-	return &nodeCPUTopologyLister{indexer: indexer}
-}
-
-// List lists all NodeCPUTopologies in the indexer.
-func (s *nodeCPUTopologyLister) List(selector labels.Selector) (ret []*v1alpha1.NodeCPUTopology, err error) {
-	err = cache.ListAll(s.indexer, selector, func(m interface{}) {
-		ret = append(ret, m.(*v1alpha1.NodeCPUTopology))
-	})
-	return ret, err
-}
-
-// Get retrieves the NodeCPUTopology from the index for a given name.
-func (s *nodeCPUTopologyLister) Get(name string) (*v1alpha1.NodeCPUTopology, error) {
-	obj, exists, err := s.indexer.GetByKey(name)
-	if err != nil {
-		return nil, err
-	}
-	if !exists {
-		return nil, errors.NewNotFound(v1alpha1.Resource("nodecputopology"), name)
-	}
-	return obj.(*v1alpha1.NodeCPUTopology), nil
+	return &nodeCPUTopologyLister{listers.New[*v1alpha1.NodeCPUTopology](indexer, v1alpha1.Resource("nodecputopology"))}
 }

@@ -17,13 +17,13 @@ limitations under the License.
 
 package v1alpha1
 
-// CPUApplyConfiguration represents an declarative configuration of the CPU type for use
+// CPUApplyConfiguration represents a declarative configuration of the CPU type for use
 // with apply.
 type CPUApplyConfiguration struct {
 	CPUID *int `json:"cpuID,omitempty"`
 }
 
-// CPUApplyConfiguration constructs an declarative configuration of the CPU type for use with
+// CPUApplyConfiguration constructs a declarative configuration of the CPU type for use with
 // apply.
 func CPU() *CPUApplyConfiguration {
 	return &CPUApplyConfiguration{}

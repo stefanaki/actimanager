@@ -21,14 +21,14 @@ import (
 	v1alpha1 "cslab.ece.ntua.gr/actimanager/api/cslab.ece.ntua.gr/v1alpha1"
 )
 
-// PodCPUBindingStatusApplyConfiguration represents an declarative configuration of the PodCPUBindingStatus type for use
+// PodCPUBindingStatusApplyConfiguration represents a declarative configuration of the PodCPUBindingStatus type for use
 // with apply.
 type PodCPUBindingStatusApplyConfiguration struct {
 	ResourceStatus *v1alpha1.PodCPUBindingResourceStatus `json:"resourceStatus,omitempty"`
 	NodeName       *string                               `json:"nodeName,omitempty"`
 }
 
-// PodCPUBindingStatusApplyConfiguration constructs an declarative configuration of the PodCPUBindingStatus type for use with
+// PodCPUBindingStatusApplyConfiguration constructs a declarative configuration of the PodCPUBindingStatus type for use with
 // apply.
 func PodCPUBindingStatus() *PodCPUBindingStatusApplyConfiguration {
 	return &PodCPUBindingStatusApplyConfiguration{}
