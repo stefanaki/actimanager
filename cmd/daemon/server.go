@@ -55,20 +55,22 @@ func (s *DaemonServer) Start() error {
 			s.logger.Error(err, "failed to serve")
 		}
 	}()
-	conn, err := grpc.DialContext(context.Background(), s.endpoint,
+
+	dialOptions := []grpc.DialOption{
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
-		grpc.WithBlock(),
-		grpc.WithIdleTimeout(5*time.Second),
+		grpc.WithIdleTimeout(5 * time.Second),
 		grpc.WithContextDialer(func(ctx context.Context, addr string) (net.Conn, error) {
 			d := &net.Dialer{}
 			return d.DialContext(ctx, "tcp", addr)
-		}),
-	)
+		})}
+
+	conn, err := grpc.NewClient(s.endpoint, dialOptions...)
 	if err != nil {
 		return fmt.Errorf("cannot connect to server: %v", err.Error())
 	}
-	s.logger.Info("Daemon server started serving", "endpoint", s.endpoint)
 	defer conn.Close()
+
+	s.logger.Info("Daemon server started serving", "endpoint", s.endpoint)
 	return nil
 }
 

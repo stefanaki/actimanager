@@ -1,13 +1,14 @@
 package client
 
 import (
+	"log"
+	"path/filepath"
+
 	clientset "cslab.ece.ntua.gr/actimanager/internal/pkg/generated/clientset/versioned"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/util/homedir"
-	"log"
-	"path/filepath"
 )
 
 func NewClient() (*kubernetes.Clientset, error) {

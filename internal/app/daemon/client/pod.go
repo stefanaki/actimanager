@@ -3,19 +3,20 @@ package client
 import (
 	"errors"
 	"fmt"
+	"time"
+
 	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/cache"
-	"time"
 )
 
 type PodClient struct {
 	client          kubernetes.Clientset
 	informer        cache.SharedIndexInformer
 	informerFactory informers.SharedInformerFactory
-	stopCh          *chan struct{}
+	stopCh          chan struct{}
 	logger          logr.Logger
 }
 
@@ -42,12 +43,12 @@ func NewPodClient(clientset kubernetes.Clientset, logger logr.Logger) (*PodClien
 	return client, nil
 }
 
-func (c *PodClient) Start(stopCh *chan struct{}) error {
-	c.stopCh = stopCh
-	c.informerFactory.Start(*stopCh)
+func (c *PodClient) Start() error {
+	c.stopCh = make(chan struct{})
+	c.informerFactory.Start(c.stopCh)
 	c.logger.Info("Starting Pod informer")
 	c.logger.Info("Waiting for cache to sync")
-	if ok := cache.WaitForCacheSync(*stopCh, c.informer.HasSynced); !ok {
+	if ok := cache.WaitForCacheSync(c.stopCh, c.informer.HasSynced); !ok {
 		return errors.New("failed to sync cache")
 	}
 	return nil
@@ -55,7 +56,7 @@ func (c *PodClient) Start(stopCh *chan struct{}) error {
 
 func (c *PodClient) Stop() {
 	c.logger.Info("Stopping Pod informer")
-	*c.stopCh <- struct{}{}
+	c.stopCh <- struct{}{}
 }
 
 func (c *PodClient) PodsForNode(nodeName string) ([]corev1.Pod, error) {

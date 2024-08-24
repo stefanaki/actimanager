@@ -1,11 +1,15 @@
 package topology
 
 import (
-	pbtopo "cslab.ece.ntua.gr/actimanager/internal/pkg/protobuf/topology"
 	"fmt"
+	"os/exec"
 	"slices"
 	"strconv"
 	"strings"
+
+	"cslab.ece.ntua.gr/actimanager/api/cslab.ece.ntua.gr/v1alpha1"
+	pbtopo "cslab.ece.ntua.gr/actimanager/internal/pkg/protobuf/topology"
+	nctutils "cslab.ece.ntua.gr/actimanager/internal/pkg/utils/nodecputopology"
 )
 
 // ParseTopology parses the output of lscpu command
@@ -71,4 +75,14 @@ func ParseTopology(output string) (*pbtopo.TopologyResponse, error) {
 		}
 	}
 	return res, nil
+}
+
+// GetCPUTopology returns a v1alpha1.CPUTopology struct with the host's CPU topology
+func GetCPUTopology() (*v1alpha1.CPUTopology, error) {
+	output, err := exec.Command(LscpuCommand, LscpuArgs...).CombinedOutput()
+	t, err := ParseTopology(string(output))
+	if err != nil {
+		return nil, err
+	}
+	return nctutils.TopologyToV1Alpha1(t), nil
 }

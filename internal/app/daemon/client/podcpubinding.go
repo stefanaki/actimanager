@@ -1,21 +1,22 @@
 package client
 
 import (
+	"errors"
+	"fmt"
+	"time"
+
 	"cslab.ece.ntua.gr/actimanager/api/cslab.ece.ntua.gr/v1alpha1"
 	clientset "cslab.ece.ntua.gr/actimanager/internal/pkg/generated/clientset/versioned"
 	"cslab.ece.ntua.gr/actimanager/internal/pkg/generated/informers/externalversions"
-	"errors"
-	"fmt"
 	"github.com/go-logr/logr"
 	"k8s.io/client-go/tools/cache"
-	"time"
 )
 
 type PodCPUBindingClient struct {
 	client          clientset.Clientset
 	informer        cache.SharedIndexInformer
 	informerFactory externalversions.SharedInformerFactory
-	stopCh          *chan struct{}
+	stopCh          chan struct{}
 	logger          logr.Logger
 }
 
@@ -42,12 +43,12 @@ func NewPodCPUBindingClient(cslabClient clientset.Clientset, logger logr.Logger)
 	return client, nil
 }
 
-func (c *PodCPUBindingClient) Start(stopCh *chan struct{}) error {
-	c.stopCh = stopCh
-	c.informerFactory.Start(*stopCh)
+func (c *PodCPUBindingClient) Start() error {
+	c.stopCh = make(chan struct{})
+	c.informerFactory.Start(c.stopCh)
 	c.logger.Info("Starting PodCPUBinding informer")
 	c.logger.Info("Waiting for cache to sync")
-	if ok := cache.WaitForCacheSync(*stopCh, c.informer.HasSynced); !ok {
+	if ok := cache.WaitForCacheSync(c.stopCh, c.informer.HasSynced); !ok {
 		return errors.New("failed to sync cache")
 	}
 	return nil
@@ -55,7 +56,7 @@ func (c *PodCPUBindingClient) Start(stopCh *chan struct{}) error {
 
 func (c *PodCPUBindingClient) Stop() {
 	c.logger.Info("Stopping PodCPUBinding informer")
-	*c.stopCh <- struct{}{}
+	c.stopCh <- struct{}{}
 }
 
 func (c *PodCPUBindingClient) PodCPUBindingsForNode(nodeName string) ([]v1alpha1.PodCPUBinding, error) {

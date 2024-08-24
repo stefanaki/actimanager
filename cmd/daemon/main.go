@@ -3,16 +3,14 @@ package main
 import (
 	"flag"
 	"os"
-	"os/exec"
 	"os/signal"
 	"syscall"
 
-	"cslab.ece.ntua.gr/actimanager/api/cslab.ece.ntua.gr/v1alpha1"
 	"cslab.ece.ntua.gr/actimanager/internal/app/daemon/client"
 	"cslab.ece.ntua.gr/actimanager/internal/app/daemon/cpupinning"
 	"cslab.ece.ntua.gr/actimanager/internal/app/daemon/topology"
 	clients "cslab.ece.ntua.gr/actimanager/internal/pkg/client"
-	nctutils "cslab.ece.ntua.gr/actimanager/internal/pkg/utils/nodecputopology"
+
 	"github.com/go-logr/logr"
 	"k8s.io/klog/v2/textlogger"
 )
@@ -31,8 +29,6 @@ func main() {
 
 	logger.Info("args", "runtime", runtime, "nodeName", nodeName, "driver", driver, "cgroupsPath", cgroupsPath, "reconcilePeriod", reconcilePeriod)
 
-	stopCh1, stopCh2 := make(chan struct{}), make(chan struct{})
-
 	coreClient, err := clients.NewClient()
 	cslabClient, err := clients.NewCSLabClient()
 	podCPUBindingClient, err := client.NewPodCPUBindingClient(*cslabClient, logger)
@@ -42,14 +38,14 @@ func main() {
 		os.Exit(1)
 	}
 
-	err = podCPUBindingClient.Start(&stopCh1)
-	err = podClient.Start(&stopCh2)
+	err = podCPUBindingClient.Start()
+	err = podClient.Start()
 	if err != nil {
 		logger.Error(err, "cannot start the clients")
 		os.Exit(1)
 	}
 
-	cpuTopology, err := getCPUTopology()
+	cpuTopology, err := topology.GetCPUTopology()
 	if err != nil {
 		logger.Error(err, "cannot get cpu topology")
 		os.Exit(1)
@@ -91,8 +87,6 @@ func main() {
 	daemonServer.Stop()
 	podCPUBindingClient.Stop()
 	podClient.Stop()
-	close(stopCh1)
-	close(stopCh2)
 }
 
 func createLogger(verbosity *int) logr.Logger {
@@ -100,15 +94,6 @@ func createLogger(verbosity *int) logr.Logger {
 	config := textlogger.NewConfig(textlogger.Verbosity(*verbosity))
 	config.AddFlags(flags)
 	return textlogger.NewLogger(config)
-}
-
-func getCPUTopology() (*v1alpha1.CPUTopology, error) {
-	output, err := exec.Command(topology.LscpuCommand, topology.LscpuArgs...).CombinedOutput()
-	t, err := topology.ParseTopology(string(output))
-	if err != nil {
-		return nil, err
-	}
-	return nctutils.TopologyToV1Alpha1(t), nil
 }
 
 func handlePanic(logger logr.Logger) {

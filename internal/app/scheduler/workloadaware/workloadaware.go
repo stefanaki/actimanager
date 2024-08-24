@@ -57,21 +57,32 @@ func New(ctx context.Context, obj runtime.Object, h framework.Handle) (framework
 		return nil, err
 	}
 
+	l := klog.NewKlogr().WithName(Name)
+	l.Info("args", "policy", args.Policy, "features", args.Features)
+
 	csLabClient, err := client.NewCSLabClient()
 	if err != nil {
 		return nil, err
 	}
 	informerFactory := informers.NewSharedInformerFactory(csLabClient, 30*time.Second)
 
-	l := klog.NewKlogr().WithName(Name)
-	l.Info("args", "policy", args.Policy, "features", args.Features)
+	topologyLister := informerFactory.Cslab().V1alpha1().NodeCPUTopologies().Lister()
+	cpuBindingLister := informerFactory.Cslab().V1alpha1().PodCPUBindings().Lister()
+
+	informerFactory.Start(ctx.Done())
+	synced := informerFactory.WaitForCacheSync(ctx.Done())
+	for informer, ok := range synced {
+		if !ok {
+			return nil, fmt.Errorf("failed to sync informer %v", informer)
+		}
+	}
 
 	return &WorkloadAware{
 		args:             args,
 		handle:           h,
 		client:           csLabClient,
-		topologyLister:   informerFactory.Cslab().V1alpha1().NodeCPUTopologies().Lister(),
-		cpuBindingLister: informerFactory.Cslab().V1alpha1().PodCPUBindings().Lister(),
+		topologyLister:   topologyLister,
+		cpuBindingLister: cpuBindingLister,
 		logger:           l,
 	}, err
 }
@@ -96,12 +107,12 @@ func (w *WorkloadAware) PreFilter(ctx context.Context, state *framework.CycleSta
 		AllocatableCPUs: make(map[string]NodeAllocatableCPUs),
 	}
 
-	topologies, err := w.topologyLister.List(labels.NewSelector())
+	topologies, err := w.topologyLister.List(labels.Everything())
 	if err != nil {
 		logger.Error(err, "failed to get node cpu topologies")
 		return nil, framework.NewStatus(framework.Error, "failed to get node cpu topologies")
 	}
-	cpuBindings, err := w.cpuBindingLister.PodCPUBindings("").List(labels.NewSelector())
+	cpuBindings, err := w.cpuBindingLister.PodCPUBindings("").List(labels.Everything())
 	if err != nil {
 		logger.Error(err, "failed to get pod cpu bindings")
 		return nil, framework.NewStatus(framework.Error, "failed to get pod cpu bindings")
@@ -115,7 +126,6 @@ func (w *WorkloadAware) PreFilter(ctx context.Context, state *framework.CycleSta
 		stateData.AllocatableCPUs[t.Spec.NodeName] = allocatableCPUsForNode(t.Spec.NodeName, &t.Spec.Topology, cpuBindings, workloadType)
 		stateData.Topologies[t.Spec.NodeName] = t.Spec.Topology
 	}
-
 	state.Write(framework.StateKey(Name), stateData)
 	return &framework.PreFilterResult{NodeNames: nodes}, nil
 }
